@@ -5,62 +5,189 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Éditeur de zones cliquables - Radar Cyber</title>
 <style>
-  :root { --panel: #f6f4ff; --border: #d9d2ff; --accent: #5d35d6; --text:#1f1b2d; }
+  :root {
+    --bg: #eaf5f5;
+    --bg-soft: #f7fbfb;
+    --panel: #ffffff;
+    --panel-tint: #eef5ff;
+    --border: #cfe2ea;
+    --border-strong: #b8cbff;
+    --accent: #1699a8;
+    --accent-dark: #0d6f86;
+    --accent-2: #2ed39b;
+    --nav-a: #0d3f61;
+    --nav-b: #0f8794;
+    --nav-c: #249b83;
+    --text:#112b43;
+    --muted:#64788b;
+    --shadow: 0 18px 48px rgba(14, 65, 83, .16);
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: Arial, Helvetica, sans-serif; color:var(--text); background:#fff; }
-  header { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  header h1 { font-size:16px; margin:0; font-weight:700; }
-  header .hint { font-size:12px; opacity:.75; }
-  main { display:grid; grid-template-columns: minmax(0, 1fr) 360px; height: calc(100vh - 48px); }
-  #stageWrap { overflow:scroll; background:#fafafa; padding:16px; }
-  #stage { position:relative; width:1024px; height:576px; background:white; box-shadow:0 2px 14px rgba(0,0,0,.13); overflow:visible; }
+  body {
+    margin:0;
+    min-height:100vh;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 78% 18%, rgba(46, 211, 155, .20), transparent 30%),
+      linear-gradient(180deg, #d8ecef 0, var(--bg) 270px, #f8fbff 100%);
+  }
+  .appTopBar {
+    min-height:118px;
+    display:grid;
+    grid-template-columns:minmax(300px, 1fr) auto auto;
+    grid-template-areas:
+      "brand phases status"
+      "tools tools tools";
+    align-items:stretch;
+    gap:0;
+    color:#f7fbff;
+    background:linear-gradient(110deg, var(--nav-a) 0%, var(--nav-b) 58%, var(--nav-c) 100%);
+    box-shadow:0 10px 34px rgba(9, 53, 76, .24);
+  }
+  .brandBlock { grid-area:brand; padding:30px 20px 24px; border-right:1px solid rgba(255,255,255,.12); }
+  .eyebrow { display:block; color:rgba(244,250,255,.78); font-size:13px; letter-spacing:.22em; font-weight:800; text-transform:uppercase; margin-bottom:4px; }
+  header h1 { font-size:24px; line-height:1.12; margin:0; font-weight:850; letter-spacing:-.03em; color:#fff; }
+  .phaseNav { grid-area:phases; display:flex; align-items:stretch; justify-content:center; min-width:520px; }
+  .phaseBtn {
+    appearance:none;
+    min-width:132px;
+    border:0;
+    border-left:1px solid rgba(255,255,255,.12);
+    border-radius:0;
+    padding:18px 18px 14px;
+    background:transparent;
+    color:rgba(237,251,255,.78);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:6px;
+    position:relative;
+    text-transform:uppercase;
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:.05em;
+  }
+  .phaseBtn:last-child { border-right:1px solid rgba(255,255,255,.12); }
+  .phaseBtn::after {
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:4px;
+    background:transparent;
+  }
+  .phaseBtn:hover, .phaseBtn.active { background:rgba(255,255,255,.09); color:#fff; }
+  .phaseBtn.active::after { background:var(--accent-2); }
+  .phaseIcon { font-size:27px; line-height:1; opacity:.94; }
+  .statusArea { grid-area:status; display:flex; align-items:center; gap:18px; padding:0 22px; color:rgba(237,251,255,.72); font-weight:700; white-space:nowrap; }
+  .statusIcon { font-size:25px; color:rgba(237,251,255,.9); }
+  .toolbar {
+    grid-area:tools;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+    padding:12px 20px 14px;
+    background:rgba(5, 50, 73, .18);
+    border-top:1px solid rgba(255,255,255,.10);
+  }
+  .toolbar button, .toolbar .shapeIcons { box-shadow:none; }
+  .toolbar button { padding:7px 10px; font-size:12px; }
+  .hint { color:rgba(244,250,255,.78); font-size:12px; margin-left:auto; }
+  .hero {
+    margin:36px 36px 28px;
+    padding:26px 28px;
+    border:1px solid rgba(255,255,255,.78);
+    border-radius:26px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:18px;
+    background:rgba(255,255,255,.76);
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(14px);
+  }
+  .hero h2 { margin:0 0 4px; font-size:34px; letter-spacing:-.04em; }
+  .hero p { margin:0; color:var(--muted); font-size:20px; }
+  .heroPills { display:flex; flex-wrap:wrap; gap:14px; justify-content:flex-end; }
+  .heroPill { border:1px solid var(--border); border-radius:999px; padding:11px 18px; background:rgba(255,255,255,.70); font-size:18px; color:#123552; white-space:nowrap; box-shadow:0 6px 18px rgba(14,65,83,.07); }
+  .heroPill.primary { border-color:#25c99a; color:#16a879; background:rgba(216,249,238,.72); font-weight:750; }
+  main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; gap:18px; min-height: calc(100vh - 274px); margin:0 36px 36px; }
+  #stageWrap { overflow:scroll; background:rgba(255,255,255,.88); padding:28px; border:1px solid #e6f0f4; border-radius:26px; box-shadow:var(--shadow); }
+  #stage { position:relative; width:1024px; height:576px; background:white; border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.13); overflow:visible; }
   #stageScaler { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin: top left; }
   #radarImg { position:absolute; inset:0; width:1280px; height:720px; user-select:none; -webkit-user-drag:none; }
   #overlay { position:absolute; inset:0; width:1280px; height:720px; }
-  .zone { fill:rgba(93,53,214,.12); stroke:rgba(93,53,214,.65); stroke-width:1.5; cursor:move; vector-effect:non-scaling-stroke; }
+  .zone { fill:rgba(22,153,168,.14); stroke:rgba(13,111,134,.72); stroke-width:1.5; cursor:move; vector-effect:non-scaling-stroke; }
   .zone.noUrl { stroke-dasharray:5 4; }
-  .zone.selected { fill:rgba(255,149,0,.20); stroke:#ff9500; stroke-width:2.5; }
+  .zone.selected { fill:rgba(46,211,155,.24); stroke:#2ed39b; stroke-width:2.5; }
   .zone.hiddenFill { fill:transparent; }
-  .handle { fill:#fff; stroke:#ff9500; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
-  .vertex { fill:#fff; stroke:#007aff; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
-  aside { border-left:1px solid var(--border); background:var(--panel); overflow:auto; padding:14px; }
-  label { display:block; font-size:12px; font-weight:700; margin-top:10px; margin-bottom:4px; }
+  .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
+  .vertex { fill:#fff; stroke:#1699a8; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
+  aside { border:1px solid #e6f0f4; border-radius:26px; background:rgba(255,255,255,.92); overflow:auto; padding:20px; box-shadow:var(--shadow); }
+  label { display:block; font-size:12px; font-weight:800; margin-top:10px; margin-bottom:4px; color:#243d55; }
   input, select, textarea, button { font:inherit; }
-  input, select, textarea { width:100%; padding:7px 8px; border:1px solid #c9c1ee; border-radius:8px; background:white; }
+  input, select, textarea { width:100%; padding:9px 10px; border:1px solid #cbdde6; border-radius:10px; background:white; color:var(--text); }
+  input:focus, select:focus, textarea:focus { outline:2px solid rgba(46,211,155,.24); border-color:#54cdb2; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-  button { border:1px solid #c9c1ee; background:white; color:var(--text); padding:8px 9px; border-radius:9px; cursor:pointer; }
-  button.primary { background:var(--accent); color:white; border-color:var(--accent); }
-  button.danger { border-color:#d04040; color:#b00020; }
+  button { border:1px solid #cbdde6; background:#fff; color:var(--text); padding:8px 9px; border-radius:12px; cursor:pointer; font-weight:700; }
+  button.primary { background:linear-gradient(135deg, #137f9a, #13a59e); color:white; border-color:transparent; box-shadow:0 12px 24px rgba(14,126,148,.22); }
+  button.danger { border-color:#f3bbbb; color:#b00020; }
   button:disabled { opacity:.45; cursor:not-allowed; }
   .small { font-size:12px; opacity:.75; line-height:1.35; }
-  #zoneList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #c9c1ee; border-radius:8px; background:white; }
-  .item { padding:7px 8px; border-bottom:1px solid #eee; cursor:pointer; display:flex; justify-content:space-between; gap:8px; font-size:12px; }
+  #zoneList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
+  .item { padding:8px 10px; border-bottom:1px solid #eef3f6; cursor:pointer; display:flex; justify-content:space-between; gap:8px; font-size:12px; }
   .item:last-child { border-bottom:0; }
-  .item.sel { background:#ece7ff; font-weight:700; }
+  .item.sel { background:#e5f8f5; font-weight:800; color:#0b7582; }
   .pill { opacity:.65; }
-  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-  .toolbar button { padding:6px 8px; font-size:12px; }
-  .shapeIcons { display:flex; gap:4px; align-items:center; padding:3px 5px; border:1px solid var(--border); border-radius:10px; background:white; }
+  .shapeIcons { display:flex; gap:4px; align-items:center; padding:3px 5px; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .shapeIcons button { min-width:30px; padding:5px 7px; font-size:15px; line-height:1; }
   .shapeIcons button.active { background:var(--accent); color:white; border-color:var(--accent); }
-  .toolbar input[type="range"] { width:120px; }
+  .toolbar input[type="range"] { width:120px; accent-color:var(--accent-2); }
+  .toolbar label { color:rgba(255,255,255,.86); }
+  .toolbar input[type="checkbox"] { accent-color:var(--accent-2); }
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
-  .tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px; }
-  .tabBtn { padding:8px 6px; font-size:12px; }
-  .tabBtn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+  .tabBtn { padding:10px 6px; font-size:12px; border-radius:14px; }
+  .tabBtn.active { background:#123d5d; color:#fff; border-color:#123d5d; }
   .tabPanel { display:none; }
   .tabPanel.active { display:block; }
-  .tabPanel h2 { font-size:15px; margin:6px 0 8px; }
+  .tabPanel h2 { font-size:18px; margin:6px 0 8px; }
   #analysisLog { min-height:120px; background:#fff; }
   .popup-logo { max-width:96px; max-height:48px; object-fit:contain; display:block; margin:0 0 8px; }
+  @media (max-width: 1180px) {
+    .appTopBar { grid-template-columns:1fr; grid-template-areas:"brand" "phases" "status" "tools"; }
+    .phaseNav { min-width:0; overflow-x:auto; justify-content:flex-start; }
+    .statusArea { padding:12px 20px; justify-content:flex-end; }
+    .hint { width:100%; margin-left:0; }
+    .hero, main { margin-left:18px; margin-right:18px; }
+    main { grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>Éditeur de zones cliquables</h1>
-  <div class="toolbar">
+<header class="appTopBar">
+  <div class="brandBlock" aria-label="RadarMapper by Wavestone">
+    <span class="eyebrow">RadarMapper by Wavestone</span>
+    <h1>Éditeur de zones cliquables - Radar Cyber</h1>
+  </div>
+  <nav class="phaseNav" aria-label="Phases du projet">
+    <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Initialisation</span></button>
+    <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Édition</span></button>
+    <button class="phaseBtn" data-tab="configPanel" type="button"><span class="phaseIcon">⚙</span><span>Configuration</span></button>
+  </nav>
+  <div class="statusArea" aria-label="Statut de sauvegarde">
+    <span>Saved (browser)</span>
+    <span class="statusIcon" aria-hidden="true">▣</span>
+    <span class="statusIcon" aria-hidden="true">⚙</span>
+  </div>
+  <div class="toolbar" aria-label="Actions rapides d'édition">
     <button id="addRect">+ rectangle</button>
     <button id="addDiamond">+ losange</button>
     <button id="addPoly">+ polygone</button>
@@ -75,11 +202,22 @@
     <button id="exportHtml" class="primary">Exporter HTML cliquable</button>
     <button id="exportJson">Exporter JSON</button>
     <button id="prefillOcr" title="Applique les noms OCR améliorés aux zones encore génériques">Préremplir noms OCR v3</button>
-    <label style="margin:0;font-weight:400">Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
-    <label style="margin:0;font-weight:400"><input id="showFill" type="checkbox" checked style="width:auto"> voir les zones</label>
+    <label style="margin:0;font-weight:700">Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
+    <label style="margin:0;font-weight:700"><input id="showFill" type="checkbox" checked style="width:auto"> voir les zones</label>
+    <span class="hint">Glisser pour déplacer. Poignées orange pour redimensionner. Points bleus pour modifier un polygone.</span>
   </div>
-  <span class="hint">Glisser pour déplacer. Poignées orange pour redimensionner. Points bleus pour modifier un polygone.</span>
 </header>
+<section class="hero" aria-label="Résumé du projet">
+  <div>
+    <h2>RadarMapper</h2>
+    <p>Créez, corrigez et exportez des zones cliquables avec une expérience guidée.</p>
+  </div>
+  <div class="heroPills">
+    <span class="heroPill primary">Radar Cyber</span>
+    <span class="heroPill">3 phases</span>
+    <span class="heroPill">340 zones</span>
+  </div>
+</section>
 <main>
   <section id="stageWrap">
     <div id="stage">
@@ -375,11 +513,13 @@ document.querySelectorAll('.shapeBtn').forEach(b=>{
   };
 });
 
-document.querySelectorAll('.tabBtn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b===btn));
-    document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active', panel.id===btn.dataset.tab));
-  });
+function selectWorkflowTab(tabId){
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.phaseBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active', panel.id === tabId));
+}
+document.querySelectorAll('.tabBtn, .phaseBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>selectWorkflowTab(btn.dataset.tab));
 });
 function logAnalysis(message){
   const el=q('analysisLog');
