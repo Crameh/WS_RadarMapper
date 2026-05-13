@@ -44,7 +44,7 @@
   .brandBlock { grid-area:brand; padding:8px 12px 6px; border-right:1px solid rgba(255,255,255,.12); }
   .eyebrow { display:block; color:rgba(244,250,255,.78); font-size:10px; letter-spacing:.16em; font-weight:800; text-transform:uppercase; margin-bottom:2px; }
   header h1 { font-size:14px; line-height:1.05; margin:0; font-weight:850; letter-spacing:-.01em; color:#fff; }
-  .phaseNav { grid-area:phases; display:flex; align-items:stretch; justify-content:center; min-width:660px; }
+  .phaseNav { grid-area:phases; display:flex; align-items:stretch; justify-content:center; min-width:540px; }
   .phaseBtn {
     appearance:none;
     min-width:120px;
@@ -82,6 +82,25 @@
   .statusArea { grid-area:status; display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:0 10px; color:rgba(237,251,255,.82); font-weight:700; white-space:nowrap; font-size:11px; }
   .topCheck { display:inline-flex; align-items:center; gap:6px; font-weight:700; }
   .topCheck input { width:auto; accent-color:var(--accent-2); }
+  .aiStatus {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 8px;
+    border:1px solid rgba(255,255,255,.24);
+    border-radius:999px;
+    background:rgba(255,255,255,.10);
+    color:rgba(237,251,255,.84);
+  }
+  .aiStatus::before {
+    content:"";
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#f0c84b;
+  }
+  .aiStatus.connected { color:#fff; }
+  .aiStatus.connected::before { background:var(--accent-2); }
   .iconBtn {
     border:1px solid rgba(255,255,255,.34);
     border-radius:10px;
@@ -115,19 +134,21 @@
   .zoneTools input[type="checkbox"] { width:auto; accent-color:#1699a8; }
   .modeHintLine { font-size:12px; font-weight:700; color:#3b566d; opacity:.92; }
   .zoneToolsTitle { font-size:12px; font-weight:800; color:#12314a; }
-  body[data-mode="initPanel"] .zoneToolsShapes,
-  body[data-mode="exportPanel"] .zoneToolsShapes,
-  body[data-mode="configPanel"] .zoneToolsShapes { display:none; }
+  body[data-mode="initPanel"] .zoneToolsEdit,
+  body[data-mode="exportPanel"] .zoneToolsEdit,
+  body[data-mode="configPanel"] .zoneToolsEdit { display:none; }
   main { display:grid; grid-template-columns: minmax(0, 1fr) 400px; gap:18px; min-height: calc(100vh - 274px); margin:24px 36px 36px; }
   #stageWrap { overflow-x:auto; overflow-y:auto; scrollbar-gutter:stable both-edges; background:rgba(255,255,255,.88); padding:24px; border:1px solid #e6f0f4; border-radius:14px; box-shadow:var(--shadow); position:relative; }
   #stage { position:relative; width:1024px; height:576px; background:white; border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.13); overflow:visible; }
   #stageScaler { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin: top left; }
   #radarImg { position:absolute; inset:0; width:1280px; height:720px; user-select:none; -webkit-user-drag:none; }
   #overlay { position:absolute; inset:0; width:1280px; height:720px; }
-  .zone { fill:rgba(22,153,168,.14); stroke:rgba(13,111,134,.72); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
+  .zone { fill:rgba(234,126,38,.20); stroke:rgba(184,89,20,.78); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
+  .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
-  .zone.selected { fill:rgba(46,211,155,.24); stroke:#2ed39b; stroke-width:2.5; }
+  .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
+  .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
   .zone.hiddenFill { fill:transparent; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
   .vertex { fill:#fff; stroke:#1699a8; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
@@ -155,12 +176,42 @@
   .shapeIcons { display:flex; gap:4px; align-items:center; padding:3px 5px; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .shapeIcons button { min-width:30px; padding:5px 7px; font-size:15px; line-height:1; }
   .shapeIcons button.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .zoneToolsEdit { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; border-radius:50%; font-size:22px; line-height:1; background:#0f8794; color:#fff; border-color:#0f8794; }
+  .addZoneBtn:hover { background:#0d6f86; }
+  .stageExportBtn { min-height:34px; padding:7px 12px; border-color:#0f8794; color:#0d6f86; }
+  .confirmAssociationBtn { margin-top:6px; width:100%; min-height:34px; border-color:#23aa7a; color:#0d7452; background:#eafaf4; }
+  .associationStatus { margin:5px 0 0; color:#65788a; font-size:11px; font-weight:800; }
+  .startupImportStatus { margin:8px 0 0; color:#4c657a; font-size:12px; line-height:1.35; }
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
   .tabPanel { display:none; }
   .tabPanel.active { display:block; }
   .tabPanel h2 { font-size:18px; margin:6px 0 8px; }
   .tabPanel h3 { font-size:13px; margin:18px 0 8px; padding-top:10px; border-top:1px solid #eef3f6; color:#12314a; text-transform:uppercase; letter-spacing:.05em; }
+  .workflowIntro { margin:0 0 14px; color:#4c657a; font-size:12px; line-height:1.45; }
+  .sectionGroup { padding:14px 0; border-top:1px solid #edf3f6; }
+  .sectionGroup:first-child { border-top:0; padding-top:0; }
+  .sectionHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .sectionHeader h2, .sectionHeader h3 { margin:0; padding:0; border:0; color:#12314a; letter-spacing:0; text-transform:none; }
+  .sectionHeader h2 { font-size:18px; line-height:1.2; }
+  .sectionHeader h3 { font-size:14px; line-height:1.25; }
+  .sectionHeader p { margin:3px 0 0; color:#65788a; font-size:12px; line-height:1.35; }
+  .sectionKicker { flex:0 0 auto; color:#0b7582; font-size:11px; font-weight:850; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
+  .primaryAction { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+  .primaryAction.split { grid-template-columns:1fr 1fr; }
+  .primaryAction button { width:100%; min-height:42px; font-size:14px; }
+  .secondaryActions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .secondaryActions.compact { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .secondaryActions button { min-height:38px; }
+  .advancedGroup { margin-top:12px; border:1px solid #dfeaf0; border-radius:12px; background:#fbfdfd; overflow:hidden; }
+  .advancedGroup summary { cursor:pointer; padding:10px 12px; color:#243d55; font-size:12px; font-weight:850; list-style-position:inside; }
+  .advancedBody { padding:0 12px 12px; }
+  .fileActionGroup, .zoneActionGroup { margin-top:12px; }
+  .groupLabel { margin:0 0 7px; color:#4a6074; font-size:11px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+  .noticeLine { margin:10px 0 0; border:1px solid #f0c84b; border-radius:10px; background:#fff8d5; color:#75420f; padding:9px 10px; font-size:12px; line-height:1.35; }
+  .publishSummary { display:grid; gap:0; border:1px solid #dfeaf0; border-radius:12px; background:#fbfdfd; overflow:hidden; }
+  .publishSummary .previewTitle { padding:10px 12px; margin:0; border-bottom:1px solid #edf3f6; background:#f4fbfa; }
   .configMenu {
     position:fixed;
     right:16px;
@@ -182,7 +233,7 @@
   .configMenuClose { width:32px; height:32px; border-radius:10px; }
   #analysisLog { min-height:120px; background:#fff; }
   .modeBadge { display:none; }
-  .exportPreview { display:none; }
+  .exportPreview { display:block; }
   .previewTitle { font-size:16px; font-weight:850; margin-bottom:10px; }
   .previewRow { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid #eef3f6; font-size:12px; }
   .previewValue { font-weight:800; text-align:right; }
@@ -192,6 +243,26 @@
   .exportLivePopup a { color:var(--popup-accent, #137f9a); font-weight:800; }
   .exportLivePopup .popup-logo { max-width:120px; max-height:60px; object-fit:contain; display:block; margin:0 0 8px; }
   .exportLivePopup p { margin:8px 0 0; }
+  .editZonePopup {
+    position:absolute;
+    z-index:8;
+    width:min(360px, calc(100vw - 48px));
+    max-height:min(560px, calc(100vh - 120px));
+    overflow:auto;
+    display:block;
+    border:1px solid #cfe2ea;
+    border-radius:14px;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 18px 40px rgba(14,65,83,.24);
+    padding:14px;
+    color:#12314a;
+  }
+  .editZonePopup[hidden] { display:none; }
+  .editZoneHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .editZoneHeader h3 { margin:0; font-size:16px; color:#12314a; }
+  .editZoneClose { width:30px; height:30px; padding:0; border-radius:10px; }
+  .editZonePopup .row { margin-top:0; }
+  .editZonePopup textarea { resize:vertical; }
   body[data-mode="exportPanel"] #overlay .zone,
   body[data-mode="exportPanel"] #overlay .zone.selected,
   body[data-mode="exportPanel"] #overlay .zone.noUrl { fill:transparent; stroke:transparent; cursor:pointer; stroke-dasharray:none; pointer-events:all; }
@@ -211,6 +282,16 @@
     main { margin-left:18px; margin-right:18px; }
     main { grid-template-columns:1fr; }
   }
+  @media (max-width: 640px) {
+    .statusArea { align-items:flex-start; flex-wrap:wrap; white-space:normal; }
+    #stageWrap, aside { padding:14px; border-radius:10px; }
+    main { margin:14px; gap:12px; }
+    .zoneTools input[type="range"] { width:150px; }
+    .secondaryActions, .secondaryActions.compact, .actions, .row { grid-template-columns:1fr; }
+    .primaryAction.split { grid-template-columns:1fr; }
+    .sectionHeader { flex-direction:column; gap:4px; }
+    .sectionKicker { white-space:normal; }
+  }
 </style>
 </head>
 <body>
@@ -220,33 +301,37 @@
     <h1>Éditeur de zones cliquables - Radar Cyber</h1>
   </div>
   <nav class="phaseNav" aria-label="Phases du projet">
-    <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Initialisation</span></button>
-    <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Édition</span></button>
-    <button class="phaseBtn" data-tab="exportPanel" type="button"><span class="phaseIcon">▣</span><span>Exportation</span></button>
+    <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Préparer</span></button>
+    <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Éditer</span></button>
+    <button class="phaseBtn" data-tab="exportPanel" type="button"><span class="phaseIcon">▣</span><span>Exporter</span></button>
   </nav>
   <div class="statusArea" aria-label="Statut de sauvegarde">
     <span id="saveStatusText">Saved (browser)</span>
-    <label class="topCheck"><input id="autosaveToggle" type="checkbox"> Auto-save 30s</label>
-    <button id="openConfigBtn" class="iconBtn" type="button" aria-label="Ouvrir la configuration" title="Configuration">⚙</button>
+    <span id="aiStatusText" class="aiStatus">AI not connected</span>
+    <button id="openConfigBtn" class="iconBtn" type="button" aria-label="Configurer l'IA" title="Configurer l'IA">⚙</button>
   </div>
 </header>
 <main>
   <section id="stageWrap">
     <div class="zoneTools" aria-label="Ajout et modification de zone">
       <div class="zoneToolsRow">
-        <span class="zoneToolsTitle">Ajout/modification de zone</span>
-        <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
-          <button type="button" class="shapeBtn" data-shape="rect" aria-label="Rectangle">▭</button>
-          <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Losange">◇</button>
-          <button type="button" class="shapeBtn" data-shape="circle" aria-label="Cercle">○</button>
-          <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygone">⬠</button>
-        </span>
+        <span class="zoneToolsTitle">Radar et zones <span id="modeBadge" class="modeBadge">Préparer</span></span>
+        <div class="zoneToolsEdit" aria-label="Création et forme de zone">
+          <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Ajouter une zone" title="Ajouter une zone">+</button>
+          <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
+            <button type="button" class="shapeBtn" data-shape="rect" aria-label="Rectangle">▭</button>
+            <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Losange">◇</button>
+            <button type="button" class="shapeBtn" data-shape="circle" aria-label="Cercle">○</button>
+            <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygone">⬠</button>
+          </span>
+        </div>
         <div class="zoneToolsRight">
+          <button id="stageExportBtn" class="stageExportBtn" type="button">Exporter</button>
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
-          <label><input id="showFill" type="checkbox" checked> voir les zones</label>
+          <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
-      <div class="modeHintLine" id="modeHint">Initialisation : chargez une image, détectez les zones, puis enrichissez via LLM si besoin.</div>
+      <div class="modeHintLine" id="modeHint">Préparer : chargez le radar, puis créez une première base de zones.</div>
     </div>
     <div id="stage">
       <div id="stageScaler">
@@ -254,140 +339,312 @@
       <svg id="overlay" viewBox="0 0 1280 720"></svg>
       </div>
       <div id="exportLivePopup" class="exportLivePopup" hidden></div>
+      <div id="editZonePopup" class="editZonePopup" hidden>
+        <div class="editZoneHeader">
+          <h3>Éditer la zone</h3>
+          <button id="editPopupClose" class="editZoneClose" type="button" aria-label="Fermer">✕</button>
+        </div>
+        <label>Zone</label>
+        <input id="editPopupId" disabled class="mono">
+        <label>Nom affiché / structure</label>
+        <input id="editPopupName" list="startupSuggestions" placeholder="Nom de la structure">
+        <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
+        <p id="editPopupAssociationStatus" class="associationStatus">Association à valider</p>
+        <label>URL</label>
+        <input id="editPopupUrl" placeholder="https://...">
+        <label>Logo (URL ou data URI)</label>
+        <input id="editPopupLogo" placeholder="https://.../logo.png ou data:image/...">
+        <label>Descriptif court</label>
+        <textarea id="editPopupDescription" rows="3" placeholder="Description affichée dans le popup"></textarea>
+        <label>Forme</label>
+        <select id="editPopupShape">
+          <option value="rect">Rectangle</option>
+          <option value="diamond">Losange</option>
+          <option value="circle">Cercle</option>
+          <option value="poly">Polygone</option>
+        </select>
+        <div class="row">
+          <div><label>X</label><input id="editPopupX" type="number" step="1"></div>
+          <div><label>Y</label><input id="editPopupY" type="number" step="1"></div>
+          <div><label>Largeur</label><input id="editPopupW" type="number" step="1"></div>
+          <div><label>Hauteur</label><input id="editPopupH" type="number" step="1"></div>
+        </div>
+        <label>Points polygone</label>
+        <textarea id="editPopupPoints" rows="3" class="mono"></textarea>
+        <div class="primaryAction">
+          <button id="editPopupApply" class="primary" type="button">Enregistrer la zone</button>
+        </div>
+      </div>
     </div>
   </section>
   <aside>
     <section id="initPanel" class="tabPanel active">
-      <h2>Initialisation</h2>
-      <p class="small">Charge une image de radar, lance une détection locale par canvas, puis enrichis les zones avec le LLM configuré si l’usage est autorisé.</p>
-      <label>Image du radar</label>
-      <input id="radarUpload" type="file" accept="image/*">
-      <div class="actions">
-        <button id="detectZones" class="primary">Détecter les zones</button>
-        <button id="runAiMapping">OCR + mapping LLM</button>
-        <button id="exportInitJson">Exporter JSON initial</button>
-        <button id="prefillOcr" title="Applique les noms OCR améliorés aux zones encore génériques">Préremplir noms OCR v3</button>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h2>Préparer le radar</h2>
+            <p>Chargez le visuel du radar et les données startups, puis créez une première base de zones à vérifier.</p>
+          </div>
+          <span class="sectionKicker">Étape 1</span>
+        </div>
+        <label>Image du radar</label>
+        <input id="radarUpload" type="file" accept="image/*">
+        <div class="primaryAction split">
+          <button id="detectZones" class="primary">Détourer localement</button>
+          <button id="runAiMapping" class="primary">Détourer avec LLM</button>
+        </div>
       </div>
-      <div class="warningBox">Fonctionnalités en cours : la détection automatique, l'OCR et le mapping IA ne sont pas encore pleinement fonctionnels dans cette version.</div>
-      <label>Seuil de contraste (0-255)</label>
-      <input id="cfgContrast" type="number" min="1" max="255" value="58">
-      <div class="row">
-        <div><label>Taille min. (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
-        <div><label>Taille max. (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
-        <div><label>Marge (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
-        <div><label>Fusion (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
+
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Fichier de travail</h3>
+            <p>Exportez une base JSON si vous voulez la compléter ou la faire enrichir ailleurs.</p>
+          </div>
+        </div>
+        <div class="secondaryActions">
+          <button id="importBtn">Importer JSON</button>
+          <button id="exportInitJson">Exporter les zones (JSON) pour enrichissement externe</button>
+        </div>
+        <input id="importFile" type="file" accept="application/json" style="display:none">
       </div>
-      <label>Ratio maximal largeur/hauteur</label>
-      <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
-      <label>Statut de l’analyse</label>
-      <textarea id="analysisLog" rows="7" class="mono" readonly></textarea>
-      <p class="small">Le JSON initial contient maintenant des exemples et des consignes pour aider un LLM à restituer le bon format.</p>
+
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Données startups</h3>
+            <p>Importez une table de fond avant le détourage pour enrichir automatiquement les logos reconnus.</p>
+          </div>
+        </div>
+        <div class="secondaryActions">
+          <button id="importStartupData">Importer CSV / JSON startups</button>
+          <button id="clearStartupData">Vider les données startups</button>
+        </div>
+        <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,application/json,text/csv,text/tab-separated-values" style="display:none">
+        <p class="small">CSV attendu : une colonne <code>name</code> ou <code>startup</code> suffit. Colonnes optionnelles : <code>url</code>, <code>description</code>, <code>logo</code>. Le logo peut rester vide ; vous pourrez le compléter plus tard.</p>
+        <p id="startupImportStatus" class="startupImportStatus">Aucune table startup importée.</p>
+      </div>
+
+      <details class="advancedGroup">
+        <summary>Réglages de détection</summary>
+        <div class="advancedBody">
+          <label>Seuil de contraste (0-255)</label>
+          <input id="cfgContrast" type="number" min="1" max="255" value="58">
+          <div class="row">
+            <div><label>Taille min. (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
+            <div><label>Taille max. (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
+            <div><label>Marge (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
+            <div><label>Fusion (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
+          </div>
+          <label>Ratio maximal largeur/hauteur</label>
+          <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
+        </div>
+      </details>
+
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Journal d'analyse</h3>
+            <p>Suivez le résultat de la détection locale ou du mapping IA.</p>
+          </div>
+        </div>
+        <textarea id="analysisLog" rows="7" class="mono" readonly></textarea>
+      </div>
     </section>
 
     <section id="editPanel" class="tabPanel">
-      <div class="small">Importe un JSON initialisé ou un JSON enrichi, ajuste les zones avec l’éditeur, puis exporte le JSON ou le HTML autonome cliquable.</div>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h2>Éditer le contenu des zones</h2>
+            <p>Ajustez les cadres, puis validez l’association entre chaque logo et sa structure.</p>
+          </div>
+          <span class="sectionKicker">Étape 2</span>
+        </div>
+        <label>Recherche dans les zones</label>
+        <input id="search" placeholder="nom, id ou URL">
+        <div id="zoneList"></div>
+      </div>
 
-      <label>Recherche dans les zones</label>
-      <input id="search" placeholder="nom, id ou URL">
-      <div id="zoneList"></div>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Fiche de la zone sélectionnée</h3>
+            <p>Le nom, le lien et le descriptif alimentent la popup publiée.</p>
+          </div>
+        </div>
+        <label>Zone sélectionnée</label>
+        <input id="id" disabled class="mono">
+        <label>Nom affiché / structure</label>
+        <input id="name" list="startupSuggestions" placeholder="Nom de la structure">
+        <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
+        <p id="associationStatus" class="associationStatus">Association à valider</p>
+        <label>URL</label>
+        <input id="url" placeholder="https://...">
+        <label>Logo (URL ou data URI)</label>
+        <input id="logo" placeholder="https://.../logo.png ou data:image/...">
+        <label>Descriptif court</label>
+        <textarea id="description" rows="3" placeholder="Description affichée dans le popup"></textarea>
+        <label>Forme</label>
+        <select id="shape">
+          <option value="rect">Rectangle</option>
+          <option value="diamond">Losange</option>
+          <option value="circle">Cercle</option>
+          <option value="poly">Polygone</option>
+        </select>
+        <div class="row">
+          <div><label>X</label><input id="x" type="number" step="1"></div>
+          <div><label>Y</label><input id="y" type="number" step="1"></div>
+          <div><label>Largeur</label><input id="w" type="number" step="1"></div>
+          <div><label>Hauteur</label><input id="h" type="number" step="1"></div>
+        </div>
+        <label>Points polygone, format x,y x,y ...</label>
+        <textarea id="points" rows="4" class="mono"></textarea>
+        <div class="primaryAction">
+          <button id="apply" class="primary">Enregistrer la zone</button>
+        </div>
+      </div>
 
-      <label>Zone sélectionnée</label>
-      <input id="id" disabled class="mono">
-      <label>Nom affiché / structure</label>
-      <input id="name" placeholder="Nom de la structure">
-      <label>URL</label>
-      <input id="url" placeholder="https://...">
-      <label>Logo (URL ou data URI)</label>
-      <input id="logo" placeholder="https://.../logo.png ou data:image/...">
-      <label>Descriptif court</label>
-      <textarea id="description" rows="3" placeholder="Description affichée dans le popup"></textarea>
-      <label>Forme</label>
-      <select id="shape">
-        <option value="rect">Rectangle</option>
-        <option value="diamond">Losange</option>
-        <option value="circle">Cercle</option>
-        <option value="poly">Polygone</option>
-      </select>
-      <div class="row">
-        <div><label>X</label><input id="x" type="number" step="1"></div>
-        <div><label>Y</label><input id="y" type="number" step="1"></div>
-        <div><label>Largeur</label><input id="w" type="number" step="1"></div>
-        <div><label>Hauteur</label><input id="h" type="number" step="1"></div>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Actions</h3>
+            <p>Manipulez la zone courante ou gérez la session de travail.</p>
+          </div>
+        </div>
+        <div class="zoneActionGroup">
+          <p class="groupLabel">Zone</p>
+          <div class="secondaryActions compact">
+            <button id="duplicate">Dupliquer</button>
+            <button id="clearUrl">Vider URL</button>
+            <button id="delete" class="danger">Supprimer</button>
+          </div>
+        </div>
+        <div class="zoneActionGroup">
+          <p class="groupLabel">Ordre d'affichage</p>
+          <div class="secondaryActions">
+            <button id="sendBack">Envoyer derrière</button>
+            <button id="bringFront">Mettre devant</button>
+          </div>
+        </div>
+        <div class="fileActionGroup">
+          <p class="groupLabel">Fichier et session</p>
+          <div class="secondaryActions compact">
+            <button id="saveLocal">Sauver localement</button>
+            <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple initial</button>
+          </div>
+        </div>
+        <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Suppr pour supprimer.</p>
       </div>
-      <label>Points polygone, format x,y x,y ...</label>
-      <textarea id="points" rows="4" class="mono"></textarea>
-      <div class="actions">
-        <button id="apply" class="primary">Appliquer</button>
-        <button id="duplicate">Dupliquer</button>
-        <button id="delete" class="danger">Supprimer</button>
-        <button id="clearUrl">Vider URL</button>
-      </div>
-      <div class="actions">
-        <button id="sendBack">Envoyer derrière</button>
-        <button id="bringFront">Mettre devant</button>
-        <button id="resetAuto">Réinitialiser auto</button>
-        <button id="importBtn">Importer JSON</button>
-        <button id="saveLocal">Sauver localement</button>
-      </div>
-      <input id="importFile" type="file" accept="application/json" style="display:none">
-      <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Suppr pour supprimer. L’export génère un fichier HTML autonome avec l’image intégrée.</p>
     </section>
 
     <section id="exportPanel" class="tabPanel">
-      <h2>Exportation</h2>
-      <p class="small">Les paramètres ci-dessous alimentent la prévisualisation affichée à gauche et les fichiers exportés.</p>
-      <label>Format d'intégration</label>
-      <select id="cfgExportMode">
-        <option value="standalone">Page autonome, pour iframe ou page dédiée</option>
-        <option value="snippet">Snippet CMS, CSS isolé + interaction légère</option>
-        <option value="iframe">Snippet iframe responsive</option>
-        <option value="imagemap">Image map sans script</option>
-      </select>
-      <label>Nom de fichier export HTML</label>
-      <input id="cfgHtmlName" value="radar_cliquable.html">
-      <label>Titre exporté</label>
-      <input id="cfgExportTitle" value="Radar cliquable">
-      <label>URL du HTML hébergé, pour le snippet iframe</label>
-      <input id="cfgHostedUrl" placeholder="https://www.example.com/path/radar_cliquable.html">
-      <h3>Effet hover</h3>
-      <div class="row">
-        <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
-        <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h2>Exporter le radar</h2>
+            <p>Choisissez un export simple ou avec recherche, puis ajustez le visuel des popups.</p>
+          </div>
+          <span class="sectionKicker">Étape 3</span>
+        </div>
+        <label>Format d'intégration</label>
+        <select id="cfgExportMode">
+          <option value="standalone">Page autonome, pour iframe ou page dédiée</option>
+          <option value="iframe">Snippet iframe responsive, recommandé Wavestone / RiskInsight</option>
+          <option value="snippet">Snippet CMS, CSS isolé + interaction légère</option>
+          <option value="imagemap">Image map sans script</option>
+        </select>
+        <label>Expérience exportée</label>
+        <select id="cfgExportExperience">
+          <option value="visual">Simple : radar + popups au clic</option>
+          <option value="interface">Interface : radar + recherche et filtres</option>
+        </select>
+        <label>Nom de fichier export HTML</label>
+        <input id="cfgHtmlName" value="radar_cliquable.html">
+        <label>Titre exporté</label>
+        <input id="cfgExportTitle" value="Radar cliquable">
+        <label>URL du HTML hébergé, pour le snippet iframe</label>
+        <input id="cfgHostedUrl" placeholder="https://www.example.com/path/radar_cliquable.html">
       </div>
-      <div class="row">
-        <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
-        <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
+
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Résumé d'export</h3>
+            <p>Vérifiez rapidement ce qui sera généré.</p>
+          </div>
+        </div>
+        <div class="exportPreview publishSummary">
+          <div id="previewTitle" class="previewTitle">Radar cliquable</div>
+          <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Page autonome</span></div>
+          <div class="previewRow"><span>Expérience</span><span id="previewExportExperience" class="previewValue">Visuel seul</span></div>
+          <div class="previewRow"><span>Cible</span><span id="previewIntegrationTarget" class="previewValue">Iframe / page dédiée</span></div>
+          <div class="previewRow"><span>Fichier</span><span id="previewHtmlName" class="previewValue">radar_cliquable.html</span></div>
+          <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
+          <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
+          <div class="previewRow"><span>Zones avec URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
+          <div class="previewRow"><span>Exemple</span><span id="previewSampleZone" class="previewValue">-</span></div>
+        </div>
       </div>
-      <h3>Popup</h3>
-      <div class="row">
-        <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
-        <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
+
+      <details class="advancedGroup" open>
+        <summary>Apparence de l'interaction</summary>
+        <div class="advancedBody">
+          <h3>Effet hover</h3>
+          <div class="row">
+            <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
+            <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
+          </div>
+          <div class="row">
+            <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
+            <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
+          </div>
+          <h3>Popup</h3>
+          <div class="row">
+            <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
+            <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
+          </div>
+          <div class="row">
+            <div><label>Fond popup</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
+            <div><label>Texte popup</label><input id="cfgPopupText" type="color" value="#12314a"></div>
+          </div>
+          <div class="row">
+            <div><label>Contour popup</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
+            <div><label>Accent lien</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
+          </div>
+          <div class="row">
+            <div><label>Largeur max</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
+            <div><label>Taille texte</label><input id="cfgPopupFontSize" type="number" min="11" max="22" step="1" value="14"></div>
+          </div>
+          <div class="row">
+            <div><label>Ombre</label><select id="cfgPopupShadow"><option value="soft">Douce</option><option value="strong">Marquée</option><option value="none">Aucune</option></select></div>
+          </div>
+          <label>Libellé du lien</label>
+          <input id="cfgPopupLinkLabel" value="Ouvrir le site">
+          <label>Contenu affiché</label>
+          <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
+          <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
+          <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
+        </div>
+      </details>
+
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Exports</h3>
+            <p>Le bouton principal suit le format sélectionné au-dessus.</p>
+          </div>
+        </div>
+        <div class="primaryAction">
+          <button id="exportHtml" class="primary" type="button">Exporter selon le format choisi</button>
+        </div>
+        <div class="secondaryActions compact">
+          <button id="copyEmbedSnippet" type="button">Copier le snippet</button>
+          <button id="downloadStandaloneHtml" type="button">Télécharger page autonome</button>
+          <button id="exportJson" type="button">Exporter JSON</button>
+        </div>
+        <p class="small">Pour Wavestone Insights et RiskInsight, le plus robuste reste d'héberger la page autonome puis d'intégrer le snippet iframe.</p>
       </div>
-      <div class="row">
-        <div><label>Fond popup</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
-        <div><label>Texte popup</label><input id="cfgPopupText" type="color" value="#12314a"></div>
-      </div>
-      <div class="row">
-        <div><label>Contour popup</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
-        <div><label>Accent lien</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
-      </div>
-      <div class="row">
-        <div><label>Largeur max</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
-        <div><label>Ombre</label><select id="cfgPopupShadow"><option value="soft">Douce</option><option value="strong">Marquée</option><option value="none">Aucune</option></select></div>
-      </div>
-      <label>Libellé du lien</label>
-      <input id="cfgPopupLinkLabel" value="Ouvrir le site">
-      <label>Contenu affiché</label>
-      <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
-      <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
-      <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
-      <div class="actions">
-        <button id="copyEmbedSnippet" type="button">Copier le snippet</button>
-        <button id="downloadStandaloneHtml" type="button">Forcer page autonome</button>
-        <button id="exportHtml" class="primary" type="button">Exporter HTML / embed</button>
-        <button id="exportJson" type="button">Exporter JSON</button>
-      </div>
-      <p class="small">Pour Wavestone Insights et RiskInsight, le plus robuste est d'héberger la page autonome puis d'intégrer le snippet iframe. Si le CMS autorise les blocs HTML avec script, le snippet CMS évite l'iframe. Si le script est filtré, l'image map garde les liens essentiels.</p>
     </section>
 
     <section id="configPanel" class="configMenu" aria-hidden="true">
@@ -396,6 +653,15 @@
         <button id="closeConfigBtn" class="configMenuClose" type="button" aria-label="Fermer la configuration">✕</button>
       </div>
       <div class="warningBox">Aucune clé API n’est nécessaire pour l’édition manuelle. La clé API n’est jamais sauvegardée : elle reste uniquement dans le champ courant et doit être ressaisie après rechargement.</div>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Sauvegarde</h3>
+            <p>Conserve automatiquement les corrections dans ce navigateur.</p>
+          </div>
+        </div>
+        <label class="inlineCheck"><input id="autosaveToggle" type="checkbox"> Auto-save 30s</label>
+      </div>
       <div class="dangerBox">
         <strong>Confidentialité</strong>
         <p>Pour des raisons de confidentialité, l’usage d’un fournisseur d’IA doit être explicitement approuvé par l’organisation concernée.</p>
@@ -408,7 +674,7 @@
         <option value="azure">Azure OpenAI</option>
       </select>
       <label>Modèle</label>
-      <input id="aiModel" placeholder="gpt-4.1, claude-sonnet-4-5, ...">
+      <select id="aiModel"></select>
       <label>Clé API</label>
       <input id="aiApiKey" type="password" placeholder="sk-..." autocomplete="off" autocapitalize="off" spellcheck="false">
       <div id="azureFields" class="providerFields">
@@ -426,26 +692,37 @@
       </select>
       <div class="actions">
         <button id="saveAiConfig" class="primary">Sauver la configuration</button>
+        <button id="testAiConfig">Tester la connexion LLM</button>
         <button id="clearAiConfig">Effacer</button>
       </div>
     </section>
   </aside>
+  <datalist id="startupSuggestions"></datalist>
 </main>
 <script src="assets/example-radar.js"></script>
 <script>
 let IMG_W = 1280, IMG_H = 720;
 let IMAGE_DATA = window.RADAR_MAPPER_EXAMPLE_IMAGE || "";
 const INITIAL_ZONES = [{"id":"z001","name":"zone_001","url":"","shape":"rect","x":937,"y":3,"w":23,"h":23,"points":[]},{"id":"z002","name":"zone_002","url":"","shape":"rect","x":670,"y":5,"w":27,"h":25,"points":[]},{"id":"z003","name":"Axeinos","url":"","shape":"rect","x":947,"y":14,"w":44,"h":57,"points":[]},{"id":"z004","name":"Kerys Software","url":"","shape":"rect","x":1065,"y":14,"w":92,"h":71,"points":[]},{"id":"z005","name":"SeckIOT","url":"","shape":"rect","x":595,"y":23,"w":55,"h":17,"points":[]},{"id":"z006","name":"zone_006","url":"","shape":"rect","x":686,"y":23,"w":30,"h":62,"points":[]},{"id":"z007","name":"Cybi","url":"","shape":"rect","x":868,"y":23,"w":46,"h":22,"points":[]},{"id":"z008","name":"AI Vidence","url":"","shape":"rect","x":254,"y":24,"w":57,"h":17,"points":[]},{"id":"z009","name":"zone_009","url":"","shape":"rect","x":218,"y":36,"w":22,"h":21,"points":[]},{"id":"z010","name":"SeckIOT","url":"","shape":"rect","x":593,"y":39,"w":58,"h":36,"points":[]},{"id":"z011","name":"AI Vidence","url":"","shape":"rect","x":273,"y":44,"w":61,"h":28,"points":[]},{"id":"z012","name":"Cybi","url":"","shape":"rect","x":833,"y":49,"w":67,"h":16,"points":[]},{"id":"z013","name":"zone_013","url":"","shape":"rect","x":74,"y":50,"w":52,"h":20,"points":[]},{"id":"z014","name":"Suzan.ai","url":"","shape":"rect","x":203,"y":50,"w":52,"h":21,"points":[]},{"id":"z015","name":"Axeinos","url":"","shape":"rect","x":909,"y":51,"w":31,"h":21,"points":[]},{"id":"z016","name":"Parcoor","url":"","shape":"rect","x":642,"y":58,"w":37,"h":38,"points":[]},{"id":"z017","name":"Kerys Software","url":"","shape":"rect","x":1048,"y":61,"w":56,"h":18,"points":[]},{"id":"z018","name":"zone_018","url":"","shape":"rect","x":976,"y":62,"w":20,"h":31,"points":[]},{"id":"z019","name":"zone_019","url":"","shape":"rect","x":83,"y":65,"w":29,"h":15,"points":[]},{"id":"z020","name":"zone_020","url":"","shape":"rect","x":569,"y":66,"w":28,"h":27,"points":[]},{"id":"z021","name":"zone_021","url":"","shape":"rect","x":195,"y":67,"w":25,"h":26,"points":[]},{"id":"z022","name":"Giskard","url":"","shape":"rect","x":300,"y":70,"w":34,"h":36,"points":[]},{"id":"z023","name":"Situation","url":"","shape":"rect","x":820,"y":70,"w":55,"h":22,"points":[]},{"id":"z024","name":"Situation","url":"","shape":"rect","x":868,"y":70,"w":29,"h":22,"points":[]},{"id":"z025","name":"Suzan.ai","url":"","shape":"rect","x":217,"y":71,"w":44,"h":18,"points":[]},{"id":"z026","name":"Suzan.ai","url":"","shape":"rect","x":256,"y":71,"w":20,"h":18,"points":[]},{"id":"z027","name":"Axeinos","url":"","shape":"rect","x":907,"y":72,"w":61,"h":18,"points":[]},{"id":"z028","name":"Kerys Software","url":"","shape":"rect","x":1092,"y":77,"w":29,"h":34,"points":[]},{"id":"z029","name":"zone_029","url":"","shape":"rect","x":1029,"y":79,"w":18,"h":17,"points":[]},{"id":"z030","name":"Kerys Software","url":"","shape":"rect","x":1041,"y":79,"w":52,"h":17,"points":[]},{"id":"z031","name":"zone_031","url":"","shape":"rect","x":75,"y":85,"w":43,"h":20,"points":[]},{"id":"z032","name":"zone_032","url":"","shape":"rect","x":112,"y":85,"w":19,"h":16,"points":[]},{"id":"z033","name":"zone_033","url":"","shape":"rect","x":562,"y":87,"w":43,"h":19,"points":[]},{"id":"z034","name":"zone_034","url":"","shape":"rect","x":190,"y":90,"w":31,"h":31,"points":[]},{"id":"z035","name":"zone_035","url":"","shape":"rect","x":894,"y":92,"w":25,"h":21,"points":[]},{"id":"z036","name":"Suzan.ai","url":"","shape":"rect","x":220,"y":93,"w":57,"h":23,"points":[]},{"id":"z037","name":"Situation","url":"","shape":"rect","x":865,"y":94,"w":22,"h":22,"points":[]},{"id":"z038","name":"zone_038","url":"","shape":"rect","x":913,"y":95,"w":56,"h":15,"points":[]},{"id":"z039","name":"Situation","url":"","shape":"rect","x":820,"y":96,"w":52,"h":17,"points":[]},{"id":"z040","name":"Purplemet","url":"","shape":"rect","x":1027,"y":96,"w":41,"h":17,"points":[]},{"id":"z041","name":"Giskard","url":"","shape":"rect","x":291,"y":97,"w":45,"h":16,"points":[]},{"id":"z042","name":"FranceVerif","url":"","shape":"rect","x":1203,"y":102,"w":66,"h":56,"points":[]},{"id":"z043","name":"zone_043","url":"","shape":"rect","x":725,"y":104,"w":84,"h":54,"points":[]},{"id":"z044","name":"zone_044","url":"","shape":"rect","x":484,"y":106,"w":46,"h":43,"points":[]},{"id":"z045","name":"DeepInfo","url":"","shape":"rect","x":1072,"y":107,"w":49,"h":19,"points":[]},{"id":"z046","name":"Seedfence","url":"","shape":"rect","x":590,"y":108,"w":41,"h":20,"points":[]},{"id":"z047","name":"zone_047","url":"","shape":"rect","x":577,"y":109,"w":20,"h":21,"points":[]},{"id":"z048","name":"Seedfence","url":"","shape":"rect","x":624,"y":109,"w":47,"h":18,"points":[]},{"id":"z049","name":"Nijta","url":"","shape":"rect","x":240,"y":113,"w":32,"h":20,"points":[]},{"id":"z050","name":"Giskard","url":"","shape":"rect","x":270,"y":113,"w":56,"h":18,"points":[]},{"id":"z051","name":"zone_051","url":"","shape":"rect","x":436,"y":113,"w":67,"h":69,"points":[]},{"id":"z052","name":"Situation","url":"","shape":"rect","x":817,"y":115,"w":88,"h":28,"points":[]},{"id":"z053","name":"Securas Technologies","url":"","shape":"rect","x":904,"y":121,"w":51,"h":17,"points":[]},{"id":"z054","name":"DeepInfo","url":"","shape":"rect","x":1052,"y":124,"w":49,"h":15,"points":[]},{"id":"z055","name":"Nijta","url":"","shape":"rect","x":212,"y":132,"w":32,"h":28,"points":[]},{"id":"z056","name":"FranceVerif","url":"","shape":"rect","x":1142,"y":133,"w":88,"h":27,"points":[]},{"id":"z057","name":"Giskard","url":"","shape":"rect","x":270,"y":134,"w":61,"h":26,"points":[]},{"id":"z058","name":"Nijta","url":"","shape":"rect","x":236,"y":138,"w":36,"h":22,"points":[]},{"id":"z059","name":"zone_059","url":"","shape":"rect","x":713,"y":141,"w":31,"h":41,"points":[]},{"id":"z060","name":"Securas Technologies","url":"","shape":"rect","x":854,"y":141,"w":70,"h":19,"points":[]},{"id":"z061","name":"zone_061","url":"","shape":"rect","x":509,"y":146,"w":55,"h":71,"points":[]},{"id":"z062","name":"Daspren","url":"","shape":"rect","x":1036,"y":146,"w":56,"h":59,"points":[]},{"id":"z063","name":"zone_063","url":"","shape":"rect","x":801,"y":147,"w":56,"h":53,"points":[]},{"id":"z064","name":"Kleer","url":"","shape":"rect","x":1126,"y":153,"w":98,"h":30,"points":[]},{"id":"z065","name":"FranceVerif","url":"","shape":"rect","x":1217,"y":153,"w":28,"h":14,"points":[]},{"id":"z066","name":"zone_066","url":"","shape":"rect","x":741,"y":154,"w":31,"h":31,"points":[]},{"id":"z067","name":"zone_067","url":"","shape":"rect","x":123,"y":155,"w":30,"h":18,"points":[]},{"id":"z068","name":"zone_068","url":"","shape":"rect","x":409,"y":155,"w":27,"h":21,"points":[]},{"id":"z069","name":"zone_069","url":"","shape":"rect","x":576,"y":155,"w":118,"h":24,"points":[]},{"id":"z070","name":"zone_070","url":"","shape":"rect","x":425,"y":164,"w":33,"h":35,"points":[]},{"id":"z071","name":"zone_071","url":"","shape":"rect","x":758,"y":165,"w":44,"h":44,"points":[]},{"id":"z072","name":"zone_072","url":"","shape":"rect","x":77,"y":169,"w":32,"h":25,"points":[]},{"id":"z073","name":"Kleer","url":"","shape":"rect","x":1195,"y":169,"w":51,"h":21,"points":[]},{"id":"z074","name":"Ziplo","url":"","shape":"rect","x":117,"y":170,"w":42,"h":16,"points":[]},{"id":"z075","name":"Wysam","url":"","shape":"rect","x":170,"y":175,"w":32,"h":23,"points":[]},{"id":"z076","name":"zone_076","url":"","shape":"rect","x":1140,"y":176,"w":22,"h":22,"points":[]},{"id":"z077","name":"zone_077","url":"","shape":"rect","x":487,"y":179,"w":36,"h":35,"points":[]},{"id":"z078","name":"zone_078","url":"","shape":"rect","x":701,"y":179,"w":49,"h":42,"points":[]},{"id":"z079","name":"zone_079","url":"","shape":"rect","x":1154,"y":179,"w":42,"h":21,"points":[]},{"id":"z080","name":"zone_080","url":"","shape":"rect","x":375,"y":180,"w":26,"h":24,"points":[]},{"id":"z081","name":"Nucleon Security","url":"","shape":"rect","x":964,"y":180,"w":66,"h":28,"points":[]},{"id":"z082","name":"zone_082","url":"","shape":"rect","x":619,"y":182,"w":22,"h":21,"points":[]},{"id":"z083","name":"zone_083","url":"","shape":"rect","x":73,"y":185,"w":39,"h":19,"points":[]},{"id":"z084","name":"zone_084","url":"","shape":"rect","x":468,"y":186,"w":44,"h":47,"points":[]},{"id":"z085","name":"zone_085","url":"","shape":"rect","x":590,"y":186,"w":21,"h":22,"points":[]},{"id":"z086","name":"DeepFrauds.ai","url":"","shape":"rect","x":1193,"y":188,"w":64,"h":26,"points":[]},{"id":"z087","name":"zone_087","url":"","shape":"rect","x":391,"y":190,"w":54,"h":39,"points":[]},{"id":"z088","name":"Ziplo","url":"","shape":"rect","x":110,"y":191,"w":20,"h":21,"points":[]},{"id":"z089","name":"Ziplo","url":"","shape":"rect","x":124,"y":191,"w":38,"h":22,"points":[]},{"id":"z090","name":"Wysam","url":"","shape":"rect","x":168,"y":191,"w":40,"h":16,"points":[]},{"id":"z091","name":"zone_091","url":"","shape":"rect","x":791,"y":192,"w":33,"h":32,"points":[]},{"id":"z092","name":"zone_092","url":"","shape":"rect","x":657,"y":193,"w":18,"h":57,"points":[]},{"id":"z093","name":"zone_093","url":"","shape":"rect","x":838,"y":196,"w":37,"h":37,"points":[]},{"id":"z094","name":"zone_094","url":"","shape":"rect","x":739,"y":198,"w":33,"h":36,"points":[]},{"id":"z095","name":"zone_095","url":"","shape":"rect","x":1122,"y":199,"w":67,"h":18,"points":[]},{"id":"z096","name":"zone_096","url":"","shape":"rect","x":592,"y":203,"w":19,"h":31,"points":[]},{"id":"z097","name":"Nucleon Security","url":"","shape":"rect","x":1003,"y":204,"w":65,"h":21,"points":[]},{"id":"z098","name":"zone_098","url":"","shape":"rect","x":950,"y":206,"w":39,"h":35,"points":[]},{"id":"z099","name":"zone_099","url":"","shape":"rect","x":901,"y":208,"w":37,"h":52,"points":[]},{"id":"z100","name":"Umbra","url":"","shape":"rect","x":50,"y":209,"w":24,"h":24,"points":[]},{"id":"z101","name":"zone_101","url":"","shape":"rect","x":696,"y":209,"w":40,"h":26,"points":[]},{"id":"z102","name":"DeepFrauds.ai","url":"","shape":"rect","x":1209,"y":209,"w":34,"h":31,"points":[]},{"id":"z103","name":"zone_103","url":"","shape":"rect","x":361,"y":210,"w":43,"h":33,"points":[]},{"id":"z104","name":"zone_104","url":"","shape":"rect","x":747,"y":210,"w":50,"h":49,"points":[]},{"id":"z105","name":"Finovox","url":"","shape":"rect","x":1141,"y":212,"w":38,"h":30,"points":[]},{"id":"z106","name":"Ziplo","url":"","shape":"rect","x":81,"y":214,"w":91,"h":27,"points":[]},{"id":"z107","name":"zone_107","url":"","shape":"rect","x":162,"y":214,"w":70,"h":26,"points":[]},{"id":"z108","name":"zone_108","url":"","shape":"rect","x":450,"y":216,"w":23,"h":24,"points":[]},{"id":"z109","name":"zone_109","url":"","shape":"rect","x":622,"y":216,"w":18,"h":33,"points":[]},{"id":"z110","name":"zone_110","url":"","shape":"rect","x":545,"y":222,"w":38,"h":55,"points":[]},{"id":"z111","name":"zone_111","url":"","shape":"rect","x":1181,"y":223,"w":33,"h":23,"points":[]},{"id":"z112","name":"zone_112","url":"","shape":"rect","x":782,"y":224,"w":60,"h":54,"points":[]},{"id":"z113","name":"zone_113","url":"","shape":"rect","x":393,"y":225,"w":43,"h":29,"points":[]},{"id":"z114","name":"Daspren","url":"","shape":"rect","x":992,"y":226,"w":75,"h":23,"points":[]},{"id":"z115","name":"Umbra","url":"","shape":"rect","x":41,"y":227,"w":42,"h":17,"points":[]},{"id":"z116","name":"zone_116","url":"","shape":"rect","x":462,"y":227,"w":49,"h":42,"points":[]},{"id":"z117","name":"zone_117","url":"","shape":"rect","x":511,"y":230,"w":34,"h":33,"points":[]},{"id":"z118","name":"zone_118","url":"","shape":"rect","x":678,"y":231,"w":54,"h":52,"points":[]},{"id":"z119","name":"zone_119","url":"","shape":"rect","x":340,"y":233,"w":31,"h":28,"points":[]},{"id":"z120","name":"zone_120","url":"","shape":"rect","x":861,"y":236,"w":36,"h":27,"points":[]},{"id":"z121","name":"zone_121","url":"","shape":"rect","x":632,"y":239,"w":28,"h":27,"points":[]},{"id":"z122","name":"zone_122","url":"","shape":"rect","x":1181,"y":240,"w":33,"h":17,"points":[]},{"id":"z123","name":"zone_123","url":"","shape":"rect","x":432,"y":242,"w":40,"h":34,"points":[]},{"id":"z124","name":"zone_124","url":"","shape":"rect","x":363,"y":245,"w":62,"h":40,"points":[]},{"id":"z125","name":"zone_125","url":"","shape":"rect","x":842,"y":250,"w":26,"h":24,"points":[]},{"id":"z126","name":"Umbra","url":"","shape":"rect","x":35,"y":251,"w":22,"h":27,"points":[]},{"id":"z127","name":"zone_127","url":"","shape":"rect","x":532,"y":251,"w":47,"h":51,"points":[]},{"id":"z128","name":"zone_128","url":"","shape":"rect","x":976,"y":251,"w":20,"h":21,"points":[]},{"id":"z129","name":"Treebal","url":"","shape":"rect","x":84,"y":253,"w":23,"h":19,"points":[]},{"id":"z130","name":"Pacem","url":"","shape":"rect","x":104,"y":253,"w":35,"h":38,"points":[]},{"id":"z131","name":"Shindan","url":"","shape":"rect","x":990,"y":253,"w":49,"h":17,"points":[]},{"id":"z132","name":"Umbra","url":"","shape":"rect","x":51,"y":254,"w":38,"h":18,"points":[]},{"id":"z133","name":"zone_133","url":"","shape":"rect","x":699,"y":255,"w":49,"h":49,"points":[]},{"id":"z134","name":"zone_134","url":"","shape":"rect","x":924,"y":257,"w":37,"h":77,"points":[]},{"id":"z135","name":"zone_135","url":"","shape":"rect","x":132,"y":259,"w":41,"h":25,"points":[]},{"id":"z136","name":"zone_136","url":"","shape":"rect","x":636,"y":260,"w":22,"h":35,"points":[]},{"id":"z137","name":"zone_137","url":"","shape":"rect","x":464,"y":261,"w":40,"h":32,"points":[]},{"id":"z138","name":"zone_138","url":"","shape":"rect","x":167,"y":262,"w":56,"h":14,"points":[]},{"id":"z139","name":"zone_139","url":"","shape":"rect","x":1151,"y":267,"w":29,"h":23,"points":[]},{"id":"z140","name":"zone_140","url":"","shape":"rect","x":887,"y":270,"w":30,"h":19,"points":[]},{"id":"z141","name":"zone_141","url":"","shape":"rect","x":671,"y":271,"w":34,"h":26,"points":[]},{"id":"z142","name":"zone_142","url":"","shape":"rect","x":424,"y":274,"w":22,"h":19,"points":[]},{"id":"z143","name":"zone_143","url":"","shape":"rect","x":322,"y":276,"w":31,"h":30,"points":[]},{"id":"z144","name":"zone_144","url":"","shape":"rect","x":870,"y":277,"w":24,"h":17,"points":[]},{"id":"z145","name":"zone_145","url":"","shape":"rect","x":437,"y":278,"w":39,"h":31,"points":[]},{"id":"z146","name":"zone_146","url":"","shape":"rect","x":1167,"y":280,"w":28,"h":28,"points":[]},{"id":"z147","name":"zone_147","url":"","shape":"rect","x":847,"y":281,"w":31,"h":27,"points":[]},{"id":"z148","name":"zone_148","url":"","shape":"rect","x":784,"y":283,"w":45,"h":35,"points":[]},{"id":"z149","name":"zone_149","url":"","shape":"rect","x":348,"y":288,"w":57,"h":39,"points":[]},{"id":"z150","name":"Arsen","url":"","shape":"rect","x":1079,"y":288,"w":19,"h":20,"points":[]},{"id":"z151","name":"zone_151","url":"","shape":"rect","x":501,"y":289,"w":36,"h":33,"points":[]},{"id":"z152","name":"Olvid","url":"","shape":"rect","x":145,"y":290,"w":59,"h":23,"points":[]},{"id":"z153","name":"Arsen","url":"","shape":"rect","x":1090,"y":290,"w":43,"h":16,"points":[]},{"id":"z154","name":"Pacem","url":"","shape":"rect","x":64,"y":293,"w":44,"h":25,"points":[]},{"id":"z155","name":"Narval","url":"","shape":"rect","x":101,"y":297,"w":40,"h":17,"points":[]},{"id":"z156","name":"zone_156","url":"","shape":"rect","x":1180,"y":297,"w":26,"h":37,"points":[]},{"id":"z157","name":"zone_157","url":"","shape":"rect","x":531,"y":300,"w":46,"h":43,"points":[]},{"id":"z158","name":"zone_158","url":"","shape":"rect","x":728,"y":302,"w":25,"h":22,"points":[]},{"id":"z159","name":"zone_159","url":"","shape":"rect","x":485,"y":306,"w":46,"h":35,"points":[]},{"id":"z160","name":"zone_160","url":"","shape":"rect","x":1136,"y":306,"w":35,"h":19,"points":[]},{"id":"z161","name":"zone_161","url":"","shape":"rect","x":1063,"y":308,"w":23,"h":23,"points":[]},{"id":"z162","name":"Arsen","url":"","shape":"rect","x":1079,"y":308,"w":36,"h":23,"points":[]},{"id":"z163","name":"Arsen","url":"","shape":"rect","x":1118,"y":308,"w":25,"h":17,"points":[]},{"id":"z164","name":"zone_164","url":"","shape":"rect","x":400,"y":309,"w":24,"h":28,"points":[]},{"id":"z165","name":"Trapster","url":"","shape":"rect","x":334,"y":313,"w":38,"h":24,"points":[]},{"id":"z166","name":"zone_166","url":"","shape":"rect","x":866,"y":313,"w":60,"h":29,"points":[]},{"id":"z167","name":"Olvid","url":"","shape":"rect","x":103,"y":317,"w":62,"h":21,"points":[]},{"id":"z168","name":"zone_168","url":"","shape":"rect","x":796,"y":320,"w":50,"h":22,"points":[]},{"id":"z169","name":"zone_169","url":"","shape":"rect","x":417,"y":322,"w":36,"h":25,"points":[]},{"id":"z170","name":"zone_170","url":"","shape":"rect","x":745,"y":324,"w":35,"h":41,"points":[]},{"id":"z171","name":"zone_171","url":"","shape":"rect","x":944,"y":327,"w":20,"h":32,"points":[]},{"id":"z172","name":"zone_172","url":"","shape":"rect","x":1126,"y":327,"w":53,"h":17,"points":[]},{"id":"z173","name":"zone_173","url":"","shape":"rect","x":1078,"y":328,"w":21,"h":20,"points":[]},{"id":"z174","name":"zone_174","url":"","shape":"rect","x":450,"y":335,"w":25,"h":20,"points":[]},{"id":"z175","name":"zone_175","url":"","shape":"rect","x":180,"y":340,"w":24,"h":20,"points":[]},{"id":"z176","name":"zone_176","url":"","shape":"rect","x":1053,"y":340,"w":45,"h":23,"points":[]},{"id":"z177","name":"zone_177","url":"","shape":"rect","x":872,"y":341,"w":57,"h":23,"points":[]},{"id":"z178","name":"WYBOT","url":"","shape":"rect","x":320,"y":342,"w":63,"h":21,"points":[]},{"id":"z179","name":"zone_179","url":"","shape":"rect","x":490,"y":344,"w":25,"h":20,"points":[]},{"id":"z180","name":"zone_180","url":"","shape":"rect","x":1108,"y":345,"w":25,"h":27,"points":[]},{"id":"z181","name":"zone_181","url":"","shape":"rect","x":160,"y":347,"w":30,"h":29,"points":[]},{"id":"z182","name":"zone_182","url":"","shape":"rect","x":807,"y":348,"w":47,"h":18,"points":[]},{"id":"z183","name":"zone_183","url":"","shape":"rect","x":949,"y":351,"w":19,"h":55,"points":[]},{"id":"z184","name":"noways","url":"","shape":"rect","x":383,"y":355,"w":62,"h":35,"points":[]},{"id":"z185","name":"zone_185","url":"","shape":"rect","x":1083,"y":359,"w":21,"h":24,"points":[]},{"id":"z186","name":"OpenCVE","url":"","shape":"rect","x":9,"y":360,"w":87,"h":69,"points":[]},{"id":"z187","name":"zone_187","url":"","shape":"rect","x":445,"y":364,"w":21,"h":21,"points":[]},{"id":"z188","name":"WYBOT","url":"","shape":"rect","x":314,"y":366,"w":52,"h":22,"points":[]},{"id":"z189","name":"zone_189","url":"","shape":"rect","x":148,"y":368,"w":24,"h":45,"points":[]},{"id":"z190","name":"Altrnativ","url":"","shape":"rect","x":459,"y":368,"w":42,"h":15,"points":[]},{"id":"z191","name":"zone_191","url":"","shape":"rect","x":725,"y":369,"w":20,"h":21,"points":[]},{"id":"z192","name":"Keopass","url":"","shape":"rect","x":804,"y":369,"w":31,"h":30,"points":[]},{"id":"z193","name":"CALIDRA","url":"","shape":"rect","x":1115,"y":372,"w":39,"h":25,"points":[]},{"id":"z194","name":"Zygon","url":"","shape":"rect","x":871,"y":373,"w":54,"h":17,"points":[]},{"id":"z195","name":"zone_195","url":"","shape":"rect","x":737,"y":374,"w":49,"h":22,"points":[]},{"id":"z196","name":"SecDojo","url":"","shape":"rect","x":177,"y":376,"w":70,"h":22,"points":[]},{"id":"z197","name":"zone_197","url":"","shape":"rect","x":503,"y":378,"w":29,"h":17,"points":[]},{"id":"z198","name":"zone_198","url":"","shape":"rect","x":442,"y":388,"w":25,"h":18,"points":[]},{"id":"z199","name":"Altrnativ","url":"","shape":"rect","x":464,"y":388,"w":40,"h":18,"points":[]},{"id":"z200","name":"Keopass","url":"","shape":"rect","x":798,"y":389,"w":39,"h":19,"points":[]},{"id":"z201","name":"SecDojo","url":"","shape":"rect","x":177,"y":392,"w":45,"h":23,"points":[]},{"id":"z202","name":"WYBOT","url":"","shape":"rect","x":306,"y":392,"w":29,"h":29,"points":[]},{"id":"z203","name":"Locknest","url":"","shape":"rect","x":857,"y":392,"w":77,"h":31,"points":[]},{"id":"z204","name":"noways","url":"","shape":"rect","x":392,"y":394,"w":45,"h":17,"points":[]},{"id":"z205","name":"Cyberium SAS","url":"","shape":"rect","x":328,"y":395,"w":58,"h":21,"points":[]},{"id":"z206","name":"SecDojo","url":"","shape":"rect","x":215,"y":396,"w":35,"h":16,"points":[]},{"id":"z207","name":"zone_207","url":"","shape":"rect","x":728,"y":400,"w":55,"h":24,"points":[]},{"id":"z208","name":"zone_208","url":"","shape":"rect","x":59,"y":409,"w":19,"h":20,"points":[]},{"id":"z209","name":"OpenCVE","url":"","shape":"rect","x":73,"y":410,"w":58,"h":19,"points":[]},{"id":"z210","name":"zone_210","url":"","shape":"rect","x":711,"y":410,"w":31,"h":20,"points":[]},{"id":"z211","name":"zone_211","url":"","shape":"rect","x":780,"y":410,"w":20,"h":20,"points":[]},{"id":"z212","name":"SecDojo","url":"","shape":"rect","x":180,"y":413,"w":67,"h":26,"points":[]},{"id":"z213","name":"zone_213","url":"","shape":"rect","x":793,"y":415,"w":44,"h":23,"points":[]},{"id":"z214","name":"zone_214","url":"","shape":"rect","x":528,"y":417,"w":40,"h":27,"points":[]},{"id":"z215","name":"zone_215","url":"","shape":"rect","x":731,"y":418,"w":38,"h":35,"points":[]},{"id":"z216","name":"Logcraft","url":"","shape":"rect","x":399,"y":420,"w":66,"h":28,"points":[]},{"id":"z217","name":"zone_217","url":"","shape":"rect","x":706,"y":421,"w":49,"h":49,"points":[]},{"id":"z218","name":"Sarus","url":"","shape":"rect","x":1189,"y":421,"w":47,"h":47,"points":[]},{"id":"z219","name":"zone_219","url":"","shape":"rect","x":837,"y":422,"w":21,"h":22,"points":[]},{"id":"z220","name":"Logcraft","url":"","shape":"rect","x":387,"y":425,"w":20,"h":25,"points":[]},{"id":"z221","name":"zone_221","url":"","shape":"rect","x":851,"y":426,"w":63,"h":28,"points":[]},{"id":"z222","name":"zone_222","url":"","shape":"rect","x":312,"y":428,"w":56,"h":30,"points":[]},{"id":"z223","name":"zone_223","url":"","shape":"rect","x":499,"y":432,"w":51,"h":33,"points":[]},{"id":"z224","name":"zone_224","url":"","shape":"rect","x":770,"y":432,"w":64,"h":30,"points":[]},{"id":"z225","name":"zone_225","url":"","shape":"rect","x":42,"y":436,"w":28,"h":31,"points":[]},{"id":"z226","name":"zone_226","url":"","shape":"rect","x":99,"y":439,"w":52,"h":31,"points":[]},{"id":"z227","name":"Sarus","url":"","shape":"rect","x":1129,"y":441,"w":47,"h":18,"points":[]},{"id":"z228","name":"zone_228","url":"","shape":"rect","x":834,"y":442,"w":46,"h":27,"points":[]},{"id":"z229","name":"Logcraft","url":"","shape":"rect","x":399,"y":443,"w":53,"h":30,"points":[]},{"id":"z230","name":"zone_230","url":"","shape":"rect","x":923,"y":444,"w":30,"h":31,"points":[]},{"id":"z231","name":"zone_231","url":"","shape":"rect","x":62,"y":447,"w":35,"h":20,"points":[]},{"id":"z232","name":"zone_232","url":"","shape":"rect","x":330,"y":447,"w":55,"h":28,"points":[]},{"id":"z233","name":"zone_233","url":"","shape":"rect","x":461,"y":449,"w":40,"h":29,"points":[]},{"id":"z234","name":"zone_234","url":"","shape":"rect","x":508,"y":450,"w":58,"h":58,"points":[]},{"id":"z235","name":"zone_235","url":"","shape":"rect","x":780,"y":450,"w":43,"h":40,"points":[]},{"id":"z236","name":"zone_236","url":"","shape":"rect","x":284,"y":452,"w":42,"h":95,"points":[]},{"id":"z237","name":"zone_237","url":"","shape":"rect","x":815,"y":452,"w":60,"h":53,"points":[]},{"id":"z238","name":"zone_238","url":"","shape":"rect","x":872,"y":453,"w":33,"h":23,"points":[]},{"id":"z239","name":"zone_239","url":"","shape":"rect","x":322,"y":461,"w":78,"h":47,"points":[]},{"id":"z240","name":"zone_240","url":"","shape":"rect","x":445,"y":462,"w":27,"h":27,"points":[]},{"id":"z241","name":"zone_241","url":"","shape":"rect","x":743,"y":462,"w":28,"h":28,"points":[]},{"id":"z242","name":"Sarus","url":"","shape":"rect","x":1164,"y":463,"w":43,"h":19,"points":[]},{"id":"z243","name":"zone_243","url":"","shape":"rect","x":775,"y":464,"w":46,"h":46,"points":[]},{"id":"z244","name":"zone_244","url":"","shape":"rect","x":197,"y":465,"w":57,"h":22,"points":[]},{"id":"z245","name":"zone_245","url":"","shape":"rect","x":911,"y":465,"w":46,"h":21,"points":[]},{"id":"z246","name":"Sarus","url":"","shape":"rect","x":1142,"y":465,"w":23,"h":20,"points":[]},{"id":"z247","name":"Leto","url":"","shape":"rect","x":1075,"y":466,"w":20,"h":20,"points":[]},{"id":"z248","name":"Leto","url":"","shape":"rect","x":1092,"y":466,"w":41,"h":21,"points":[]},{"id":"z249","name":"Epieos","url":"","shape":"rect","x":67,"y":469,"w":57,"h":34,"points":[]},{"id":"z250","name":"zone_250","url":"","shape":"rect","x":176,"y":474,"w":30,"h":28,"points":[]},{"id":"z251","name":"zone_251","url":"","shape":"rect","x":364,"y":476,"w":68,"h":42,"points":[]},{"id":"z252","name":"zone_252","url":"","shape":"rect","x":877,"y":477,"w":25,"h":25,"points":[]},{"id":"z253","name":"zone_253","url":"","shape":"rect","x":762,"y":479,"w":33,"h":36,"points":[]},{"id":"z254","name":"zone_254","url":"","shape":"rect","x":422,"y":484,"w":39,"h":30,"points":[]},{"id":"z255","name":"Sarus","url":"","shape":"rect","x":1142,"y":484,"w":78,"h":25,"points":[]},{"id":"z256","name":"zone_256","url":"","shape":"rect","x":894,"y":488,"w":47,"h":31,"points":[]},{"id":"z257","name":"zone_257","url":"","shape":"rect","x":164,"y":491,"w":25,"h":60,"points":[]},{"id":"z258","name":"Leto","url":"","shape":"rect","x":1072,"y":491,"w":22,"h":19,"points":[]},{"id":"z259","name":"Leto","url":"","shape":"rect","x":1088,"y":492,"w":48,"h":21,"points":[]},{"id":"z260","name":"AUCAE","url":"","shape":"rect","x":195,"y":497,"w":71,"h":42,"points":[]},{"id":"z261","name":"zone_261","url":"","shape":"rect","x":404,"y":499,"w":26,"h":26,"points":[]},{"id":"z262","name":"zone_262","url":"","shape":"rect","x":446,"y":499,"w":52,"h":47,"points":[]},{"id":"z263","name":"zone_263","url":"","shape":"rect","x":588,"y":499,"w":126,"h":19,"points":[]},{"id":"z264","name":"zone_264","url":"","shape":"rect","x":817,"y":499,"w":61,"h":60,"points":[]},{"id":"z265","name":"zone_265","url":"","shape":"rect","x":347,"y":501,"w":24,"h":26,"points":[]},{"id":"z266","name":"zone_266","url":"","shape":"rect","x":860,"y":503,"w":26,"h":26,"points":[]},{"id":"z267","name":"zone_267","url":"","shape":"rect","x":539,"y":507,"w":49,"h":55,"points":[]},{"id":"z268","name":"Sentinelle RGPD","url":"","shape":"rect","x":1129,"y":507,"w":37,"h":23,"points":[]},{"id":"z269","name":"zone_269","url":"","shape":"rect","x":789,"y":510,"w":38,"h":39,"points":[]},{"id":"z270","name":"Sentinelle RGPD","url":"","shape":"rect","x":1159,"y":510,"w":46,"h":19,"points":[]},{"id":"z271","name":"zone_271","url":"","shape":"rect","x":365,"y":514,"w":43,"h":36,"points":[]},{"id":"z272","name":"zone_272","url":"","shape":"rect","x":873,"y":514,"w":55,"h":43,"points":[]},{"id":"z273","name":"zone_273","url":"","shape":"rect","x":454,"y":518,"w":63,"h":48,"points":[]},{"id":"z274","name":"zone_274","url":"","shape":"rect","x":589,"y":521,"w":160,"h":22,"points":[]},{"id":"z275","name":"Dastra","url":"","shape":"rect","x":1134,"y":528,"w":73,"h":24,"points":[]},{"id":"z276","name":"zone_276","url":"","shape":"rect","x":346,"y":529,"w":28,"h":29,"points":[]},{"id":"z277","name":"Alcyconie","url":"","shape":"rect","x":208,"y":537,"w":57,"h":22,"points":[]},{"id":"z278","name":"zone_278","url":"","shape":"rect","x":590,"y":542,"w":27,"h":22,"points":[]},{"id":"z279","name":"zone_279","url":"","shape":"rect","x":610,"y":542,"w":49,"h":22,"points":[]},{"id":"z280","name":"zone_280","url":"","shape":"rect","x":651,"y":542,"w":123,"h":22,"points":[]},{"id":"z281","name":"zone_281","url":"","shape":"rect","x":856,"y":543,"w":58,"h":58,"points":[]},{"id":"z282","name":"zone_282","url":"","shape":"rect","x":1112,"y":546,"w":78,"h":31,"points":[]},{"id":"z283","name":"zone_283","url":"","shape":"rect","x":405,"y":547,"w":39,"h":41,"points":[]},{"id":"z284","name":"zone_284","url":"","shape":"rect","x":1080,"y":548,"w":20,"h":17,"points":[]},{"id":"z285","name":"zone_285","url":"","shape":"rect","x":1041,"y":553,"w":47,"h":48,"points":[]},{"id":"z286","name":"zone_286","url":"","shape":"rect","x":829,"y":557,"w":18,"h":18,"points":[]},{"id":"z287","name":"zone_287","url":"","shape":"rect","x":398,"y":561,"w":35,"h":36,"points":[]},{"id":"z288","name":"zone_288","url":"","shape":"rect","x":836,"y":563,"w":42,"h":46,"points":[]},{"id":"z289","name":"zone_289","url":"","shape":"rect","x":697,"y":571,"w":102,"h":37,"points":[]},{"id":"z290","name":"zone_290","url":"","shape":"rect","x":517,"y":572,"w":180,"h":26,"points":[]},{"id":"z291","name":"zone_291","url":"","shape":"rect","x":421,"y":576,"w":38,"h":36,"points":[]},{"id":"z292","name":"zone_292","url":"","shape":"rect","x":1028,"y":585,"w":51,"h":40,"points":[]},{"id":"z293","name":"zone_293","url":"","shape":"rect","x":8,"y":596,"w":87,"h":18,"points":[]},{"id":"z294","name":"TEHTRIS","url":"","shape":"rect","x":1043,"y":611,"w":66,"h":27,"points":[]},{"id":"z295","name":"zone_295","url":"","shape":"rect","x":273,"y":620,"w":24,"h":16,"points":[]},{"id":"z296","name":"zone_296","url":"","shape":"rect","x":782,"y":620,"w":43,"h":16,"points":[]},{"id":"z297","name":"zone_297","url":"","shape":"rect","x":1147,"y":620,"w":47,"h":16,"points":[]},{"id":"z298","name":"zone_298","url":"","shape":"rect","x":1216,"y":620,"w":58,"h":16,"points":[]},{"id":"z299","name":"zone_299","url":"","shape":"rect","x":82,"y":621,"w":47,"h":16,"points":[]},{"id":"z300","name":"Eshard","url":"","shape":"rect","x":875,"y":635,"w":21,"h":27,"points":[]},{"id":"z301","name":"Yousign","url":"","shape":"rect","x":511,"y":638,"w":79,"h":28,"points":[]},{"id":"z302","name":"zone_302","url":"","shape":"rect","x":431,"y":639,"w":24,"h":22,"points":[]},{"id":"z303","name":"Seclab","url":"","shape":"rect","x":589,"y":640,"w":112,"h":25,"points":[]},{"id":"z304","name":"zone_304","url":"","shape":"rect","x":786,"y":640,"w":23,"h":27,"points":[]},{"id":"z305","name":"HarfangLab","url":"","shape":"rect","x":891,"y":640,"w":34,"h":16,"points":[]},{"id":"z306","name":"HarfangLab","url":"","shape":"rect","x":918,"y":640,"w":36,"h":18,"points":[]},{"id":"z307","name":"zone_307","url":"","shape":"rect","x":373,"y":641,"w":20,"h":20,"points":[]},{"id":"z308","name":"zone_308","url":"","shape":"rect","x":448,"y":641,"w":60,"h":18,"points":[]},{"id":"z309","name":"V6Protect","url":"","shape":"rect","x":387,"y":642,"w":45,"h":18,"points":[]},{"id":"z310","name":"GITGUARDIAN","url":"","shape":"rect","x":803,"y":645,"w":52,"h":17,"points":[]},{"id":"z311","name":"GITGUARDIAN","url":"","shape":"rect","x":848,"y":645,"w":23,"h":17,"points":[]},{"id":"z312","name":"zone_312","url":"","shape":"rect","x":711,"y":649,"w":32,"h":14,"points":[]},{"id":"z313","name":"Glimps","url":"","shape":"rect","x":944,"y":652,"w":21,"h":25,"points":[]},{"id":"z314","name":"Yes We H4ck","url":"","shape":"rect","x":962,"y":656,"w":68,"h":17,"points":[]},{"id":"z315","name":"Ledger","url":"","shape":"rect","x":1219,"y":661,"w":18,"h":18,"points":[]},{"id":"z316","name":"Ledger","url":"","shape":"rect","x":1232,"y":661,"w":40,"h":20,"points":[]},{"id":"z317","name":"zone_317","url":"","shape":"rect","x":857,"y":665,"w":22,"h":18,"points":[]},{"id":"z318","name":"GITGUARDIAN","url":"","shape":"rect","x":772,"y":667,"w":83,"h":19,"points":[]},{"id":"z319","name":"Eshard","url":"","shape":"rect","x":873,"y":667,"w":49,"h":20,"points":[]},{"id":"z320","name":"DattaK","url":"","shape":"rect","x":439,"y":668,"w":91,"h":25,"points":[]},{"id":"z321","name":"zone_321","url":"","shape":"rect","x":379,"y":669,"w":56,"h":22,"points":[]},{"id":"z322","name":"Hackuity","url":"","shape":"rect","x":644,"y":670,"w":44,"h":26,"points":[]},{"id":"z323","name":"Yousign","url":"","shape":"rect","x":526,"y":671,"w":48,"h":20,"points":[]},{"id":"z324","name":"zone_324","url":"","shape":"rect","x":570,"y":671,"w":20,"h":20,"points":[]},{"id":"z325","name":"Protected","url":"","shape":"rect","x":584,"y":672,"w":66,"h":18,"points":[]},{"id":"z326","name":"zone_326","url":"","shape":"rect","x":686,"y":674,"w":18,"h":16,"points":[]},{"id":"z327","name":"SISID","url":"","shape":"rect","x":697,"y":674,"w":63,"h":16,"points":[]},{"id":"z328","name":"Yes We H4ck","url":"","shape":"rect","x":946,"y":675,"w":61,"h":39,"points":[]},{"id":"z329","name":"zone_329","url":"","shape":"rect","x":817,"y":684,"w":21,"h":23,"points":[]},{"id":"z330","name":"zone_330","url":"","shape":"rect","x":832,"y":684,"w":38,"h":23,"points":[]},{"id":"z331","name":"zone_331","url":"","shape":"rect","x":784,"y":688,"w":19,"h":18,"points":[]},{"id":"z332","name":"Glimps","url":"","shape":"rect","x":939,"y":693,"w":26,"h":26,"points":[]},{"id":"z333","name":"DattaK","url":"","shape":"rect","x":378,"y":695,"w":114,"h":22,"points":[]},{"id":"z334","name":"Yousign","url":"","shape":"rect","x":530,"y":695,"w":118,"h":25,"points":[]},{"id":"z335","name":"SISID","url":"","shape":"rect","x":703,"y":695,"w":56,"h":22,"points":[]},{"id":"z336","name":"Sesame IT","url":"","shape":"rect","x":867,"y":697,"w":55,"h":19,"points":[]},{"id":"z337","name":"ProvenRun","url":"","shape":"rect","x":489,"y":698,"w":48,"h":17,"points":[]},{"id":"z338","name":"Hackuity","url":"","shape":"rect","x":655,"y":698,"w":53,"h":19,"points":[]},{"id":"z339","name":"zone_339","url":"","shape":"rect","x":766,"y":701,"w":45,"h":16,"points":[]},{"id":"z340","name":"zone_340","url":"","shape":"rect","x":803,"y":701,"w":18,"h":16,"points":[]}];
-const OCR_NAME_SUGGESTIONS = {"z003":"Axeinos","z004":"Kerys Software","z005":"SeckIOT","z007":"Cybi","z008":"AI Vidence","z010":"SeckIOT","z011":"AI Vidence","z012":"Cybi","z014":"Suzan.ai","z015":"Axeinos","z016":"Parcoor","z017":"Kerys Software","z022":"Giskard","z023":"Situation","z024":"Situation","z025":"Suzan.ai","z026":"Suzan.ai","z027":"Axeinos","z028":"Kerys Software","z030":"Kerys Software","z036":"Suzan.ai","z037":"Situation","z039":"Situation","z040":"Purplemet","z041":"Giskard","z042":"FranceVerif","z045":"DeepInfo","z046":"Seedfence","z048":"Seedfence","z049":"Nijta","z050":"Giskard","z052":"Situation","z053":"Securas Technologies","z054":"DeepInfo","z055":"Nijta","z056":"FranceVerif","z057":"Giskard","z058":"Nijta","z060":"Securas Technologies","z062":"Daspren","z064":"Kleer","z065":"FranceVerif","z073":"Kleer","z074":"Ziplo","z075":"Wysam","z081":"Nucleon Security","z086":"DeepFrauds.ai","z088":"Ziplo","z089":"Ziplo","z090":"Wysam","z097":"Nucleon Security","z100":"Umbra","z102":"DeepFrauds.ai","z105":"Finovox","z106":"Ziplo","z114":"Daspren","z115":"Umbra","z126":"Umbra","z129":"Treebal","z130":"Pacem","z131":"Shindan","z132":"Umbra","z150":"Arsen","z152":"Olvid","z153":"Arsen","z154":"Pacem","z155":"Narval","z162":"Arsen","z163":"Arsen","z165":"Trapster","z167":"Olvid","z178":"WYBOT","z184":"noways","z186":"OpenCVE","z188":"WYBOT","z190":"Altrnativ","z192":"Keopass","z193":"CALIDRA","z194":"Zygon","z196":"SecDojo","z199":"Altrnativ","z200":"Keopass","z201":"SecDojo","z202":"WYBOT","z203":"Locknest","z204":"noways","z205":"Cyberium SAS","z206":"SecDojo","z209":"OpenCVE","z212":"SecDojo","z216":"Logcraft","z218":"Sarus","z220":"Logcraft","z227":"Sarus","z229":"Logcraft","z242":"Sarus","z246":"Sarus","z247":"Leto","z248":"Leto","z249":"Epieos","z255":"Sarus","z258":"Leto","z259":"Leto","z260":"AUCAE","z268":"Sentinelle RGPD","z270":"Sentinelle RGPD","z275":"Dastra","z277":"Alcyconie","z294":"TEHTRIS","z300":"Eshard","z301":"Yousign","z303":"Seclab","z305":"HarfangLab","z306":"HarfangLab","z309":"V6Protect","z310":"GITGUARDIAN","z311":"GITGUARDIAN","z313":"Glimps","z314":"Yes We H4ck","z315":"Ledger","z316":"Ledger","z318":"GITGUARDIAN","z319":"Eshard","z320":"DattaK","z322":"Hackuity","z323":"Yousign","z325":"Protected","z327":"SISID","z328":"Yes We H4ck","z332":"Glimps","z333":"DattaK","z334":"Yousign","z335":"SISID","z336":"Sesame IT","z337":"ProvenRun","z338":"Hackuity"};
 function storedZones(){
   const saved=JSON.parse(localStorage.getItem('radarOverlayZones') || 'null');
   if(Array.isArray(saved)) return saved;
   if(Array.isArray(saved?.zones)) return saved.zones;
   return structuredClone(INITIAL_ZONES);
 }
+function storedStartupRecords(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('radarStartupRecords') || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch(_err){
+    return [];
+  }
+}
 let zones = storedZones();
+let startupRecords = storedStartupRecords();
 let selectedId = zones[0]?.id || null;
 let drag = null;
+let lastZonePointer = {id:null, time:0};
 const svg = document.getElementById('overlay');
 const stage = document.getElementById('stage');
 const stageScaler = document.getElementById('stageScaler');
@@ -454,9 +731,9 @@ const q = id => document.getElementById(id);
 radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
-  initPanel:{label:'Initialisation', hint:'Initialisation : chargez une image, détectez les zones, puis enrichissez via LLM si besoin.'},
-  editPanel:{label:'Édition', hint:'Édition : le radar est déverrouillé, les zones peuvent être déplacées et redimensionnées.'},
-  exportPanel:{label:'Exportation', hint:'Exportation : vérifiez la prévisualisation à gauche puis exportez HTML ou JSON.'}
+  initPanel:{label:'Préparer', hint:'Préparer : chargez le radar et le CSV, puis détourez localement ou avec LLM.'},
+  editPanel:{label:'Éditer', hint:'Éditer : ajustez les zones orange, puis validez les associations pour les passer en vert.'},
+  exportPanel:{label:'Exporter', hint:'Exporter : choisissez un rendu simple ou filtrable, ajustez le visuel, puis exportez.'}
 };
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
@@ -464,6 +741,16 @@ document.body.dataset.mode = activeTab;
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function zoneById(id){ return zones.find(z => z.id === id); }
 function fmt(n){ return Math.round(n*10)/10; }
+function normalizeName(value){
+  return String(value || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/&/g,' and ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim();
+}
+function isGenericZoneName(value){ return /^zone_\d+$/i.test(String(value || '').trim()); }
+function normalizeHeader(value){ return normalizeName(value).replace(/\s+/g,''); }
 function isEditMode(){ return activeTab === 'editPanel'; }
 function isExportMode(){ return activeTab === 'exportPanel'; }
 function pointsFromBox(z){
@@ -503,26 +790,25 @@ function shapeEl(z){
     el.setAttribute('width', Math.max(3,z.w)); el.setAttribute('height', Math.max(3,z.h));
   }
   el.classList.add('zone');
+  el.classList.add(z.dataConfirmed || z.associationConfirmed ? 'confirmed' : 'pending');
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
   el.dataset.id = z.id;
   el.addEventListener('pointerdown', startMove);
   el.addEventListener('click', showExportLivePopup);
+  el.addEventListener('dblclick', showEditZonePopup);
   el.addEventListener('keydown', e=>{
     if(!isExportMode()) return;
     if(e.key==='Enter' || e.key===' '){
       showExportLivePopup({currentTarget:e.currentTarget, preventDefault:()=>e.preventDefault(), stopPropagation:()=>e.stopPropagation(), clientX:window.innerWidth/2, clientY:window.innerHeight/2});
     }
   });
+  el.setAttribute('aria-label', z.name || z.id);
   if(isExportMode()){
     el.setAttribute('tabindex','0');
     el.setAttribute('role','button');
-    el.setAttribute('aria-label', z.name || z.id);
   }
-  const title = document.createElementNS('http://www.w3.org/2000/svg','title');
-  title.textContent = `${z.name || z.id}${z.url ? ' | '+z.url : ''}`;
-  el.appendChild(title);
   return el;
 }
 function render(){
@@ -533,6 +819,7 @@ function render(){
   if(z){
     if(isEditMode()) renderHandles(z);
     fillForm(z);
+    if(!q('editZonePopup').hidden) fillEditPopup(z);
   }
   renderList();
   updateShapeButtons();
@@ -562,18 +849,237 @@ function fillForm(z){
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
+  q('associationStatus').textContent = z.dataConfirmed || z.associationConfirmed ? 'Association validée' : 'Association à valider';
+}
+function fillEditPopup(z){
+  q('editPopupId').value=z.id;
+  q('editPopupName').value=z.name||'';
+  q('editPopupUrl').value=z.url||'';
+  q('editPopupLogo').value=z.logo||'';
+  q('editPopupDescription').value=z.description||'';
+  q('editPopupShape').value=z.shape||'rect';
+  q('editPopupX').value=fmt(z.x);
+  q('editPopupY').value=fmt(z.y);
+  q('editPopupW').value=fmt(z.w);
+  q('editPopupH').value=fmt(z.h);
+  q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
+  q('editPopupPoints').disabled = z.shape !== 'poly';
+  q('editPopupAssociationStatus').textContent = z.dataConfirmed || z.associationConfirmed ? 'Association validée' : 'Association à valider';
+}
+function placeEditPopup(event){
+  const popup=q('editZonePopup');
+  popup.hidden=false;
+  const rect=stage.getBoundingClientRect();
+  const left=event ? event.clientX-rect.left+12 : 16;
+  const top=event ? event.clientY-rect.top+12 : 16;
+  popup.style.left=Math.min(Math.max(left,8), Math.max(stage.clientWidth-popup.offsetWidth-8,8))+'px';
+  popup.style.top=Math.min(Math.max(top,8), Math.max(stage.clientHeight-popup.offsetHeight-8,8))+'px';
+}
+function showEditZonePopup(event){
+  if(!isEditMode()) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const zoneEl=event.currentTarget?.dataset?.id ? event.currentTarget : event.target.closest?.('.zone');
+  if(!zoneEl) return;
+  selectedId=zoneEl.dataset.id;
+  const z=zoneById(selectedId);
+  if(!z) return;
+  fillEditPopup(z);
+  placeEditPopup(event);
+  setTimeout(()=>{ q('editPopupName').focus(); q('editPopupName').select(); },0);
+  renderList();
+}
+function hideEditZonePopup(){
+  q('editZonePopup').hidden=true;
+}
+function handleZoneDoublePointer(e){
+  if(!isEditMode()) return;
+  const zoneEl=e.target.closest?.('.zone');
+  if(!zoneEl) return;
+  const zoneId=zoneEl.dataset.id;
+  const now=Date.now();
+  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 900){
+    lastZonePointer={id:null,time:0};
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    showEditZonePopup(e);
+    return;
+  }
+  lastZonePointer={id:zoneId,time:now};
+}
+function applyEditPopup(){
+  if(!isEditMode()) return;
+  const z=zoneById(selectedId);
+  if(!z) return;
+  z.name=q('editPopupName').value.trim() || z.id;
+  z.url=q('editPopupUrl').value.trim();
+  z.logo=q('editPopupLogo').value.trim();
+  z.description=q('editPopupDescription').value.trim();
+  const old=z.shape;
+  z.shape=q('editPopupShape').value;
+  z.x=clamp(Number(q('editPopupX').value)||0,0,IMG_W);
+  z.y=clamp(Number(q('editPopupY').value)||0,0,IMG_H);
+  z.w=clamp(Number(q('editPopupW').value)||20,4,IMG_W-z.x);
+  z.h=clamp(Number(q('editPopupH').value)||20,4,IMG_H-z.y);
+  if(z.shape==='poly'){
+    const pts=q('editPopupPoints').value.trim().split(/\s+/).map(s=>s.split(',').map(Number)).filter(a=>a.length===2 && a.every(Number.isFinite)).map(([x,y])=>({x:clamp(x,0,IMG_W),y:clamp(y,0,IMG_H)}));
+    if(pts.length>=3) z.points=pts; else if(old!=='poly') z.points=[];
+    ensurePoly(z); Object.assign(z,boundsFromPoints(z.points));
+  } else {
+    z.points=[];
+  }
+  render();
+}
+function confirmAssociation(prefix=''){
+  if(!isEditMode()) return;
+  const z=zoneById(selectedId);
+  if(!z) return;
+  applyStartupRecordToInputs(prefix);
+  if(prefix === 'editPopup') applyEditPopup();
+  else applyForm();
+  const updated=zoneById(selectedId);
+  if(!updated) return;
+  updated.dataConfirmed=true;
+  updated.associationConfirmed=true;
+  updated.confirmedAt=new Date().toISOString();
+  render();
+  if(prefix === 'editPopup') fillEditPopup(updated);
+  else fillForm(updated);
 }
 function renderList(){
   const s=q('search').value.toLowerCase();
   q('zoneList').innerHTML = '';
   zones.filter(z => !s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.shape}${z.url?' ✓':' !'}</span>`;
+    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.dataConfirmed || z.associationConfirmed ? 'validé' : 'à valider'}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
     q('zoneList').appendChild(d);
   });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function parseDelimitedRows(text){
+  const sample=text.split(/\r?\n/).find(line=>line.trim()) || '';
+  const delimiter=['\t',';',','].map(d=>({d,count:(sample.match(new RegExp(d === '\t' ? '\\t' : `\\${d}`,'g'))||[]).length})).sort((a,b)=>b.count-a.count)[0]?.d || ',';
+  const rows=[];
+  let row=[], cell='', quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], next=text[i+1];
+    if(quoted){
+      if(ch === '"' && next === '"'){ cell += '"'; i++; }
+      else if(ch === '"'){ quoted=false; }
+      else cell += ch;
+    } else if(ch === '"'){
+      quoted=true;
+    } else if(ch === delimiter){
+      row.push(cell.trim()); cell='';
+    } else if(ch === '\n'){
+      row.push(cell.trim()); cell='';
+      if(row.some(Boolean)) rows.push(row);
+      row=[];
+    } else if(ch !== '\r'){
+      cell += ch;
+    }
+  }
+  row.push(cell.trim());
+  if(row.some(Boolean)) rows.push(row);
+  return rows;
+}
+function pickField(row, aliases){
+  for(const alias of aliases){
+    const key=Object.keys(row).find(k=>normalizeHeader(k) === normalizeHeader(alias));
+    if(key && row[key] !== undefined) return String(row[key]).trim();
+  }
+  return '';
+}
+function startupRecordFromObject(row){
+  const name=pickField(row,['name','nom','startup','start-up','company','entreprise','societe','société','structure']);
+  if(!name) return null;
+  return {
+    name,
+    url:pickField(row,['url','website','site','site web','lien','link']),
+    logo:pickField(row,['logo','logo url','logo_url','logourl','image','image url']),
+    description:pickField(row,['description','descriptif','desc','pitch','short description','resume','résumé']),
+    category:pickField(row,['category','categorie','catégorie','secteur','cadran','quadrant']),
+    raw:row
+  };
+}
+function parseStartupRecords(text, fileName=''){
+  const trimmed=text.trim();
+  if(!trimmed) return [];
+  if(/\.json$/i.test(fileName) || trimmed.startsWith('{') || trimmed.startsWith('[')){
+    const data=JSON.parse(trimmed);
+    const rows=Array.isArray(data) ? data : (data.startups || data.companies || data.organizations || data.records || []);
+    return rows.map(row=>startupRecordFromObject(row)).filter(Boolean);
+  }
+  const rows=parseDelimitedRows(text);
+  if(rows.length < 2) return [];
+  const headers=rows[0];
+  return rows.slice(1).map(cols=>{
+    const row={};
+    headers.forEach((header,i)=>{ row[header || `col${i+1}`]=cols[i] || ''; });
+    return startupRecordFromObject(row);
+  }).filter(Boolean);
+}
+function refreshStartupSuggestions(){
+  const list=q('startupSuggestions');
+  if(!list) return;
+  list.innerHTML='';
+  startupRecords
+    .slice()
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .forEach(record=>{
+      const option=document.createElement('option');
+      option.value=record.name;
+      option.label=[record.url, record.category].filter(Boolean).join(' - ');
+      list.appendChild(option);
+    });
+}
+function updateStartupImportStatus(text){
+  const el=q('startupImportStatus');
+  if(!el) return;
+  el.textContent = text || (startupRecords.length ? `${startupRecords.length} startup(s) disponibles pour l’enrichissement et l’autocomplétion.` : 'Aucune table startup importée.');
+}
+function findStartupRecord(value){
+  const wanted=normalizeName(value);
+  if(!wanted) return null;
+  const exact=startupRecords.find(record=>normalizeName(record.name) === wanted);
+  if(exact) return exact;
+  const prefix=startupRecords.filter(record=>normalizeName(record.name).startsWith(wanted));
+  if(prefix.length === 1) return prefix[0];
+  return startupRecords.find(record=>{
+    const name=normalizeName(record.name);
+    return name.includes(wanted) || wanted.includes(name);
+  }) || null;
+}
+function applyStartupRecordToZone(z, record){
+  if(!z || !record) return false;
+  z.name=record.name || z.name;
+  if(record.url) z.url=record.url;
+  if(record.logo) z.logo=record.logo;
+  if(record.description) z.description=record.description;
+  if(record.category) z.category=record.category;
+  z.startupData=record.raw || record;
+  return true;
+}
+function linkStartupRecordsToZones(){
+  let linked=0;
+  zones.forEach(z=>{
+    if(!z.name || isGenericZoneName(z.name)) return;
+    const record=findStartupRecord(z.name);
+    if(applyStartupRecordToZone(z, record)) linked++;
+  });
+  return linked;
+}
+function applyStartupRecordToInputs(prefix=''){
+  const nameId=prefix ? `${prefix}Name` : 'name';
+  const record=findStartupRecord(q(nameId).value);
+  if(!record) return false;
+  q(nameId).value=record.name;
+  q(prefix ? `${prefix}Url` : 'url').value=record.url || q(prefix ? `${prefix}Url` : 'url').value;
+  q(prefix ? `${prefix}Logo` : 'logo').value=record.logo || q(prefix ? `${prefix}Logo` : 'logo').value;
+  q(prefix ? `${prefix}Description` : 'description').value=record.description || q(prefix ? `${prefix}Description` : 'description').value;
+  return true;
+}
 function hexToRgba(hex, opacity=1){
   const raw=String(hex||'#000000').replace('#','');
   const full=raw.length===3 ? raw.split('').map(c=>c+c).join('') : raw.padEnd(6,'0').slice(0,6);
@@ -594,6 +1100,7 @@ function getExportRenderConfig(){
   const shape=exportPopupShape(q('cfgPopupShape')?.value);
   const hoverOpacity=Number(q('cfgHoverOpacity')?.value);
   const popupWidth=Number(q('cfgPopupWidth')?.value);
+  const popupFontSize=Number(q('cfgPopupFontSize')?.value);
   const popupShadowKind=q('cfgPopupShadow')?.value || 'soft';
   return {
     hoverFill:q('cfgHoverFill')?.value || '#137f9a',
@@ -607,6 +1114,7 @@ function getExportRenderConfig(){
     popupBorder:q('cfgPopupBorder')?.value || '#cbdde6',
     popupAccent:q('cfgPopupAccent')?.value || '#137f9a',
     popupWidth:Number.isFinite(popupWidth) ? clamp(popupWidth,180,520) : 280,
+    popupFontSize:Number.isFinite(popupFontSize) ? clamp(popupFontSize,11,22) : 14,
     popupRadius:shape.radius,
     popupPadding:shape.padding,
     popupShadowKind,
@@ -631,6 +1139,7 @@ function setExportRenderConfig(cfg={}){
     cfgPopupBorder:cfg.popupBorder,
     cfgPopupAccent:cfg.popupAccent,
     cfgPopupWidth:cfg.popupWidth,
+    cfgPopupFontSize:cfg.popupFontSize,
     cfgPopupShadow:shadowKind,
     cfgPopupLinkLabel:cfg.popupLinkLabel
   };
@@ -650,11 +1159,12 @@ function applyExportRenderConfig(){
   stage.style.setProperty('--popup-accent', cfg.popupAccent);
   stage.style.setProperty('--popup-radius', `${cfg.popupRadius}px`);
   stage.style.setProperty('--popup-padding', `${cfg.popupPadding}px`);
+  stage.style.setProperty('--popup-font-size', `${cfg.popupFontSize}px`);
   stage.style.setProperty('--popup-shadow', cfg.popupShadow);
 }
 function popupHtmlForZone(z, cfg=getExportRenderConfig()){
   const url=safeUrl(z?.url);
-  return `${cfg.showLogo && z?.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}">` : ''}<strong>${escapeHtml(z?.name || z?.id || 'Zone')}</strong>${cfg.showDescription && z?.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink ? (url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : '<br><span>URL non renseignée</span>') : ''}`;
+  return `${cfg.showLogo && z?.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}" onerror="this.hidden=true">` : ''}<strong>${escapeHtml(z?.name || z?.id || 'Zone')}</strong>${cfg.showDescription && z?.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink ? (url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : '<br><span>URL non renseignée</span>') : ''}`;
 }
 function placePopup(popup, event, cfg=getExportRenderConfig()){
   popup.hidden=false;
@@ -686,7 +1196,15 @@ function hideExportLivePopup(){
 }
 function startMove(e){
   if(!isEditMode()) return;
-  e.preventDefault(); selectedId=e.currentTarget.dataset.id; const z=zoneById(selectedId); const p=pointerPos(e);
+  const zoneId=e.currentTarget.dataset.id;
+  const now=Date.now();
+  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 900){
+    lastZonePointer={id:null,time:0};
+    showEditZonePopup(e);
+    return;
+  }
+  lastZonePointer={id:zoneId,time:now};
+  e.preventDefault(); selectedId=zoneId; const z=zoneById(selectedId); const p=pointerPos(e);
   drag={type:'move', id:selectedId, sx:p.x, sy:p.y, ox:z.x, oy:z.y, pts:(z.points||[]).map(p=>({...p}))};
   svg.setPointerCapture(e.pointerId); render();
 }
@@ -702,6 +1220,7 @@ function startVertex(e){
   drag={type:'vertex', idx:Number(e.currentTarget.dataset.idx), sx:p.x, sy:p.y};
   svg.setPointerCapture(e.pointerId);
 }
+svg.addEventListener('pointerdown', handleZoneDoublePointer, true);
 svg.addEventListener('pointermove', e=>{
   if(!isEditMode() || !drag) return; const z=zoneById(selectedId); const p=pointerPos(e); const dx=p.x-drag.sx, dy=p.y-drag.sy;
   if(drag.type==='move'){
@@ -739,6 +1258,49 @@ function applyForm(){
 }
 q('apply').onclick=applyForm;
 ['name','url','logo','description','shape','x','y','w','h','points'].forEach(id=>q(id).addEventListener('change',applyForm));
+q('editPopupApply').onclick=applyEditPopup;
+q('editPopupClose').onclick=hideEditZonePopup;
+q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
+q('confirmAssociation').onclick=()=>confirmAssociation('');
+q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
+q('name').addEventListener('change',()=>{ if(applyStartupRecordToInputs('')) applyForm(); });
+q('name').addEventListener('keydown',e=>{
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  confirmAssociation('');
+});
+q('editPopupName').addEventListener('change',()=>{ if(applyStartupRecordToInputs('editPopup')) applyEditPopup(); });
+q('editPopupName').addEventListener('keydown',e=>{
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  confirmAssociation('editPopup');
+});
+q('importStartupData').onclick=()=>q('startupDataFile').click();
+q('startupDataFile').onchange=async e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  try{
+    startupRecords=parseStartupRecords(await file.text(), file.name);
+    if(!startupRecords.length) throw new Error('Aucune ligne exploitable. Ajoutez au minimum une colonne name, startup, nom ou entreprise.');
+    persistStartupRecords();
+    refreshStartupSuggestions();
+    const linked=linkStartupRecordsToZones();
+    render();
+    updateStartupImportStatus(`${startupRecords.length} startup(s) importée(s). ${linked} zone(s) enrichie(s) automatiquement. Les logos absents sont simplement ignorés.`);
+    logAnalysis(`Données startups importées : ${startupRecords.length} entrée(s), ${linked} zone(s) enrichie(s).`);
+  } catch(err){
+    updateStartupImportStatus(`Import impossible : ${err.message}`);
+    alert(`Import impossible : ${err.message}`);
+  } finally {
+    e.target.value='';
+  }
+};
+q('clearStartupData').onclick=()=>{
+  startupRecords=[];
+  persistStartupRecords();
+  refreshStartupSuggestions();
+  updateStartupImportStatus();
+};
 q('search').oninput=renderList; q('showFill').onchange=render;
 function refreshStageGeometry(){
   stageScaler.style.width=IMG_W+'px'; stageScaler.style.height=IMG_H+'px';
@@ -779,6 +1341,7 @@ function selectWorkflowTab(tabId){
   activeTab = tabId;
   document.body.dataset.mode = tabId;
   closeConfigMenu();
+  hideEditZonePopup();
   if(tabId !== 'exportPanel') hideExportLivePopup();
   document.querySelectorAll('.phaseBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab === tabId));
   document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active', panel.id === tabId));
@@ -791,6 +1354,7 @@ function selectWorkflowTab(tabId){
 document.querySelectorAll('.phaseBtn').forEach(btn=>{
   btn.addEventListener('click',()=>selectWorkflowTab(btn.dataset.tab));
 });
+q('stageExportBtn').addEventListener('click',()=>selectWorkflowTab('exportPanel'));
 function closeConfigMenu(){
   q('configPanel').classList.remove('open');
   q('configPanel').setAttribute('aria-hidden','true');
@@ -807,6 +1371,9 @@ document.addEventListener('click',e=>{
   if(q('configPanel').contains(e.target) || q('openConfigBtn').contains(e.target)) return;
   closeConfigMenu();
 });
+document.addEventListener('keydown',e=>{
+  if(e.key === 'Escape') hideEditZonePopup();
+});
 function logAnalysis(message){
   const el=q('analysisLog');
   el.value += `${new Date().toLocaleTimeString()} - ${message}\n`;
@@ -818,6 +1385,9 @@ function persistZones({silent=false, reason='manual'} = {}){
   const stamp=new Date().toLocaleTimeString();
   updateSaveStatus(`Sauvé ${stamp}${reason==='auto' ? ' (auto)' : ''}`);
   if(!silent) alert('Overlay sauvegardé dans le navigateur.');
+}
+function persistStartupRecords(){
+  localStorage.setItem('radarStartupRecords', JSON.stringify(startupRecords));
 }
 function updateExportPreview(){
   if(!q('previewTitle')) return;
@@ -835,8 +1405,13 @@ function updateExportPreview(){
     iframe:'Wavestone / RiskInsight',
     imagemap:'CMS sans JavaScript'
   };
+  const experienceLabels = {
+    visual:'Visuel seul',
+    interface:'Visuel et interface'
+  };
   q('previewTitle').textContent = q('cfgExportTitle').value || 'Radar cliquable';
   q('previewExportMode').textContent = modeLabels[mode] || modeLabels.standalone;
+  q('previewExportExperience').textContent = experienceLabels[getExportExperience()] || experienceLabels.visual;
   q('previewIntegrationTarget').textContent = targets[mode] || targets.standalone;
   q('previewHtmlName').textContent = q('cfgHtmlName').value || 'radar_cliquable.html';
   q('previewImageSize').textContent = `${IMG_W} x ${IMG_H}`;
@@ -845,6 +1420,7 @@ function updateExportPreview(){
   q('previewSampleZone').textContent = named?.name || zones[0]?.id || '-';
 }
 function getExportMode(){ return q('cfgExportMode')?.value || 'standalone'; }
+function getExportExperience(){ return q('cfgExportExperience')?.value || 'visual'; }
 function getDetectionConfig(){
   return {
     contrast:Number(q('cfgContrast').value)||34,
@@ -905,6 +1481,8 @@ function buildProjectJson(source){
       }
     },
     exportRender:getExportRenderConfig(),
+    exportExperience:getExportExperience(),
+    startupRecords,
     zones
   };
 }
@@ -913,16 +1491,25 @@ async function importProjectJson(text){
   if(Array.isArray(data)){
     zones=data;
   } else {
-    if(data.image?.dataUrl){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
+    if(data.image?.dataUrl && /^data:image\//.test(data.image.dataUrl)){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
     zones=data.zones || [];
     if(data.config){
       Object.entries({cfgContrast:'contrast',cfgMinArea:'minArea',cfgMaxArea:'maxArea',cfgPadding:'padding',cfgMergeGap:'mergeGap',cfgMaxRatio:'maxRatio'}).forEach(([id,key])=>{ if(data.config[key] !== undefined) q(id).value=data.config[key]; });
     }
     if(data.exportRender) setExportRenderConfig(data.exportRender);
+    if(data.exportExperience && q('cfgExportExperience')) q('cfgExportExperience').value=data.exportExperience;
+    if(Array.isArray(data.startupRecords)){
+      startupRecords=data.startupRecords.map(row=>startupRecordFromObject(row) || row).filter(row=>row?.name);
+      persistStartupRecords();
+      refreshStartupSuggestions();
+      updateStartupImportStatus();
+    }
   }
+  const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
   selectedId=zones[0]?.id||null;
   render();
   logAnalysis(`JSON importé : ${zones.length} zone(s).`);
+  if(linked) logAnalysis(`${linked} zone(s) enrichie(s) depuis les données startups importées.`);
 }
 function getAiConfig(){
   return {
@@ -936,19 +1523,67 @@ function getAiConfig(){
     language:q('aiLanguage').value
   };
 }
-function setDefaultModel(){
+const AI_MODEL_CATALOG = {
+  anthropic:[
+    {value:'claude-opus-4-1-20250805', label:'Claude Opus 4.1'},
+    {value:'claude-opus-4-20250514', label:'Claude Opus 4'},
+    {value:'claude-sonnet-4-20250514', label:'Claude Sonnet 4'},
+    {value:'claude-3-7-sonnet-20250219', label:'Claude Sonnet 3.7'},
+    {value:'claude-3-5-haiku-latest', label:'Claude Haiku 3.5'}
+  ],
+  openai:[
+    {value:'gpt-5.2', label:'GPT-5.2'},
+    {value:'gpt-5.2-pro', label:'GPT-5.2 pro'},
+    {value:'gpt-5.1', label:'GPT-5.1'},
+    {value:'gpt-5', label:'GPT-5'},
+    {value:'gpt-5-mini', label:'GPT-5 mini'},
+    {value:'gpt-5-nano', label:'GPT-5 nano'},
+    {value:'gpt-4.1', label:'GPT-4.1'}
+  ],
+  azure:[
+    {value:'gpt-5.1-chat', label:'GPT-5.1 chat'},
+    {value:'gpt-5-chat', label:'GPT-5 chat'},
+    {value:'gpt-5', label:'GPT-5'},
+    {value:'gpt-5-mini', label:'GPT-5 mini'},
+    {value:'gpt-5-nano', label:'GPT-5 nano'},
+    {value:'gpt-4.1', label:'GPT-4.1'},
+    {value:'gpt-4o', label:'GPT-4o'}
+  ]
+};
+function refreshModelOptions({preserve=true} = {}){
   const provider=q('aiProvider').value;
-  if(q('aiModel').value.trim()) return;
-  q('aiModel').value = provider === 'anthropic' ? 'claude-sonnet-4-5' : 'gpt-4.1';
+  const options=AI_MODEL_CATALOG[provider] || AI_MODEL_CATALOG.openai;
+  const current=q('aiModel').value.trim();
+  const hasCurrent=options.some(model=>model.value === current);
+  const customOption=preserve && current && !hasCurrent ? [{value:current,label:`${current} (personnalisé)`}] : [];
+  q('aiModel').innerHTML=[...customOption,...options].map(model=>`<option value="${escapeHtml(model.value)}">${escapeHtml(model.label)}</option>`).join('');
+  q('aiModel').value=(preserve && current) ? current : (options[0]?.value || '');
+}
+function isAiConnected(cfg=getAiConfig()){
+  if(!cfg.approved || !cfg.apiKey || !cfg.model) return false;
+  if(cfg.provider === 'azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)) return false;
+  return true;
+}
+function updateAiStatus(){
+  const el=q('aiStatusText');
+  if(!el) return;
+  const connected=isAiConnected();
+  el.textContent=connected ? 'AI connected' : 'AI not connected';
+  el.classList.toggle('connected', connected);
+}
+function setDefaultModel(){
+  refreshModelOptions({preserve:true});
 }
 function refreshProviderFields(){
   q('azureFields').classList.toggle('active', q('aiProvider').value === 'azure');
   setDefaultModel();
+  updateAiStatus();
 }
 function saveAiConfig(){
   const cfg=getAiConfig();
   const {apiKey, ...safeCfg}=cfg;
   localStorage.setItem('radarMapperAiConfig', JSON.stringify(safeCfg));
+  updateAiStatus();
   alert('Configuration LLM sauvegardée sans la clé API. La clé reste uniquement en mémoire de cette session.');
 }
 function loadAiConfig(){
@@ -965,7 +1600,9 @@ function loadAiConfig(){
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
   q('aiLanguage').value=cfg.language||'fr';
+  refreshModelOptions({preserve:true});
   refreshProviderFields();
+  updateAiStatus();
 }
 function clearAiConfig(){
   localStorage.removeItem('radarMapperAiConfig');
@@ -978,24 +1615,43 @@ function clearAiConfig(){
   q('aiAzureVersion').value='2024-12-01-preview';
   q('aiLanguage').value='fr';
   refreshProviderFields();
+  updateAiStatus();
 }
 function imagePayload(){
   const [header,data]=IMAGE_DATA.split(',');
   const mediaType=(header.match(/data:([^;]+)/)||[])[1] || 'image/png';
   return {mediaType,data};
 }
-function llmPrompt(){
-  const skeleton=buildProjectJson('llm_mapping_request');
+function llmPrompt(candidateZones=[], textCandidates=[]){
+  const skeleton=buildProjectJson('llm_detourage_request');
   skeleton.image.dataUrl='[image attached separately]';
+  skeleton.zones=candidateZones;
+  skeleton.localDetection={
+    note:'Ces zones sont issues du détourage local par canvas. Utilise-les comme base géométrique prioritaire.',
+    candidateCount:candidateZones.length,
+    browserTextCandidates:textCandidates
+  };
   return `Tu es un assistant de mapping pour RadarMapper.
-Analyse l'image du radar et le JSON ci-dessous. Mets a jour les zones avec les noms OCR, URL, logos et descriptions quand ils sont reconnaissables.
+Analyse l'image du radar et le JSON ci-dessous. Le but est de détourer les logos/startups du radar et d'effectuer l'OCR/mapping via LLM.
 Langue attendue: ${getAiConfig().language === 'fr' ? 'francais' : 'anglais'}.
+
+Méthode attendue:
+- pars des zones candidates fournies dans zones: elles contiennent les coordonnées pixel calculées localement;
+- corrige seulement les erreurs évidentes de forme, de fusion ou de découpage;
+- reconnais les noms visibles dans chaque zone depuis l'image;
+- utilise startupRecords comme référentiel CSV de structures quand il est fourni;
+- complète name, ocrCandidate, confidence, url, logo et description quand c'est fiable ou présent dans startupRecords;
+- garde une zone candidate même si son nom reste incertain.
+
 Contraintes strictes:
 - retourne uniquement un JSON valide, sans markdown;
 - conserve le schema wavestone-radar-mapper-v1;
-- conserve les id existants autant que possible;
+- conserve les id existants autant que possible, surtout ceux des zones candidates;
 - n'invente pas une URL si elle est incertaine;
-- si une zone reste incertaine, garde un nom zone_XXX et baisse confidence.
+- ne marque jamais dataConfirmed ou associationConfirmed à true: la validation humaine se fait ensuite dans l'onglet Éditer;
+- si une zone reste incertaine, garde un nom zone_XXX et baisse confidence;
+- les coordonnées x, y, w, h restent dans le repère ${IMG_W} x ${IMG_H};
+- points est vide sauf pour shape=poly.
 
 JSON:
 ${JSON.stringify(skeleton,null,2)}`;
@@ -1011,13 +1667,39 @@ async function callOpenAiLike(cfg,prompt){
     : 'https://api.openai.com/v1/chat/completions';
   const headers={'Content-Type':'application/json'};
   headers[isAzure ? 'api-key' : 'Authorization'] = isAzure ? cfg.apiKey : `Bearer ${cfg.apiKey}`;
+  const modelName=isAzure ? cfg.azureDeployment : cfg.model;
+  const supportsTemperature=!/^gpt-5/i.test(modelName) && !/^o\d/i.test(modelName);
   const body=isAzure
-    ? {messages,temperature:0,response_format:{type:'json_object'}}
-    : {model:cfg.model,messages,temperature:0,response_format:{type:'json_object'}};
+    ? {messages,response_format:{type:'json_object'}}
+    : {model:cfg.model,messages,response_format:{type:'json_object'}};
+  if(supportsTemperature) body.temperature=0;
   const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
   if(!res.ok) throw new Error(await res.text());
   const data=await res.json();
   return data.choices?.[0]?.message?.content || '';
+}
+async function testOpenAiLike(cfg){
+  const messages=[{role:'user',content:'Réponds uniquement OK.'}];
+  const isAzure=cfg.provider === 'azure';
+  const url=isAzure
+    ? `${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
+    : 'https://api.openai.com/v1/chat/completions';
+  const headers={'Content-Type':'application/json'};
+  headers[isAzure ? 'api-key' : 'Authorization'] = isAzure ? cfg.apiKey : `Bearer ${cfg.apiKey}`;
+  const modelName=isAzure ? cfg.azureDeployment : cfg.model;
+  const supportsTemperature=!/^gpt-5/i.test(modelName) && !/^o\d/i.test(modelName);
+  const body=isAzure
+    ? {messages}
+    : {model:cfg.model,messages};
+  if(supportsTemperature) {
+    body.temperature=0;
+    body.max_tokens=8;
+  } else {
+    body.max_completion_tokens=8;
+  }
+  const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 async function callAnthropic(cfg,prompt){
   const image=imagePayload();
@@ -1043,6 +1725,25 @@ async function callAnthropic(cfg,prompt){
   const data=await res.json();
   return (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
 }
+async function testAnthropic(cfg){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':cfg.apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:cfg.model,
+      max_tokens:8,
+      temperature:0,
+      messages:[{role:'user',content:'Réponds uniquement OK.'}]
+    })
+  });
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 function parseJsonFromText(text){
   const trimmed=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
   try{ return JSON.parse(trimmed); } catch(_err){}
@@ -1050,25 +1751,70 @@ function parseJsonFromText(text){
   if(start>=0 && end>start) return JSON.parse(trimmed.slice(start,end+1));
   throw new Error('Réponse LLM sans JSON exploitable.');
 }
-q('aiProvider').onchange=()=>{ q('aiModel').value=''; refreshProviderFields(); };
+q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
+['aiApproved','aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
+  q(id).addEventListener('input',updateAiStatus);
+  q(id).addEventListener('change',updateAiStatus);
+});
 q('saveAiConfig').onclick=saveAiConfig;
+q('testAiConfig').onclick=async()=>{
+  const cfg=getAiConfig();
+  updateAiStatus();
+  if(!cfg.approved){ alert('Validation confidentialité requise avant de tester la connexion LLM.'); return; }
+  if(!cfg.apiKey || !cfg.model){ alert('Choisis un modèle et renseigne la clé API avant de tester.'); return; }
+  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
+  try{
+    q('testAiConfig').disabled=true;
+    q('testAiConfig').textContent='Test en cours...';
+    if(cfg.provider==='anthropic') await testAnthropic(cfg);
+    else await testOpenAiLike(cfg);
+    updateAiStatus();
+    alert('Connexion LLM réussie.');
+  }catch(err){
+    updateAiStatus();
+    alert(`Connexion LLM échouée : ${err.message}`);
+  }finally{
+    q('testAiConfig').disabled=false;
+    q('testAiConfig').textContent='Tester la connexion LLM';
+  }
+};
 q('clearAiConfig').onclick=clearAiConfig;
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
   if(!cfg.approved){ alert('Validation confidentialité requise dans Configuration.'); return; }
-  if(!cfg.apiKey || !cfg.model){ alert('Configure le fournisseur, le modèle et la clé API avant de lancer OCR + mapping.'); return; }
+  if(!cfg.apiKey || !cfg.model){ alert('Configure le fournisseur, le modèle et la clé API avant de lancer le détourage avec LLM.'); return; }
   if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
   q('analysisLog').value='';
-  logAnalysis(`Analyse LLM démarrée avec ${cfg.provider}.`);
+  logAnalysis(`Détourage local préalable démarré.`);
   try{
-    const prompt=llmPrompt();
+    q('runAiMapping').disabled=true;
+    q('runAiMapping').textContent='Détourage LLM...';
+    const local=await createDetectedZones();
+    const candidateZones=local.zones.length ? local.zones : structuredClone(zones);
+    if(!candidateZones.length){
+      logAnalysis('Aucune zone candidate détectée : arrêt du détourage LLM.');
+      alert('Aucune zone candidate détectée localement. Ajuste les réglages de détection ou charge une image plus lisible.');
+      return;
+    }
+    if(!local.zones.length) logAnalysis('Aucune nouvelle zone locale : utilisation des zones existantes comme candidates LLM.');
+    zones=candidateZones;
+    selectedId=zones[0]?.id||null;
+    render();
+    logAnalysis(`${local.components.length} composant(s) visuel(s), ${candidateZones.length} zone(s) candidate(s) envoyée(s) au LLM.`);
+    logAnalysis(`Analyse LLM démarrée avec ${cfg.provider}.`);
+    const prompt=llmPrompt(candidateZones, local.textCandidates);
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
     const data=parseJsonFromText(text);
+    if(!Array.isArray(data?.zones) || !data.zones.length) throw new Error('Réponse LLM sans zones exploitables.');
+    data.zones.forEach(z=>{ z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt; });
     await importProjectJson(JSON.stringify(data));
-    logAnalysis('Mapping LLM importé avec succès.');
+    logAnalysis(`Détourage et OCR LLM importés avec succès : ${zones.length} zone(s).`);
   } catch(err){
     logAnalysis(`Erreur LLM : ${err.message}`);
-    alert('L’analyse LLM a échoué. Voir le journal pour le détail.');
+    alert('Le détourage avec LLM a échoué. Voir le journal pour le détail.');
+  } finally {
+    q('runAiMapping').disabled=false;
+    q('runAiMapping').textContent='Détourer avec LLM';
   }
 };
 function setRadarImage(dataUrl,width,height){
@@ -1177,44 +1923,52 @@ async function detectTextWithBrowserApi(){
     return [];
   }
 }
-q('detectZones').onclick=async()=>{
+async function createDetectedZones(){
   const cfg=getDetectionConfig();
+  const canvas=document.createElement('canvas'); canvas.width=IMG_W; canvas.height=IMG_H;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(radarImg,0,0,IMG_W,IMG_H);
+  const components=detectConnectedComponents(ctx.getImageData(0,0,IMG_W,IMG_H),cfg);
+  const boxes=normalizeDetectedBoxes(components,cfg);
+  const textCandidates=await detectTextWithBrowserApi();
+  const detectedZones=boxes.map((b,i)=>{
+    const text=textCandidates.find(t=>boxesNear(b,t.box,8))?.text || '';
+    const shape=inferInitialShape(b);
+    return {
+      id:`z${String(i+1).padStart(3,'0')}`,
+      name:text||`zone_${String(i+1).padStart(3,'0')}`,
+      url:'',
+      logo:'',
+      description:'',
+      shape,
+      x:fmt(b.x),
+      y:fmt(b.y),
+      w:fmt(b.w),
+      h:fmt(b.h),
+      points:[],
+      ocrCandidate:text,
+      confidence:text?0.35:0
+    };
+  });
+  return {cfg, components, boxes, textCandidates, zones:detectedZones};
+}
+q('detectZones').onclick=async()=>{
   q('analysisLog').value='';
   logAnalysis('Analyse locale démarrée.');
-  const canvas=document.createElement('canvas'); canvas.width=IMG_W; canvas.height=IMG_H;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true}); ctx.drawImage(radarImg,0,0,IMG_W,IMG_H);
-  const components=detectConnectedComponents(ctx.getImageData(0,0,IMG_W,IMG_H),cfg);
-  logAnalysis(`${components.length} composant(s) visuel(s) détecté(s) avant fusion.`);
-  const boxes=normalizeDetectedBoxes(components,cfg);
-  if(!boxes.length){
+  const result=await createDetectedZones();
+  logAnalysis(`${result.components.length} composant(s) visuel(s) détecté(s) avant fusion.`);
+  if(!result.zones.length){
     logAnalysis('Aucune zone détectée : les zones existantes sont conservées.');
     return;
   }
-  const textCandidates=await detectTextWithBrowserApi();
-  zones=boxes.map((b,i)=>{
-    const text=textCandidates.find(t=>boxesNear(b,t.box,8))?.text || '';
-    const shape=inferInitialShape(b);
-    return {id:`z${String(i+1).padStart(3,'0')}`,name:text||`zone_${String(i+1).padStart(3,'0')}`,url:'',logo:'',description:'',shape,x:fmt(b.x),y:fmt(b.y),w:fmt(b.w),h:fmt(b.h),points:[],ocrCandidate:text,confidence:text?0.35:0};
-  });
+  zones=result.zones;
+  const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
   selectedId=zones[0]?.id||null; render();
   logAnalysis(`${zones.length} zone(s) initiale(s) créée(s).`);
-  logAnalysis(textCandidates.length ? `${textCandidates.length} candidat(s) texte détecté(s) par API navigateur expérimentale.` : 'OCR natif non disponible : noms génériques à compléter via LLM.');
+  if(linked) logAnalysis(`${linked} zone(s) enrichie(s) depuis les données startups importées.`);
+  logAnalysis(result.textCandidates.length ? `${result.textCandidates.length} candidat(s) texte détecté(s) par API navigateur expérimentale.` : 'OCR natif non disponible : noms génériques à compléter via LLM.');
 };
 q('exportInitJson').onclick=()=>download('radar_initialisation.json', JSON.stringify(buildProjectJson('initialisation'),null,2), 'application/json');
-q('prefillOcr').onclick=()=>{
-  let count=0;
-  zones.forEach(z=>{
-    const current=(z.name||'').trim();
-    const suggestion=OCR_NAME_SUGGESTIONS[z.id];
-    if(suggestion && (!current || /^zone_\d+$/i.test(current) || current==='nouvelle_zone')){
-      z.name=suggestion;
-      count++;
-    }
-  });
-  render();
-  alert(count+' noms préremplis par OCR v3. Résultat à vérifier manuellement.');
-};
-
 function makeZone(shape){
   if(!isEditMode()) return;
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
@@ -1222,13 +1976,14 @@ function makeZone(shape){
   if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
   zones.push(z); selectedId=id; render();
 }
+q('addZoneBtn').onclick=()=>makeZone(q('shape')?.value || 'rect');
 q('delete').onclick=()=>{ if(!isEditMode() || !selectedId) return; zones=zones.filter(z=>z.id!==selectedId); selectedId=zones[0]?.id||null; render(); };
-q('duplicate').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(!z) return; const nz=structuredClone(z); nz.id='z'+String(Date.now()).slice(-8); nz.name=(z.name||z.id)+' copy'; nz.x+=12; nz.y+=12; if(nz.points) nz.points=nz.points.map(p=>({x:p.x+12,y:p.y+12})); zones.push(nz); selectedId=nz.id; render(); };
+q('duplicate').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(!z) return; const nz=structuredClone(z); nz.id='z'+String(Date.now()).slice(-8); nz.name=(z.name||z.id)+' copy'; nz.x+=12; nz.y+=12; nz.dataConfirmed=false; nz.associationConfirmed=false; delete nz.confirmedAt; if(nz.points) nz.points=nz.points.map(p=>({x:p.x+12,y:p.y+12})); zones.push(nz); selectedId=nz.id; render(); };
 q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(z){z.url=''; render();} };
 q('bringFront').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.push(zones.splice(i,1)[0]); render(); } };
 q('sendBack').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.unshift(zones.splice(i,1)[0]); render(); } };
 q('saveLocal').onclick=()=>persistZones({silent:false, reason:'manual'});
-q('resetAuto').onclick=()=>{ if(confirm('Réinitialiser avec la détection automatique et effacer les corrections locales ?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
+q('resetAuto').onclick=()=>{ if(confirm('Restaurer les zones d’exemple embarquées et effacer les corrections locales ?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
 q('exportJson').onclick=()=>download('radar_overlay_zones.json', JSON.stringify(buildProjectJson('edition'),null,2), 'application/json');
 q('importBtn').onclick=()=>q('importFile').click();
 q('importFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await importProjectJson(await f.text()); };
@@ -1248,6 +2003,17 @@ function safeUrl(url){
   if(value.startsWith('#')) return value;
   return '';
 }
+function zoneCadran(z){
+  const cx=(Number(z.x)||0)+(Number(z.w)||0)/2;
+  const cy=(Number(z.y)||0)+(Number(z.h)||0)/2;
+  if(cx < IMG_W/2 && cy < IMG_H/2) return 'Haut gauche';
+  if(cx >= IMG_W/2 && cy < IMG_H/2) return 'Haut droit';
+  if(cx < IMG_W/2 && cy >= IMG_H/2) return 'Bas gauche';
+  return 'Bas droit';
+}
+function zoneSearchText(z){
+  return [z.id,z.name,z.url,z.description,zoneCadran(z)].filter(Boolean).join(' ');
+}
 function zoneShapeMarkup(z, cls='click-zone'){
   const title=escapeHtml(z.name||z.id);
   if(z.shape==='circle') return `<ellipse class="${cls}" cx="${fmt(z.x+z.w/2)}" cy="${fmt(z.y+z.h/2)}" rx="${fmt(z.w/2)}" ry="${fmt(z.h/2)}"><title>${title}</title></ellipse>`;
@@ -1259,11 +2025,12 @@ function svgMarkupForExport(){
   return zones.map(z=>{
     const dataName=escapeHtml(z.name||z.id); const dataUrl=escapeHtml(safeUrl(z.url));
     const dataLogo=escapeHtml(z.logo||''); const dataDescription=escapeHtml(z.description||'');
-    return `<g class="hotspot" data-name="${dataName}" data-url="${dataUrl}" data-logo="${dataLogo}" data-description="${dataDescription}" tabindex="0" role="button" aria-label="${dataName}">${zoneShapeMarkup(z)}</g>`;
+    const dataCadran=escapeHtml(zoneCadran(z)); const dataSearch=escapeHtml(zoneSearchText(z));
+    return `<g class="hotspot" data-name="${dataName}" data-url="${dataUrl}" data-logo="${dataLogo}" data-description="${dataDescription}" data-cadran="${dataCadran}" data-search="${dataSearch}" tabindex="0" role="button" aria-label="${dataName}">${zoneShapeMarkup(z)}</g>`;
   }).join('\n');
 }
 function zoneDataAttributes(z){
-  return `data-name="${escapeHtml(z.name||z.id)}" data-url="${escapeHtml(safeUrl(z.url))}" data-logo="${escapeHtml(z.logo||'')}" data-description="${escapeHtml(z.description||'')}"`;
+  return `data-name="${escapeHtml(z.name||z.id)}" data-url="${escapeHtml(safeUrl(z.url))}" data-logo="${escapeHtml(z.logo||'')}" data-description="${escapeHtml(z.description||'')}" data-cadran="${escapeHtml(zoneCadran(z))}" data-search="${escapeHtml(zoneSearchText(z))}"`;
 }
 function svgMarkupForCms(prefix='rm'){
   return zones.map(z=>{
@@ -1275,6 +2042,44 @@ function svgMarkupForCms(prefix='rm'){
   }).join('\n');
 }
 function safeScriptJson(value){ return JSON.stringify(value).replace(/<\//g,'<\\/'); }
+function exportInterfaceScript(rootSelector, hotspotSelector='.rm-hotspot'){
+  return `<script>
+(function(){
+  const root=document.querySelector('${rootSelector}');
+  if(!root) return;
+  const search=root.querySelector('[data-rm-search]');
+  const cadran=root.querySelector('[data-rm-cadran]');
+  const reset=root.querySelector('[data-rm-reset]');
+  const count=root.querySelector('[data-rm-count]');
+  const hotspots=Array.from(root.querySelectorAll('${hotspotSelector}'));
+  const apply=()=>{
+    const term=(search && search.value ? search.value : '').trim().toLowerCase();
+    const selected=cadran ? cadran.value : '';
+    const active=!!(term || selected);
+    let visible=0;
+    hotspots.forEach(hotspot=>{
+      const text=(hotspot.dataset.search || '').toLowerCase();
+      const matchesTerm=!term || text.includes(term);
+      const matchesCadran=!selected || hotspot.dataset.cadran === selected;
+      const ok=matchesTerm && matchesCadran;
+      hotspot.classList.toggle('rm-match', active && ok);
+      hotspot.classList.toggle('rm-dim', active && !ok);
+      if(ok) visible++;
+    });
+    root.classList.toggle('rm-filtering', active);
+    if(count) count.textContent=(active ? visible : hotspots.length)+' zone(s)';
+  };
+  if(search) search.addEventListener('input',apply);
+  if(cadran) cadran.addEventListener('change',apply);
+  if(reset) reset.addEventListener('click',()=>{
+    if(search) search.value='';
+    if(cadran) cadran.value='';
+    apply();
+  });
+  apply();
+})();
+<\/script>`;
+}
 function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotspotSelector='.hotspot', renderCfg=getExportRenderConfig()){
   return `<script>
 (function(){
@@ -1286,14 +2091,24 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
   const show=(hotspot,event)=>{
     const url=hotspot.dataset.url||'';
     if(!popup) return;
-    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink ? (url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Ouvrir le site')+'</a>' : '<br><span>URL non renseignée</span>') : '');
+    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'" onerror="this.hidden=true">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink ? (url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Ouvrir le site')+'</a>' : '<br><span>URL non renseignée</span>') : '');
     popup.hidden=false;
     const rect=root.getBoundingClientRect();
     if(cfg.popupPosition==='center'){
+      popup.style.right='auto';
       popup.style.left=Math.max((root.clientWidth-popup.offsetWidth)/2,8)+'px';
       popup.style.top=Math.max((root.clientHeight-popup.offsetHeight)/2,8)+'px';
       return;
     }
+    const isMobile=window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+    if(isMobile){
+      popup.style.left='8px';
+      popup.style.right='8px';
+      popup.style.maxWidth='none';
+      popup.style.top=Math.max(root.clientHeight-popup.offsetHeight-8,8)+'px';
+      return;
+    }
+    popup.style.right='auto';
     popup.style.left=Math.min(Math.max(event.clientX-rect.left+12,8), Math.max(root.clientWidth-popup.offsetWidth-8,8))+'px';
     popup.style.top=Math.min(Math.max(event.clientY-rect.top+12,8), Math.max(root.clientHeight-popup.offsetHeight-8,8))+'px';
   };
@@ -1316,8 +2131,23 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
 }
 function buildStandaloneHtml(){
   const title=escapeHtml(q('cfgExportTitle').value || 'Radar cliquable');
-  const body=buildCmsSnippet('radar', 'layer', true);
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff">${body}</body></html>`;
+  const body=getExportExperience()==='interface'
+    ? buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true)
+    : buildCmsSnippet('radar', 'layer', true);
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
+}
+function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true){
+  const popupId=`rm-popup-${Date.now().toString(36)}`;
+  const cfg=getExportRenderConfig();
+  const hoverFill=hexToRgba(cfg.hoverFill,cfg.hoverOpacity);
+  const hoverStroke=hexToRgba(cfg.hoverStroke,.85);
+  const cadrans=[...new Set(zones.map(zoneCadran))].sort();
+  const cadranOptions=cadrans.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+  const css=`.${containerClass}{max-width:${IMG_W}px;margin:24px auto;font-family:Arial,Helvetica,sans-serif;line-height:1.35;color:#12314a}.${containerClass} *{box-sizing:border-box}.${containerClass} .rm-controls{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto auto;gap:10px;align-items:end;margin:0 0 12px;padding:12px;border:1px solid #d7e7ef;border-radius:10px;background:#f7fbfb}.${containerClass} .rm-control{display:grid;gap:4px;font-size:12px;font-weight:700;color:#314b61}.${containerClass} input,.${containerClass} select{width:100%;min-height:38px;padding:8px 10px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font:inherit}.${containerClass} button{min-height:38px;padding:8px 12px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font-weight:700;cursor:pointer}.${containerClass} .rm-count{font-size:12px;font-weight:800;color:#0b7582;white-space:nowrap;padding:10px 0}.${containerClass} .rm-canvas{position:relative;isolation:isolate}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.${containerClass} .rm-hotspot{cursor:pointer;outline:none}.${containerClass} .rm-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all;transition:fill .15s ease,stroke .15s ease,opacity .15s ease}.${containerClass} .rm-hotspot:hover .rm-zone,.${containerClass} .rm-hotspot:focus .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass}.rm-filtering .rm-hotspot.rm-match .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${Math.max(cfg.hoverStrokeWidth,2)}}.${containerClass}.rm-filtering .rm-hotspot.rm-dim .rm-zone{fill:rgba(108,122,137,.18);stroke:rgba(108,122,137,.58);stroke-width:1.5}.${containerClass} .rm-popup{position:absolute;z-index:4;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:${cfg.popupFontSize}px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}@media(max-width:720px){.${containerClass}{margin:16px auto}.${containerClass} .rm-controls{grid-template-columns:1fr}.${containerClass} .rm-count{padding:0}}`;
+  const responsiveCss=`.${containerClass}{width:100%;box-sizing:border-box;overflow-x:hidden}.${containerClass} .rm-canvas{width:100%;max-width:100%;overflow:hidden;touch-action:manipulation}@media(max-width:720px){.${containerClass}{margin:0 auto;padding:0 8px}.${containerClass} .rm-controls{border-radius:8px}.${containerClass} .rm-popup{left:8px!important;right:8px!important;width:auto;max-width:none!important;font-size:${Math.max(11,cfg.popupFontSize-1)}px}}`;
+  const rootSelector=`.${containerClass}`;
+  const canvasSelector=`.${containerClass} .rm-canvas`;
+  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface><div class="rm-controls" aria-label="Filtres du radar"><label class="rm-control">Recherche<input type="search" data-rm-search placeholder="Startup, cadran, URL..."></label><label class="rm-control">Cadran<select data-rm-cadran><option value="">Tous les cadrans</option>${cadranOptions}</select></label><button type="button" data-rm-reset>Réinitialiser</button><span class="rm-count" data-rm-count></span></div><div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot') : ''}`;
 }
 function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', includeScript=true){
   const isStandaloneClass=containerClass==='radar';
@@ -1330,12 +2160,15 @@ function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', inclu
   const hoverFill=hexToRgba(cfg.hoverFill,cfg.hoverOpacity);
   const hoverStroke=hexToRgba(cfg.hoverStroke,.85);
   const css = isStandaloneClass
-    ? `.radar{position:relative;max-width:${IMG_W}px;margin:auto;font-family:Arial,Helvetica,sans-serif;line-height:1.35}.radar img{display:block;width:100%;height:auto}.layer{position:absolute;inset:0;width:100%;height:100%}.hotspot{cursor:pointer}.click-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all}.hotspot:hover .click-zone,.hotspot:focus .click-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth};outline:none}#popup{position:absolute;z-index:10;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};color:${cfg.popupText};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;font-size:14px}#popup a{color:${cfg.popupAccent};font-weight:700}.popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}#popup p{margin:8px 0 0;line-height:1.35}`
-    : `.${containerClass}{position:relative;max-width:${IMG_W}px;margin:24px auto;isolation:isolate;font-family:inherit;line-height:1.35}.${containerClass} *{box-sizing:border-box}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.${containerClass} .rm-hotspot{cursor:pointer;outline:none}.${containerClass} .${zoneClass}{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all}.${containerClass} .rm-hotspot:hover .${zoneClass},.${containerClass} .rm-hotspot:focus .${zoneClass}{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass} .rm-popup{position:absolute;z-index:4;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:14px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}`;
+    ? `.radar{position:relative;max-width:${IMG_W}px;margin:auto;font-family:Arial,Helvetica,sans-serif;line-height:1.35}.radar img{display:block;width:100%;height:auto}.layer{position:absolute;inset:0;width:100%;height:100%}.hotspot{cursor:pointer}.click-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all}.hotspot:hover .click-zone,.hotspot:focus .click-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth};outline:none}#popup{position:absolute;z-index:10;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};color:${cfg.popupText};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;font-size:${cfg.popupFontSize}px}#popup a{color:${cfg.popupAccent};font-weight:700}.popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}#popup p{margin:8px 0 0;line-height:1.35}`
+    : `.${containerClass}{position:relative;max-width:${IMG_W}px;margin:24px auto;isolation:isolate;font-family:inherit;line-height:1.35}.${containerClass} *{box-sizing:border-box}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.${containerClass} .rm-hotspot{cursor:pointer;outline:none}.${containerClass} .${zoneClass}{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all}.${containerClass} .rm-hotspot:hover .${zoneClass},.${containerClass} .rm-hotspot:focus .${zoneClass}{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass} .rm-popup{position:absolute;z-index:4;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:${cfg.popupFontSize}px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}`;
+  const responsiveCss = isStandaloneClass
+    ? `.radar{width:100%;box-sizing:border-box;overflow:hidden;touch-action:manipulation}@media(max-width:720px){#popup{left:8px!important;right:8px!important;width:auto;max-width:none!important;font-size:${Math.max(11,cfg.popupFontSize-1)}px}}`
+    : `.${containerClass}{width:100%;box-sizing:border-box;overflow:hidden;touch-action:manipulation}@media(max-width:720px){.${containerClass}{margin:0 auto}.${containerClass} .rm-popup{left:8px!important;right:8px!important;width:auto;max-width:none!important;font-size:${Math.max(11,cfg.popupFontSize-1)}px}}`;
   const svg = isStandaloneClass ? svgMarkupForExport() : svgMarkupForCms(prefix);
   const popupClass = isStandaloneClass ? '' : ' class="rm-popup"';
   const popupSelector = isStandaloneClass ? '#popup' : `#${popupId}`;
-  return `<style>${css}</style><div class="${containerClass}" data-radarmapper-embed><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svg}</svg><div id="${popupId}"${popupClass} hidden></div></div>${includeScript ? exportPopupScript(containerSelector, popupSelector, hotspotSelector, cfg) : ''}`;
+  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svg}</svg><div id="${popupId}"${popupClass} hidden></div></div>${includeScript ? exportPopupScript(containerSelector, popupSelector, hotspotSelector, cfg) : ''}`;
 }
 function imageMapArea(z){
   const name=escapeHtml(z.name||z.id);
@@ -1350,14 +2183,14 @@ function imageMapArea(z){
 }
 function buildImageMapSnippet(){
   const mapName=`radarmapper-map-${Date.now().toString(36)}`;
-  return `<div class="radarmapper-image-map" style="max-width:${IMG_W}px;margin:24px auto"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.map(imageMapArea).join('\n')}\n</map></div>`;
+  return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.map(imageMapArea).join('\n')}\n</map></div>`;
 }
 function buildIframeSnippet(){
   const src=escapeHtml(q('cfgHostedUrl').value.trim() || 'REMPLACER_PAR_URL_DU_HTML_EXPORTE');
   return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 function buildExportHtml(mode=getExportMode()){
-  if(mode==='snippet') return buildCmsSnippet('radarmapper-embed', 'rm-layer', true);
+  if(mode==='snippet') return getExportExperience()==='interface' ? buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true) : buildCmsSnippet('radarmapper-embed', 'rm-layer', true);
   if(mode==='iframe') return buildIframeSnippet();
   if(mode==='imagemap') return buildImageMapSnippet();
   return buildStandaloneHtml();
@@ -1387,11 +2220,11 @@ function refreshExportRenderPreview(){
   if(isExportMode() && popup && !popup.hidden && z) popup.innerHTML=popupHtmlForZone(z);
   updateExportPreview();
 }
-['cfgHtmlName','cfgExportTitle','cfgExportMode','cfgHostedUrl'].forEach(id=>{
+['cfgHtmlName','cfgExportTitle','cfgExportMode','cfgExportExperience','cfgHostedUrl'].forEach(id=>{
   q(id).addEventListener('input',updateExportPreview);
   q(id).addEventListener('change',updateExportPreview);
 });
-['cfgHoverFill','cfgHoverOpacity','cfgHoverStroke','cfgHoverStrokeWidth','cfgPopupShape','cfgPopupPosition','cfgPopupBg','cfgPopupText','cfgPopupBorder','cfgPopupAccent','cfgPopupWidth','cfgPopupShadow','cfgPopupLinkLabel','cfgPopupShowLogo','cfgPopupShowDescription','cfgPopupShowLink'].forEach(id=>{
+['cfgHoverFill','cfgHoverOpacity','cfgHoverStroke','cfgHoverStrokeWidth','cfgPopupShape','cfgPopupPosition','cfgPopupBg','cfgPopupText','cfgPopupBorder','cfgPopupAccent','cfgPopupWidth','cfgPopupFontSize','cfgPopupShadow','cfgPopupLinkLabel','cfgPopupShowLogo','cfgPopupShowDescription','cfgPopupShowLink'].forEach(id=>{
   q(id).addEventListener('input',refreshExportRenderPreview);
   q(id).addEventListener('change',refreshExportRenderPreview);
 });
@@ -1408,6 +2241,8 @@ setInterval(()=>{
   persistZones({silent:true, reason:'auto'});
 }, 30000);
 loadAiConfig();
+refreshStartupSuggestions();
+updateStartupImportStatus();
 render();
 </script>
 </body>
