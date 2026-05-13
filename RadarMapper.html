@@ -118,6 +118,9 @@
   body[data-mode="initPanel"] .zoneToolsShapes,
   body[data-mode="exportPanel"] .zoneToolsShapes,
   body[data-mode="configPanel"] .zoneToolsShapes { display:none; }
+  .exportToolbarActions { display:none; align-items:center; gap:8px; flex-wrap:wrap; }
+  body[data-mode="exportPanel"] .exportToolbarActions { display:flex; }
+  .exportToolbarActions button { white-space:nowrap; }
   main { display:grid; grid-template-columns: minmax(0, 1fr) 400px; gap:18px; min-height: calc(100vh - 274px); margin:24px 36px 36px; }
   #stageWrap { overflow-x:auto; overflow-y:auto; scrollbar-gutter:stable both-edges; background:rgba(255,255,255,.88); padding:24px; border:1px solid #e6f0f4; border-radius:14px; box-shadow:var(--shadow); position:relative; }
   #stage { position:relative; width:1024px; height:576px; background:white; border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.13); overflow:visible; }
@@ -234,7 +237,10 @@
   <section id="stageWrap">
     <div class="zoneTools" aria-label="Ajout et modification de zone">
       <div class="zoneToolsRow">
-        <span class="zoneToolsTitle">Ajout/modification de zone</span>
+        <span id="zoneToolsTitle" class="zoneToolsTitle">Initialisation</span>
+        <div class="exportToolbarActions" aria-label="Actions d'exportation">
+          <button id="toolbarStandaloneHtml" class="primary" type="button">Exporter HTML autonome</button>
+        </div>
         <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
           <button type="button" class="shapeBtn" data-shape="rect" aria-label="Rectangle">▭</button>
           <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Losange">◇</button>
@@ -784,6 +790,8 @@ function selectWorkflowTab(tabId){
   document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active', panel.id === tabId));
   const hint=q('modeHint');
   if(hint) hint.textContent = MODE_COPY[tabId]?.hint || '';
+  const toolsTitle=q('zoneToolsTitle');
+  if(toolsTitle) toolsTitle.textContent = MODE_COPY[tabId]?.label || '';
   const badge=q('modeBadge');
   if(badge) badge.textContent = MODE_COPY[tabId]?.label || '';
   render();
@@ -1362,8 +1370,12 @@ function buildExportHtml(mode=getExportMode()){
   if(mode==='imagemap') return buildImageMapSnippet();
   return buildStandaloneHtml();
 }
+function downloadStandaloneHtml(){
+  download(q('cfgHtmlName').value || 'radar_cliquable.html', buildStandaloneHtml(), 'text/html');
+}
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildExportHtml(), 'text/html');
-q('downloadStandaloneHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildStandaloneHtml(), 'text/html');
+q('downloadStandaloneHtml').onclick=downloadStandaloneHtml;
+q('toolbarStandaloneHtml').onclick=downloadStandaloneHtml;
 q('copyEmbedSnippet').onclick=async()=>{
   const text=buildExportHtml(getExportMode());
   try{
