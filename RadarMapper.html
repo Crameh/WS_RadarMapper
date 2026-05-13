@@ -268,7 +268,7 @@
         <button id="exportInitJson">Exporter JSON initial</button>
         <button id="prefillOcr" title="Applique les noms OCR améliorés aux zones encore génériques">Préremplir noms OCR v3</button>
       </div>
-      <div class="warningBox">Fonctionnalités en cours : la détection automatique, l'OCR et le mapping IA ne sont pas encore pleinement fonctionnels dans cette version.</div>
+      <div class="warningBox">La détection locale est autonome (canvas/JavaScript, sans dépendance) : elle détoure les groupes de pixels saillants pour créer des zones candidates. Vérifiez toujours le résultat dans l’onglet Édition.</div>
       <label>Seuil de contraste (0-255)</label>
       <input id="cfgContrast" type="number" min="1" max="255" value="58">
       <div class="row">
@@ -1095,10 +1095,15 @@ q('radarUpload').onchange=async e=>{
 function paddedBox(box,pad){
   const x=clamp(box.x-pad,0,IMG_W), y=clamp(box.y-pad,0,IMG_H);
   const x2=clamp(box.x+box.w+pad,0,IMG_W), y2=clamp(box.y+box.h+pad,0,IMG_H);
-  return {x,y,w:x2-x,h:y2-y};
+  return {x,y,w:x2-x,h:y2-y,area:box.area,components:box.components,points:box.points};
 }
 function boxesNear(a,b,gap){
   return a.x <= b.x+b.w+gap && a.x+a.w+gap >= b.x && a.y <= b.y+b.h+gap && a.y+a.h+gap >= b.y;
+}
+function boxesOverlapAmount(a,b){
+  const x=Math.max(0, Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));
+  const y=Math.max(0, Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  return {x,y};
 }
 function mergeBoxes(boxes,gap){
   let changed=true;
@@ -1118,53 +1123,165 @@ function mergeBoxes(boxes,gap){
   return boxes;
 }
 function boxDensity(box){ return (box.area || (box.w*box.h)) / Math.max(1, box.w*box.h); }
-function normalizeDetectedBoxes(boxes,cfg){
-  const padded = boxes
-    .filter(b=>boxDensity(b) > 0.015)
-    .map(b=>paddedBox(b,cfg.padding));
-  const firstPass = mergeBoxes(padded,cfg.mergeGap);
-  const secondPass = mergeBoxes(firstPass.map(b=>({...b})),Math.max(2,Math.round(cfg.mergeGap/2)));
-  return secondPass
-    .filter(b=>b.w*b.h>=cfg.minArea)
-    .filter(b=>b.w*b.h<=cfg.maxArea*10)
-    .filter(b=>b.w<IMG_W*.65 && b.h<IMG_H*.45)
-    .sort((a,b)=>a.y-b.y || a.x-b.x);
+function colorDistance(r,g,b,color){
+  return Math.max(Math.abs(r-color.r), Math.abs(g-color.g), Math.abs(b-color.b));
 }
-function inferInitialShape(box){
-  const ratio = box.w / Math.max(1, box.h);
-  if(ratio > .82 && ratio < 1.22 && box.w > 18 && box.h > 18) return 'circle';
-  return 'rect';
+function estimateBackgroundColor(data,width,height){
+  const samples=[];
+  const step=Math.max(4, Math.floor(Math.min(width,height)/80));
+  for(let y=0;y<height;y+=step){
+    for(let x=0;x<width;x+=step){
+      if(x>step && x<width-step && y>step && y<height-step) continue;
+      const p=(y*width+x)*4;
+      if(data[p+3]>20) samples.push({r:data[p],g:data[p+1],b:data[p+2]});
+    }
+  }
+  if(!samples.length) return {r:255,g:255,b:255};
+  samples.sort((a,b)=>(a.r+a.g+a.b)-(b.r+b.g+b.b));
+  const light=samples.slice(Math.floor(samples.length*.55));
+  const avg=light.reduce((acc,c)=>({r:acc.r+c.r,g:acc.g+c.g,b:acc.b+c.b}),{r:0,g:0,b:0});
+  return {r:avg.r/light.length,g:avg.g/light.length,b:avg.b/light.length};
+}
+function createSalientMask(imageData,cfg){
+  const {width,height,data}=imageData;
+  const bg=estimateBackgroundColor(data,width,height);
+  const total=width*height;
+  const mask=new Uint8Array(total);
+  const threshold=Math.max(16, Math.min(92, cfg.contrast*.72));
+  for(let i=0,p=0;i<total;i++,p+=4){
+    const r=data[p], g=data[p+1], b=data[p+2], a=data[p+3];
+    if(a<=20) continue;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    const spread=max-min;
+    const luma=(r*299+g*587+b*114)/1000;
+    const bgDist=colorDistance(r,g,b,bg);
+    const colorful=spread>28 && luma<248;
+    const darkInk=luma<210 && bgDist>10;
+    const farFromBackground=bgDist>=threshold && luma<252;
+    if(farFromBackground || colorful || darkInk) mask[i]=1;
+  }
+  return mask;
 }
 function detectConnectedComponents(imageData,cfg){
-  const {width,height,data}=imageData;
-  const total=width*height, mask=new Uint8Array(total), seen=new Uint8Array(total);
-  for(let i=0,p=0;i<total;i++,p+=4){
-    const r=data[p],g=data[p+1],b=data[p+2],a=data[p+3];
-    const lightness=(r+g+b)/3;
-    const colorSpread=Math.max(r,g,b)-Math.min(r,g,b);
-    const contrast=Math.max(255-r,255-g,255-b,colorSpread);
-    if(a>20 && lightness<248 && (contrast>=cfg.contrast || colorSpread>22)) mask[i]=1;
-  }
+  const {width,height}=imageData;
+  const total=width*height, mask=createSalientMask(imageData,cfg), seen=new Uint8Array(total);
   const boxes=[];
   const stack=[];
+  const boundaryLimit=Math.max(24, Math.round(Math.min(width,height)*.025));
   for(let i=0;i<total;i++){
     if(!mask[i] || seen[i]) continue;
     let minX=width, minY=height, maxX=0, maxY=0, area=0;
+    const edgePoints=[];
     seen[i]=1; stack.push(i);
     while(stack.length){
       const idx=stack.pop(), x=idx%width, y=(idx/width)|0;
-      area++; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y;
-      const neighbors=[idx-1,idx+1,idx-width,idx+width];
+      area++;
+      if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y;
+      let exposed=false;
+      const neighbors=[idx-1,idx+1,idx-width,idx+width,idx-width-1,idx-width+1,idx+width-1,idx+width+1];
       for(const n of neighbors){
-        if(n<0||n>=total||seen[n]||!mask[n]) continue;
-        if((n===idx-1 && x===0)||(n===idx+1 && x===width-1)) continue;
-        seen[n]=1; stack.push(n);
+        if(n<0||n>=total){ exposed=true; continue; }
+        const nx=n%width;
+        if(Math.abs(nx-x)>1){ exposed=true; continue; }
+        if(!mask[n]){ exposed=true; continue; }
+        if(!seen[n]){ seen[n]=1; stack.push(n); }
       }
+      if(exposed && edgePoints.length<boundaryLimit) edgePoints.push({x,y});
     }
-    const w=maxX-minX+1, h=maxY-minY+1, ratio=Math.max(w/h,h/w);
-    if(area>=cfg.minArea && area<=cfg.maxArea && w>2 && h>2 && ratio<=cfg.maxRatio){ boxes.push({x:minX,y:minY,w,h,area}); }
+    const w=maxX-minX+1, h=maxY-minY+1, ratio=Math.max(w/h,h/w), density=area/Math.max(1,w*h);
+    const isLongRule=ratio>18 || ((w<=2 || h<=2) && Math.max(w,h)>28) || (density<.09 && ratio>10);
+    const isRadarScaffold=(w>width*.42 || h>height*.32) && density<.18;
+    if(area>=3 && area<=cfg.maxArea && w>1 && h>1 && ratio<=Math.max(cfg.maxRatio,18) && !isLongRule && !isRadarScaffold){
+      boxes.push({x:minX,y:minY,w,h,area,points:edgePoints});
+    }
   }
   return boxes;
+}
+function shouldLinkComponents(a,b,cfg){
+  const gap=Math.max(3, cfg.mergeGap || 12);
+  if(boxesNear(a,b,Math.min(gap,12))) return true;
+  const overlap=boxesOverlapAmount(a,b);
+  const minH=Math.min(a.h,b.h), minW=Math.min(a.w,b.w);
+  const dx=Math.max(0, Math.max(a.x,b.x)-Math.min(a.x+a.w,b.x+b.w));
+  const dy=Math.max(0, Math.max(a.y,b.y)-Math.min(a.y+a.h,b.y+b.h));
+  const sameWordLine=overlap.y>=Math.max(2,minH*.35) && dx<=Math.max(gap, Math.min(22,minH*1.25));
+  const stackedLogo=overlap.x>=Math.max(2,minW*.28) && dy<=Math.max(6, Math.min(18,gap));
+  return sameWordLine || stackedLogo;
+}
+function clusterLogoComponents(components,cfg){
+  const n=components.length;
+  const parent=Array.from({length:n},(_,i)=>i);
+  const find=i=>parent[i]===i ? i : (parent[i]=find(parent[i]));
+  const unite=(a,b)=>{ const ra=find(a), rb=find(b); if(ra!==rb) parent[rb]=ra; };
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(shouldLinkComponents(components[i],components[j],cfg)) unite(i,j);
+    }
+  }
+  const groups=new Map();
+  components.forEach((c,i)=>{
+    const root=find(i);
+    if(!groups.has(root)) groups.set(root,[]);
+    groups.get(root).push(c);
+  });
+  return [...groups.values()].map(group=>{
+    const x=Math.min(...group.map(c=>c.x)), y=Math.min(...group.map(c=>c.y));
+    const x2=Math.max(...group.map(c=>c.x+c.w)), y2=Math.max(...group.map(c=>c.y+c.h));
+    const points=group.flatMap(c=>c.points || []);
+    return {x,y,w:x2-x,h:y2-y,area:group.reduce((sum,c)=>sum+c.area,0),components:group.length,points};
+  });
+}
+function cross(o,a,b){ return (a.x-o.x)*(b.y-o.y) - (a.y-o.y)*(b.x-o.x); }
+function convexHull(points){
+  const pts=[...points].sort((a,b)=>a.x-b.x || a.y-b.y);
+  if(pts.length<=3) return pts;
+  const lower=[];
+  for(const p of pts){ while(lower.length>=2 && cross(lower[lower.length-2], lower[lower.length-1], p)<=0) lower.pop(); lower.push(p); }
+  const upper=[];
+  for(let i=pts.length-1;i>=0;i--){ const p=pts[i]; while(upper.length>=2 && cross(upper[upper.length-2], upper[upper.length-1], p)<=0) upper.pop(); upper.push(p); }
+  return lower.slice(0,-1).concat(upper.slice(0,-1));
+}
+function simplifyHull(points,maxPoints=14){
+  if(points.length<=maxPoints) return points;
+  const cx=points.reduce((s,p)=>s+p.x,0)/points.length, cy=points.reduce((s,p)=>s+p.y,0)/points.length;
+  return points
+    .map(p=>({p,score:Math.hypot(p.x-cx,p.y-cy)}))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,maxPoints)
+    .map(o=>o.p)
+    .sort((a,b)=>Math.atan2(a.y-cy,a.x-cx)-Math.atan2(b.y-cy,b.x-cx));
+}
+function polygonFromCluster(cluster,padding){
+  const raw=(cluster.points||[]).filter((_,i)=>i%2===0);
+  if(raw.length<6) return [];
+  const hull=simplifyHull(convexHull(raw),14);
+  if(hull.length<3) return [];
+  const cx=hull.reduce((s,p)=>s+p.x,0)/hull.length, cy=hull.reduce((s,p)=>s+p.y,0)/hull.length;
+  return hull.map(p=>{
+    const dx=p.x-cx, dy=p.y-cy, len=Math.max(1,Math.hypot(dx,dy));
+    return {x:fmt(clamp(p.x+(dx/len)*padding,0,IMG_W)), y:fmt(clamp(p.y+(dy/len)*padding,0,IMG_H))};
+  });
+}
+function normalizeDetectedBoxes(components,cfg){
+  const clusters=clusterLogoComponents(components,cfg);
+  return clusters
+    .map(b=>paddedBox(b,cfg.padding))
+    .filter(b=>b.w*b.h>=cfg.minArea)
+    .filter(b=>b.w*b.h<=cfg.maxArea*8)
+    .filter(b=>b.w<IMG_W*.42 && b.h<IMG_H*.24)
+    .filter(b=>boxDensity(b)>.008 || (b.components||0)>=2)
+    .sort((a,b)=>a.y-b.y || a.x-b.x);
+}
+function inferInitialShape(box){
+  const poly=polygonFromCluster(box,Math.max(2,Math.round((Number(q('cfgPadding')?.value)||0)/2)));
+  if(poly.length>=3){
+    const bounds=boundsFromPoints(poly);
+    const coverage=(box.w*box.h)/Math.max(1,bounds.w*bounds.h);
+    if(coverage>.45) return {shape:'poly',points:poly};
+  }
+  const ratio = box.w / Math.max(1, box.h);
+  if(ratio > .82 && ratio < 1.22 && box.w > 18 && box.h > 18) return {shape:'circle',points:[]};
+  return {shape:'rect',points:[]};
 }
 async function detectTextWithBrowserApi(){
   if(!('TextDetector' in window)) return [];
@@ -1193,8 +1310,8 @@ q('detectZones').onclick=async()=>{
   const textCandidates=await detectTextWithBrowserApi();
   zones=boxes.map((b,i)=>{
     const text=textCandidates.find(t=>boxesNear(b,t.box,8))?.text || '';
-    const shape=inferInitialShape(b);
-    return {id:`z${String(i+1).padStart(3,'0')}`,name:text||`zone_${String(i+1).padStart(3,'0')}`,url:'',logo:'',description:'',shape,x:fmt(b.x),y:fmt(b.y),w:fmt(b.w),h:fmt(b.h),points:[],ocrCandidate:text,confidence:text?0.35:0};
+    const detectedShape=inferInitialShape(b);
+    return {id:`z${String(i+1).padStart(3,'0')}`,name:text||`zone_${String(i+1).padStart(3,'0')}`,url:'',logo:'',description:'',shape:detectedShape.shape,x:fmt(b.x),y:fmt(b.y),w:fmt(b.w),h:fmt(b.h),points:detectedShape.points||[],ocrCandidate:text,confidence:text?0.35:0};
   });
   selectedId=zones[0]?.id||null; render();
   logAnalysis(`${zones.length} zone(s) initiale(s) créée(s).`);

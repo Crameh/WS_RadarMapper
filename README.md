@@ -29,7 +29,7 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour créer des radars Wave
 
 ## Notes sur l'OCR
 
-Sans configuration LLM, l'application reste entièrement locale et tente d'utiliser l'API navigateur expérimentale `TextDetector` lorsqu'elle est disponible. Sinon elle produit des noms génériques (`zone_001`, `zone_002`, etc.) et des champs `ocrCandidate` vides.
+Sans configuration LLM, l'application reste entièrement locale : la détection utilise uniquement `canvas` et JavaScript navigateur pour isoler les pixels saillants, regrouper les fragments de logos/textes, puis générer des zones candidates rectangulaires, circulaires ou polygonales. Elle tente aussi d'utiliser l'API navigateur expérimentale `TextDetector` lorsqu'elle est disponible. Sinon elle produit des noms génériques (`zone_001`, `zone_002`, etc.) et des champs `ocrCandidate` vides.
 
 Avec une configuration LLM, le bouton **OCR + mapping LLM** envoie l'image et le JSON courant au fournisseur choisi depuis le navigateur. Cette fonction doit être utilisée uniquement après validation explicite de l'organisation concernée.
 
