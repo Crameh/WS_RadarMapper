@@ -116,8 +116,10 @@
   .modeHintLine { flex:1 1 420px; font-size:12px; font-weight:700; color:#3b566d; opacity:.92; }
   .zoneToolsTitle { display:none; font-size:12px; font-weight:800; color:#12314a; }
   .addZoneBtn { display:none; min-width:34px; padding:5px 10px; font-size:18px; line-height:1; }
+  .exportToolbarBtn { display:none; }
   body[data-mode="editPanel"] .zoneToolsTitle,
-  body[data-mode="editPanel"] .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; }
+  body[data-mode="editPanel"] .addZoneBtn,
+  body[data-mode="exportPanel"] .exportToolbarBtn { display:inline-flex; align-items:center; justify-content:center; }
   body[data-mode="initPanel"] .zoneToolsShapes,
   body[data-mode="exportPanel"] .zoneToolsShapes,
   body[data-mode="configPanel"] .zoneToolsShapes { display:none; }
@@ -247,6 +249,7 @@
           <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygone">⬠</button>
         </span>
         <div class="zoneToolsRight">
+          <button id="exportStandaloneToolbar" class="exportToolbarBtn primary" type="button">Exporter HTML autonome</button>
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
         </div>
       </div>
@@ -1496,7 +1499,11 @@ function buildExportHtml(mode=getExportMode()){
   return buildStandaloneHtml();
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildExportHtml(), 'text/html');
-q('downloadStandaloneHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildStandaloneHtml(), 'text/html');
+function downloadStandaloneExport(){
+  download(q('cfgHtmlName').value || 'radar_cliquable.html', buildStandaloneHtml(), 'text/html');
+}
+q('downloadStandaloneHtml').onclick=downloadStandaloneExport;
+q('exportStandaloneToolbar').onclick=downloadStandaloneExport;
 q('copyEmbedSnippet').onclick=async()=>{
   const text=buildExportHtml(getExportMode());
   try{
