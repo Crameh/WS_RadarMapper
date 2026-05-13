@@ -108,13 +108,16 @@
     border-radius:12px;
     background:rgba(255,255,255,.92);
   }
-  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-  .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .zoneToolsRow { display:flex; align-items:center; justify-content:flex-start; gap:12px; flex-wrap:wrap; }
+  .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-left:auto; }
   .zoneTools label { margin:0; color:#12314a; font-weight:800; }
   .zoneTools input[type="range"] { width:210px; accent-color:#1699a8; }
   .zoneTools input[type="checkbox"] { width:auto; accent-color:#1699a8; }
-  .modeHintLine { font-size:12px; font-weight:700; color:#3b566d; opacity:.92; }
-  .zoneToolsTitle { font-size:12px; font-weight:800; color:#12314a; }
+  .modeHintLine { flex:1 1 420px; font-size:12px; font-weight:700; color:#3b566d; opacity:.92; }
+  .zoneToolsTitle { display:none; font-size:12px; font-weight:800; color:#12314a; }
+  .addZoneBtn { display:none; min-width:34px; padding:5px 10px; font-size:18px; line-height:1; }
+  body[data-mode="editPanel"] .zoneToolsTitle,
+  body[data-mode="editPanel"] .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; }
   body[data-mode="initPanel"] .zoneToolsShapes,
   body[data-mode="exportPanel"] .zoneToolsShapes,
   body[data-mode="configPanel"] .zoneToolsShapes { display:none; }
@@ -232,10 +235,12 @@
 </header>
 <main>
   <section id="stageWrap">
-    <div class="zoneTools" aria-label="Ajout et modification de zone">
+    <div class="zoneTools" aria-label="Barre à outils">
       <div class="zoneToolsRow">
-        <span class="zoneToolsTitle">Ajout/modification de zone</span>
-        <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
+        <div class="modeHintLine" id="modeHint">Initialisation : chargez une image, détectez les zones depuis le navigateur, puis enrichissez via LLM si besoin. En attendant l’intégration fluide du LLM, il est possible d’exporter un fichier JSON type et de demander à un LLM de le remplir en lui donnant l’image et ensuite de le réimporter | Outil Zoom</div>
+        <span class="zoneToolsTitle">Ajout / modification de zone</span>
+        <button id="addZone" type="button" class="addZoneBtn" aria-label="Créer une zone avec la forme par défaut" title="Créer une zone">+</button>
+        <span class="shapeIcons zoneToolsShapes" title="Modifier la forme de la zone sélectionnée">
           <button type="button" class="shapeBtn" data-shape="rect" aria-label="Rectangle">▭</button>
           <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Losange">◇</button>
           <button type="button" class="shapeBtn" data-shape="circle" aria-label="Cercle">○</button>
@@ -243,10 +248,8 @@
         </span>
         <div class="zoneToolsRight">
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
-          <label><input id="showFill" type="checkbox" checked> voir les zones</label>
         </div>
       </div>
-      <div class="modeHintLine" id="modeHint">Initialisation : chargez une image, détectez les zones, puis enrichissez via LLM si besoin.</div>
     </div>
     <div id="stage">
       <div id="stageScaler">
@@ -424,6 +427,13 @@
         <option value="fr">Français</option>
         <option value="en">English</option>
       </select>
+      <label>Forme par défaut des nouvelles zones</label>
+      <select id="defaultZoneShape">
+        <option value="rect">Rectangle</option>
+        <option value="diamond">Losange</option>
+        <option value="circle">Cercle</option>
+        <option value="poly">Polygone</option>
+      </select>
       <div class="actions">
         <button id="saveAiConfig" class="primary">Sauver la configuration</button>
         <button id="clearAiConfig">Effacer</button>
@@ -454,9 +464,9 @@ const q = id => document.getElementById(id);
 radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
-  initPanel:{label:'Initialisation', hint:'Initialisation : chargez une image, détectez les zones, puis enrichissez via LLM si besoin.'},
-  editPanel:{label:'Édition', hint:'Édition : le radar est déverrouillé, les zones peuvent être déplacées et redimensionnées.'},
-  exportPanel:{label:'Exportation', hint:'Exportation : vérifiez la prévisualisation à gauche puis exportez HTML ou JSON.'}
+  initPanel:{label:'Initialisation', hint:'Initialisation : chargez une image, détectez les zones depuis le navigateur, puis enrichissez via LLM si besoin. En attendant l’intégration fluide du LLM, il est possible d’exporter un fichier JSON type et de demander à un LLM de le remplir en lui donnant l’image et ensuite de le réimporter | Outil Zoom'},
+  editPanel:{label:'Édition', hint:'Édition : ajustez les zones avec l’éditeur, puis exportez le JSON ou le HTML autonome cliquable.'},
+  exportPanel:{label:'Exportation', hint:'Exportation : vérifiez la prévisualisation à gauche puis exportez HTML ou JSON. | Outil Zoom'}
 };
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
@@ -505,7 +515,6 @@ function shapeEl(z){
   el.classList.add('zone');
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
-  if(!q('showFill').checked) el.classList.add('hiddenFill');
   el.dataset.id = z.id;
   el.addEventListener('pointerdown', startMove);
   el.addEventListener('click', showExportLivePopup);
@@ -739,7 +748,7 @@ function applyForm(){
 }
 q('apply').onclick=applyForm;
 ['name','url','logo','description','shape','x','y','w','h','points'].forEach(id=>q(id).addEventListener('change',applyForm));
-q('search').oninput=renderList; q('showFill').onchange=render;
+q('search').oninput=renderList;
 function refreshStageGeometry(){
   stageScaler.style.width=IMG_W+'px'; stageScaler.style.height=IMG_H+'px';
   radarImg.style.width=IMG_W+'px'; radarImg.style.height=IMG_H+'px';
@@ -759,7 +768,6 @@ document.querySelectorAll('.shapeBtn').forEach(b=>{
     if(!isEditMode()) return;
     const z=zoneById(selectedId);
     if(!z){
-      makeZone(b.dataset.shape);
       return;
     }
     const old=z.shape;
@@ -1215,13 +1223,21 @@ q('prefillOcr').onclick=()=>{
   alert(count+' noms préremplis par OCR v3. Résultat à vérifier manuellement.');
 };
 
-function makeZone(shape){
+function normalizeZoneShape(value){
+  return ['rect','diamond','circle','poly'].includes(value) ? value : 'rect';
+}
+function getDefaultZoneShape(){
+  return normalizeZoneShape(q('defaultZoneShape')?.value || localStorage.getItem('radarMapperDefaultZoneShape'));
+}
+function makeZone(shape=getDefaultZoneShape()){
   if(!isEditMode()) return;
-  const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
-  const z={id,name:'nouvelle_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
-  if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
+  const w=90,h=45; const x=fmt((IMG_W-w)/2),y=fmt((IMG_H-h)/2); const id='z'+String(Date.now()).slice(-8);
+  const safeShape = ['rect','diamond','circle','poly'].includes(shape) ? shape : 'rect';
+  const z={id,name:'nouvelle_zone',url:'',logo:'',description:'',shape:safeShape,x,y,w,h,points:[]};
+  if(safeShape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
   zones.push(z); selectedId=id; render();
 }
+q('addZone').onclick=()=>makeZone();
 q('delete').onclick=()=>{ if(!isEditMode() || !selectedId) return; zones=zones.filter(z=>z.id!==selectedId); selectedId=zones[0]?.id||null; render(); };
 q('duplicate').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(!z) return; const nz=structuredClone(z); nz.id='z'+String(Date.now()).slice(-8); nz.name=(z.name||z.id)+' copy'; nz.x+=12; nz.y+=12; if(nz.points) nz.points=nz.points.map(p=>({x:p.x+12,y:p.y+12})); zones.push(nz); selectedId=nz.id; render(); };
 q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(z){z.url=''; render();} };
@@ -1395,6 +1411,9 @@ function refreshExportRenderPreview(){
   q(id).addEventListener('input',refreshExportRenderPreview);
   q(id).addEventListener('change',refreshExportRenderPreview);
 });
+const defaultZoneShapeKey='radarMapperDefaultZoneShape';
+q('defaultZoneShape').value = normalizeZoneShape(localStorage.getItem(defaultZoneShapeKey));
+q('defaultZoneShape').addEventListener('change',()=>{ localStorage.setItem(defaultZoneShapeKey, normalizeZoneShape(q('defaultZoneShape').value)); });
 const autosaveKey='radarMapperAutosaveEnabled';
 const autosaveStored=localStorage.getItem(autosaveKey);
 q('autosaveToggle').checked=autosaveStored===null ? true : autosaveStored==='1';
