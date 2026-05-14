@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Éditeur de zones cliquables - Radar Cyber</title>
+<title>Clickable Zone Editor - Cyber Radar</title>
 <style>
   :root {
     --bg: #eaf5f5;
@@ -411,41 +411,41 @@
 <header class="appTopBar">
   <div class="brandBlock" aria-label="RadarMapper by Wavestone">
     <span class="eyebrow">RadarMapper by Wavestone</span>
-    <h1>Éditeur de zones cliquables - Radar Cyber</h1>
+    <h1>Clickable Zone Editor - Cyber Radar</h1>
   </div>
-  <nav class="phaseNav" aria-label="Phases du projet">
+  <nav class="phaseNav" aria-label="Project phases">
     <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Prepare</span></button>
     <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Edit</span></button>
     <button class="phaseBtn" data-tab="exportPanel" type="button"><span class="phaseIcon">▣</span><span>Export</span></button>
   </nav>
-  <div class="statusArea" aria-label="Statut de sauvegarde">
+  <div class="statusArea" aria-label="Save status">
     <span id="saveStatusText">Saved (browser)</span>
     <span id="aiStatusText" class="aiStatus">AI not connected</span>
-    <button id="openConfigBtn" class="iconBtn" type="button" aria-label="Configurer l'IA" title="Configurer l'IA">⚙</button>
+    <button id="openConfigBtn" class="iconBtn" type="button" aria-label="Configure AI" title="Configure AI">⚙</button>
   </div>
 </header>
 <main>
   <section id="stageWrap">
-    <div class="zoneTools" aria-label="Ajout et modification de zone">
+    <div class="zoneTools" aria-label="Zone creation and editing">
       <div class="zoneToolsRow">
         <span class="zoneToolsTitle">Radar and Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
-        <div class="zoneToolsEdit" aria-label="Création et forme de zone">
-          <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Ajouter une zone" title="Ajouter une zone">+</button>
-          <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
+        <div class="zoneToolsEdit" aria-label="Zone creation and shape">
+          <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Add a zone" title="Add a zone">+</button>
+          <span class="shapeIcons zoneToolsShapes" title="Create or modify a zone shape">
             <button type="button" class="shapeBtn" data-shape="rect" aria-label="Rectangle">▭</button>
-            <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Losange">◇</button>
-            <button type="button" class="shapeBtn" data-shape="circle" aria-label="Cercle">○</button>
-            <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygone">⬠</button>
+            <button type="button" class="shapeBtn" data-shape="diamond" aria-label="Diamond">◇</button>
+            <button type="button" class="shapeBtn" data-shape="circle" aria-label="Circle">○</button>
+            <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygon">⬠</button>
           </span>
         </div>
         <div class="zoneToolsRight">
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
-          <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filtrer les zones par statut">
-            <button type="button" class="zoneFilterBtn active" data-filter="all">Toutes</button>
-            <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="À faire (rouge/orange)">●</button>
-            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="À vérifier (bleu)">●</button>
-            <button type="button" class="zoneFilterBtn zoneFilterUnmatched" data-filter="unmatched" title="Analysées par le LLM sans correspondance trouvée (jaune)">●</button>
-            <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Validées (vert)">●</button>
+          <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filter zones by status">
+            <button type="button" class="zoneFilterBtn active" data-filter="all">All</button>
+            <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="To do (red/orange)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="To review (blue)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterUnmatched" data-filter="unmatched" title="Analyzed by LLM with no match found (yellow)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Confirmed (green)">●</button>
           </div>
           <input id="showFill" type="checkbox" checked hidden>
         </div>
@@ -454,48 +454,48 @@
     </div>
     <div id="stage">
       <div id="stageScaler">
-      <img id="radarImg" src="" alt="Radar cyber">
+      <img id="radarImg" src="" alt="Cyber radar">
       <svg id="overlay" viewBox="0 0 1280 720"></svg>
       </div>
       <div id="exportLivePopup" class="exportLivePopup" hidden></div>
       <div id="editLogoZoom" class="editLogoZoom" hidden><canvas id="editLogoZoomCanvas"></canvas></div>
       <div id="editZonePopup" class="editZonePopup" hidden>
         <div class="editZoneHeader">
-          <h3>Éditer la zone</h3>
-          <button id="editPopupClose" class="editZoneClose" type="button" aria-label="Fermer">✕</button>
+          <h3>Edit zone</h3>
+          <button id="editPopupClose" class="editZoneClose" type="button" aria-label="Close">✕</button>
         </div>
         <label>Zone</label>
         <input id="editPopupId" disabled class="mono">
-        <label>Nom affiché / structure</label>
+        <label>Display name / structure</label>
         <div class="suggestWrap">
-          <input id="editPopupName" autocomplete="off" placeholder="Nom de la structure">
+          <input id="editPopupName" autocomplete="off" placeholder="Structure name">
           <div id="editPopupNameSuggestions" class="suggestList" role="listbox" hidden></div>
         </div>
-        <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
-        <p id="editPopupAssociationStatus" class="associationStatus">Association à valider</p>
+        <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Confirm association</button>
+        <p id="editPopupAssociationStatus" class="associationStatus">Association to confirm</p>
         <label>URL</label>
         <input id="editPopupUrl" placeholder="https://...">
-        <label>Logo (URL ou data URI)</label>
-        <input id="editPopupLogo" placeholder="https://.../logo.png ou data:image/...">
-        <label>Descriptif court</label>
-        <textarea id="editPopupDescription" rows="3" placeholder="Description affichée dans le popup"></textarea>
-        <label>Forme</label>
+        <label>Logo (URL or data URI)</label>
+        <input id="editPopupLogo" placeholder="https://.../logo.png or data:image/...">
+        <label>Short description</label>
+        <textarea id="editPopupDescription" rows="3" placeholder="Description shown in popup"></textarea>
+        <label>Shape</label>
         <select id="editPopupShape">
           <option value="rect">Rectangle</option>
-          <option value="diamond">Losange</option>
-          <option value="circle">Cercle</option>
-          <option value="poly">Polygone</option>
+          <option value="diamond">Diamond</option>
+          <option value="circle">Circle</option>
+          <option value="poly">Polygon</option>
         </select>
         <div class="row">
           <div><label>X</label><input id="editPopupX" type="number" step="1"></div>
           <div><label>Y</label><input id="editPopupY" type="number" step="1"></div>
-          <div><label>Largeur</label><input id="editPopupW" type="number" step="1"></div>
-          <div><label>Hauteur</label><input id="editPopupH" type="number" step="1"></div>
+          <div><label>Width</label><input id="editPopupW" type="number" step="1"></div>
+          <div><label>Height</label><input id="editPopupH" type="number" step="1"></div>
         </div>
-        <label>Points polygone</label>
+        <label>Polygon points</label>
         <textarea id="editPopupPoints" rows="3" class="mono"></textarea>
         <div class="primaryAction">
-          <button id="editPopupApply" class="primary" type="button">Enregistrer la zone</button>
+          <button id="editPopupApply" class="primary" type="button">Save zone</button>
         </div>
       </div>
     </div>
@@ -505,12 +505,12 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h2>Préparer un nouveau radar</h2>
-            <p>Importez les fichiers, générez les zones, puis passez à la validation.</p>
+            <h2>Prepare a new radar</h2>
+            <p>Import the files, generate the zones, then proceed to validation.</p>
           </div>
-          <span class="sectionKicker">Étape 1</span>
+          <span class="sectionKicker">Step 1</span>
         </div>
-        <p class="prepIntro">La préparation sert uniquement à créer une première base de zones. Les corrections fines, les URLs et les textes se font ensuite dans l’onglet Édition.</p>
+        <p class="prepIntro">Preparation is only used to create an initial set of zones. Fine adjustments, URLs and text are done afterwards in the Edit tab.</p>
       </div>
 
       <div class="prepSteps">
@@ -518,19 +518,19 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Importer les sources</h3>
-              <p>Ajoutez l’image du radar, puis le fichier des structures à associer.</p>
+              <h3>Import sources</h3>
+              <p>Add the radar image, then the structure file to associate.</p>
             </div>
             <div class="prepStepBody">
               <div class="secondaryActions">
-                <button id="uploadRadarVisual" type="button">Image du radar</button>
-                <button id="uploadStructureData" type="button">Données structures</button>
+                <button id="uploadRadarVisual" type="button">Radar image</button>
+                <button id="uploadStructureData" type="button">Structure data</button>
               </div>
               <input id="radarUpload" type="file" accept="image/*" style="display:none">
               <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,application/json,text/csv,text/tab-separated-values" style="display:none">
-              <p class="actionNote">Champ requis : <code>name</code> ou <code>startup</code>. Champs utiles : <code>url</code>, <code>description</code>, <code>logo</code>, tags.</p>
-              <p id="startupImportStatus" class="startupImportStatus">Aucun fichier de structures importé.</p>
-              <div id="initStatusLine" class="initStatus">En attente des imports.</div>
+              <p class="actionNote">Required field: <code>name</code> or <code>startup</code>. Useful fields: <code>url</code>, <code>description</code>, <code>logo</code>, tags.</p>
+              <p id="startupImportStatus" class="startupImportStatus">No structure file imported.</p>
+              <div id="initStatusLine" class="initStatus">Waiting for imports.</div>
             </div>
           </div>
         </div>
