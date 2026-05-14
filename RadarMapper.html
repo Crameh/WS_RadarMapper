@@ -2122,6 +2122,12 @@ async function importProjectJson(text){
       updateStartupImportStatus();
     }
   }
+  zones.forEach(z=>{
+    if(!z.dataConfirmed && !z.associationConfirmed && !z.llmPrevalidated && zoneHasData(z)){
+      z.llmPrevalidated=true;
+      z.llmFound=true;
+    }
+  });
   const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
   selectedId=zones[0]?.id||null;
   render();
@@ -2272,7 +2278,9 @@ Strict constraints:
 - if a zone remains uncertain, keep a zone_XXX name, lower confidence below 0.55 and set llmFound to false;
 - if you identify a name with confidence >= 0.55, set llmFound to true;
 - x, y, w, h coordinates stay in the ${IMG_W} x ${IMG_H} coordinate system;
-- points is empty except for shape=poly.
+- points is empty except for shape=poly;
+- do not create zones for radar category labels, section headers, quadrant titles, ring labels, or any decorative text element — only create zones for individual company or product logos;
+- fit each zone as tightly as possible around the logo boundaries; choose the most appropriate shape (rect, circle, diamond, or poly) to closely follow the logo outline and avoid covering neighbouring logos.
 
 JSON:
 ${JSON.stringify(skeleton,null,2)}
@@ -2754,6 +2762,9 @@ function zoneCadran(z){
 function zoneSearchText(z){
   return [z.id,z.name,z.url,z.description,z.category,zoneCadran(z),z.searchKeywords,startupKeywords(z)].filter(Boolean).join(' ');
 }
+function zoneHasData(z){
+  return (z.name && !/^zone_\d+$/i.test(z.name)) || !!z.url || !!z.logo || !!z.description;
+}
 function zoneShapeMarkup(z, cls='click-zone'){
   const title=escapeHtml(z.name||z.id);
   if(z.shape==='circle') return `<ellipse class="${cls}" cx="${fmt(z.x+z.w/2)}" cy="${fmt(z.y+z.h/2)}" rx="${fmt(z.w/2)}" ry="${fmt(z.h/2)}"><title>${title}</title></ellipse>`;
@@ -2762,7 +2773,7 @@ function zoneShapeMarkup(z, cls='click-zone'){
   return `<rect class="${cls}" x="${fmt(z.x)}" y="${fmt(z.y)}" width="${fmt(z.w)}" height="${fmt(z.h)}"><title>${title}</title></rect>`;
 }
 function svgMarkupForExport(){
-  return zones.map(z=>{
+  return zones.filter(zoneHasData).map(z=>{
     const dataName=escapeHtml(z.name||z.id); const dataUrl=escapeHtml(safeUrl(z.url));
     const dataLogo=escapeHtml(z.logo||''); const dataDescription=escapeHtml(z.description||'');
     const dataCadran=escapeHtml(zoneCadran(z)); const dataSearch=escapeHtml(zoneSearchText(z));
@@ -2773,7 +2784,7 @@ function zoneDataAttributes(z){
   return `data-name="${escapeHtml(z.name||z.id)}" data-url="${escapeHtml(safeUrl(z.url))}" data-logo="${escapeHtml(z.logo||'')}" data-description="${escapeHtml(z.description||'')}" data-cadran="${escapeHtml(zoneCadran(z))}" data-search="${escapeHtml(zoneSearchText(z))}"`;
 }
 function svgMarkupForCms(prefix='rm'){
-  return zones.map(z=>{
+  return zones.filter(zoneHasData).map(z=>{
     const name=escapeHtml(z.name||z.id);
     const url=safeUrl(z.url);
     const attrs=zoneDataAttributes(z);
@@ -2923,7 +2934,7 @@ function imageMapArea(z){
 }
 function buildImageMapSnippet(){
   const mapName=`radarmapper-map-${Date.now().toString(36)}`;
-  return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.map(imageMapArea).join('\n')}\n</map></div>`;
+  return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.filter(zoneHasData).map(imageMapArea).join('\n')}\n</map></div>`;
 }
 function buildIframeSnippet(){
   const src=escapeHtml(q('cfgHostedUrl').value.trim() || 'REPLACE_WITH_EXPORTED_HTML_URL');
