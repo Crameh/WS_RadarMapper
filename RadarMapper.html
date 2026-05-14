@@ -145,10 +145,12 @@
   #overlay { position:absolute; inset:0; width:1280px; height:720px; }
   .zone { fill:rgba(234,126,38,.20); stroke:rgba(184,89,20,.78); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
+  .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
   .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
   .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
+  .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
   .zone.hiddenFill { fill:transparent; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
   .vertex { fill:#fff; stroke:#1699a8; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
@@ -182,7 +184,44 @@
   .stageExportBtn { min-height:34px; padding:7px 12px; border-color:#0f8794; color:#0d6f86; }
   .confirmAssociationBtn { margin-top:6px; width:100%; min-height:34px; border-color:#23aa7a; color:#0d7452; background:#eafaf4; }
   .associationStatus { margin:5px 0 0; color:#65788a; font-size:11px; font-weight:800; }
+  .suggestWrap { position:relative; }
+  .suggestList {
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 4px);
+    z-index:12;
+    max-height:180px;
+    overflow:auto;
+    border:1px solid #cbdde6;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 12px 26px rgba(14,65,83,.16);
+    padding:4px;
+  }
+  .suggestList[hidden] { display:none; }
+  .suggestOption {
+    width:100%;
+    border:0;
+    border-radius:8px;
+    background:transparent;
+    color:#12314a;
+    display:block;
+    padding:7px 8px;
+    text-align:left;
+    font-size:12px;
+    font-weight:750;
+  }
+  .suggestOption:hover,
+  .suggestOption.active { background:#e5f8f5; color:#0b7582; }
+  .suggestMeta { display:block; margin-top:2px; color:#65788a; font-size:10px; font-weight:700; }
   .startupImportStatus { margin:8px 0 0; color:#4c657a; font-size:12px; line-height:1.35; }
+  .pendingCsvList { margin-top:10px; max-height:180px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
+  .pendingCsvItem { padding:7px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
+  .pendingCsvItem:last-child { border-bottom:0; }
+  .initStatus { margin:8px 0 0; padding:9px 10px; border-radius:10px; border:1px solid #dfeaf0; font-size:12px; color:#35526a; background:#f7fbfd; }
+  .initStatus.success { border-color:#bcead7; color:#126a49; background:#ecfaf4; }
+  .initStatus.error { border-color:#f1c0c0; color:#8f1f1f; background:#fff2f2; }
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
   .tabPanel { display:none; }
@@ -198,6 +237,49 @@
   .sectionHeader h3 { font-size:14px; line-height:1.25; }
   .sectionHeader p { margin:3px 0 0; color:#65788a; font-size:12px; line-height:1.35; }
   .sectionKicker { flex:0 0 auto; color:#0b7582; font-size:11px; font-weight:850; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
+  .prepIntro { margin:0 0 14px; color:#4c657a; font-size:12px; line-height:1.45; }
+  .prepSteps { display:grid; gap:12px; }
+  .prepStep {
+    display:grid;
+    grid-template-columns:30px minmax(0, 1fr);
+    gap:11px;
+    padding:12px;
+    border:1px solid #dfeaf0;
+    border-radius:12px;
+    background:#fbfdfd;
+  }
+  .prepStepNumber {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background:#0f8794;
+    color:#fff;
+    font-size:13px;
+    font-weight:900;
+  }
+  .prepStepHeader h3 { margin:0; color:#12314a; font-size:14px; line-height:1.25; }
+  .prepStepHeader p { margin:3px 0 0; color:#65788a; font-size:12px; line-height:1.35; }
+  .prepStepBody { margin-top:10px; }
+  .prepChoiceGrid { display:grid; grid-template-columns:1fr; gap:10px; }
+  .prepChoice {
+    border:1px solid #dfeaf0;
+    border-radius:12px;
+    background:#fff;
+    padding:12px;
+  }
+  .prepChoice h4 { margin:0; color:#12314a; font-size:13px; line-height:1.25; }
+  .prepChoice p { margin:4px 0 0; color:#65788a; font-size:12px; line-height:1.35; }
+  .prepChoiceDivider {
+    margin:12px 0;
+    border:0;
+    border-top:1px solid #edf3f6;
+  }
+  .actionNote { margin:8px 0 0; color:#60778a; font-size:11px; line-height:1.35; }
+  .dangerNote { color:#9c2730; }
+  .resetGroup { margin-top:12px; padding-top:12px; border-top:1px solid #edf3f6; }
   .primaryAction { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
   .primaryAction.split { grid-template-columns:1fr 1fr; }
   .primaryAction button { width:100%; min-height:42px; font-size:14px; }
@@ -291,6 +373,8 @@
     .primaryAction.split { grid-template-columns:1fr; }
     .sectionHeader { flex-direction:column; gap:4px; }
     .sectionKicker { white-space:normal; }
+    .prepStep { grid-template-columns:1fr; }
+    .prepChoice { padding:10px; }
   }
 </style>
 </head>
@@ -301,9 +385,9 @@
     <h1>Éditeur de zones cliquables - Radar Cyber</h1>
   </div>
   <nav class="phaseNav" aria-label="Phases du projet">
-    <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Préparer</span></button>
-    <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Éditer</span></button>
-    <button class="phaseBtn" data-tab="exportPanel" type="button"><span class="phaseIcon">▣</span><span>Exporter</span></button>
+    <button class="phaseBtn active" data-tab="initPanel" type="button"><span class="phaseIcon">⌂</span><span>Prepare</span></button>
+    <button class="phaseBtn" data-tab="editPanel" type="button"><span class="phaseIcon">✎</span><span>Edit</span></button>
+    <button class="phaseBtn" data-tab="exportPanel" type="button"><span class="phaseIcon">▣</span><span>Export</span></button>
   </nav>
   <div class="statusArea" aria-label="Statut de sauvegarde">
     <span id="saveStatusText">Saved (browser)</span>
@@ -315,7 +399,7 @@
   <section id="stageWrap">
     <div class="zoneTools" aria-label="Ajout et modification de zone">
       <div class="zoneToolsRow">
-        <span class="zoneToolsTitle">Radar et zones <span id="modeBadge" class="modeBadge">Préparer</span></span>
+        <span class="zoneToolsTitle">Radar and Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
         <div class="zoneToolsEdit" aria-label="Création et forme de zone">
           <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Ajouter une zone" title="Ajouter une zone">+</button>
           <span class="shapeIcons zoneToolsShapes" title="Créer ou modifier la forme d'une zone">
@@ -326,12 +410,11 @@
           </span>
         </div>
         <div class="zoneToolsRight">
-          <button id="stageExportBtn" class="stageExportBtn" type="button">Exporter</button>
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
           <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
-      <div class="modeHintLine" id="modeHint">Préparer : chargez le radar, puis créez une première base de zones.</div>
+      <div class="modeHintLine" id="modeHint">Prepare: import your radar visual and data, then build your first mapping draft.</div>
     </div>
     <div id="stage">
       <div id="stageScaler">
@@ -347,7 +430,10 @@
         <label>Zone</label>
         <input id="editPopupId" disabled class="mono">
         <label>Nom affiché / structure</label>
-        <input id="editPopupName" list="startupSuggestions" placeholder="Nom de la structure">
+        <div class="suggestWrap">
+          <input id="editPopupName" autocomplete="off" placeholder="Nom de la structure">
+          <div id="editPopupNameSuggestions" class="suggestList" role="listbox" hidden></div>
+        </div>
         <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
         <p id="editPopupAssociationStatus" class="associationStatus">Association à valider</p>
         <label>URL</label>
@@ -382,73 +468,124 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h2>Préparer le radar</h2>
-            <p>Chargez le visuel du radar et les données startups, puis créez une première base de zones à vérifier.</p>
+            <h2>Préparer un nouveau radar</h2>
+            <p>Importez les fichiers, générez les zones, puis passez à la validation.</p>
           </div>
           <span class="sectionKicker">Étape 1</span>
         </div>
-        <label>Image du radar</label>
-        <input id="radarUpload" type="file" accept="image/*">
-        <div class="primaryAction split">
-          <button id="detectZones" class="primary">Détourer localement</button>
-          <button id="runAiMapping" class="primary">Détourer avec LLM</button>
-        </div>
+        <p class="prepIntro">La préparation sert uniquement à créer une première base de zones. Les corrections fines, les URLs et les textes se font ensuite dans l’onglet Édition.</p>
       </div>
 
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+      <div class="prepSteps">
+        <div class="prepStep">
+          <div class="prepStepNumber">1</div>
           <div>
-            <h3>Fichier de travail</h3>
-            <p>Exportez une base JSON si vous voulez la compléter ou la faire enrichir ailleurs.</p>
+            <div class="prepStepHeader">
+              <h3>Importer les sources</h3>
+              <p>Ajoutez l’image du radar, puis le fichier des structures à associer.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="secondaryActions">
+                <button id="uploadRadarVisual" type="button">Image du radar</button>
+                <button id="uploadStructureData" type="button">Données structures</button>
+              </div>
+              <input id="radarUpload" type="file" accept="image/*" style="display:none">
+              <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,application/json,text/csv,text/tab-separated-values" style="display:none">
+              <p class="actionNote">Champ requis : <code>name</code> ou <code>startup</code>. Champs utiles : <code>url</code>, <code>description</code>, <code>logo</code>, tags.</p>
+              <p id="startupImportStatus" class="startupImportStatus">Aucun fichier de structures importé.</p>
+              <div id="initStatusLine" class="initStatus">En attente des imports.</div>
+            </div>
           </div>
         </div>
-        <div class="secondaryActions">
-          <button id="importBtn">Importer JSON</button>
-          <button id="exportInitJson">Exporter les zones (JSON) pour enrichissement externe</button>
-        </div>
-        <input id="importFile" type="file" accept="application/json" style="display:none">
-      </div>
 
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+        <div class="prepStep">
+          <div class="prepStepNumber">2</div>
           <div>
-            <h3>Données startups</h3>
-            <p>Importez une table de fond avant le détourage pour enrichir automatiquement les logos reconnus.</p>
+            <div class="prepStepHeader">
+              <h3>Générer une première cartographie</h3>
+              <p>Choisissez un traitement externe manuel ou le LLM intégré à RadarMapper.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="prepChoiceGrid">
+                <div class="prepChoice">
+                  <h4>Utilisation d'un LLM externe</h4>
+                  <p>Préparez une base locale, copiez le prompt, joignez l’image du radar et le JSON, puis réimportez le JSON complété.</p>
+                  <div class="primaryAction">
+                    <button id="detectZones" class="primary" type="button">Créer une base par détection locale</button>
+                  </div>
+                  <div class="secondaryActions">
+                    <button id="copyExternalPrompt" type="button">Copier le prompt</button>
+                    <button id="exportInitJson" type="button">Télécharger le JSON</button>
+                  </div>
+                  <div class="secondaryActions">
+                    <button id="importBtn" type="button">Importer le JSON complété</button>
+                  </div>
+                  <input id="importFile" type="file" accept="application/json" style="display:none">
+                  <p class="actionNote">Ce mode garde la clé et l’analyse hors de RadarMapper : vous collez le prompt dans votre outil LLM, puis vous importez son résultat.</p>
+                  <details class="advancedGroup">
+                    <summary>Contrôle de l’import manuel</summary>
+                    <div class="advancedBody">
+                      <p class="small">Suivez ici la détection locale, la copie du prompt et l’import du JSON complété.</p>
+                      <textarea id="analysisLog" rows="6" class="mono" readonly></textarea>
+                    </div>
+                  </details>
+                </div>
+
+                <div class="prepChoice">
+                  <h4>Utilisation du LLM intégré</h4>
+                  <p>Lancez directement le détourage et l’association avec le fournisseur configuré dans RadarMapper.</p>
+                  <div class="primaryAction">
+                    <button id="runAiMapping" class="primary" type="button">Détection LLM intégrée</button>
+                  </div>
+                  <label>Instructions complémentaires</label>
+                  <textarea id="llmExtraInstructions" rows="3" placeholder="Exemple : privilégier les noms exacts, limiter les faux positifs, conserver les logos étroits."></textarea>
+                  <div id="llmInAppStatus" class="initStatus">Statut LLM : non connecté.</div>
+                  <p id="llmInAppHint" class="actionNote">Activité : en attente.</p>
+                  <hr class="prepChoiceDivider">
+                  <label>Trace de réponse LLM</label>
+                  <textarea id="llmInAppTrace" rows="6" class="mono" readonly></textarea>
+                </div>
+              </div>
+              <details class="advancedGroup">
+                <summary>Réglages de détection locale</summary>
+                <div class="advancedBody">
+                  <label>Seuil de contraste (0-255)</label>
+                  <input id="cfgContrast" type="number" min="1" max="255" value="58">
+                  <div class="row">
+                    <div><label>Aire min. (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
+                    <div><label>Aire max. (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
+                    <div><label>Marge (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
+                    <div><label>Fusion (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
+                  </div>
+                  <label>Ratio largeur/hauteur max</label>
+                  <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
+                </div>
+              </details>
+            </div>
           </div>
         </div>
-        <div class="secondaryActions">
-          <button id="importStartupData">Importer CSV / JSON startups</button>
-          <button id="clearStartupData">Vider les données startups</button>
-        </div>
-        <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,application/json,text/csv,text/tab-separated-values" style="display:none">
-        <p class="small">CSV attendu : une colonne <code>name</code> ou <code>startup</code> suffit. Colonnes optionnelles : <code>url</code>, <code>description</code>, <code>logo</code>. Le logo peut rester vide ; vous pourrez le compléter plus tard.</p>
-        <p id="startupImportStatus" class="startupImportStatus">Aucune table startup importée.</p>
-      </div>
 
-      <details class="advancedGroup">
-        <summary>Réglages de détection</summary>
-        <div class="advancedBody">
-          <label>Seuil de contraste (0-255)</label>
-          <input id="cfgContrast" type="number" min="1" max="255" value="58">
-          <div class="row">
-            <div><label>Taille min. (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
-            <div><label>Taille max. (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
-            <div><label>Marge (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
-            <div><label>Fusion (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
-          </div>
-          <label>Ratio maximal largeur/hauteur</label>
-          <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
-        </div>
-      </details>
-
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+        <div class="prepStep">
+          <div class="prepStepNumber">3</div>
           <div>
-            <h3>Journal d'analyse</h3>
-            <p>Suivez le résultat de la détection locale ou du mapping IA.</p>
+            <div class="prepStepHeader">
+              <h3>Réinitialisation</h3>
+              <p>Effacez la préparation courante pour repartir d’un espace vide.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="sectionHeader">
+                <div>
+                  <h3>Repartir de zéro</h3>
+                  <p>Efface les zones locales, les données importées et vide le visuel du radar.</p>
+                </div>
+              </div>
+              <div class="secondaryActions">
+                <button id="resetLocalBase" class="danger" type="button">Réinitialiser la préparation</button>
+              </div>
+              <p class="actionNote dangerNote">Cette action ne touche pas aux fichiers source sur votre machine.</p>
+            </div>
           </div>
         </div>
-        <textarea id="analysisLog" rows="7" class="mono" readonly></textarea>
       </div>
     </section>
 
@@ -461,80 +598,104 @@
           </div>
           <span class="sectionKicker">Étape 2</span>
         </div>
-        <label>Recherche dans les zones</label>
-        <input id="search" placeholder="nom, id ou URL">
-        <div id="zoneList"></div>
+        <p class="prepIntro">Sélectionnez une zone sur le radar ou dans la liste, corrigez son contenu, puis utilisez les actions de gestion si nécessaire.</p>
       </div>
 
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+      <div class="prepSteps">
+        <div class="prepStep">
+          <div class="prepStepNumber">1</div>
           <div>
-            <h3>Fiche de la zone sélectionnée</h3>
-            <p>Le nom, le lien et le descriptif alimentent la popup publiée.</p>
+            <div class="prepStepHeader">
+              <h3>Sélectionner une zone</h3>
+              <p>Filtrez les zones et repérez les structures encore non associées.</p>
+            </div>
+            <div class="prepStepBody">
+              <label>Recherche dans les zones</label>
+              <input id="search" placeholder="nom, id ou URL">
+              <div id="zoneList"></div>
+              <p class="groupLabel" style="margin-top:10px">Données CSV restantes</p>
+              <p id="pendingCsvCount" class="small">0 structure(s) non associée(s).</p>
+              <div id="pendingCsvList" class="pendingCsvList"></div>
+            </div>
           </div>
         </div>
-        <label>Zone sélectionnée</label>
-        <input id="id" disabled class="mono">
-        <label>Nom affiché / structure</label>
-        <input id="name" list="startupSuggestions" placeholder="Nom de la structure">
-        <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
-        <p id="associationStatus" class="associationStatus">Association à valider</p>
-        <label>URL</label>
-        <input id="url" placeholder="https://...">
-        <label>Logo (URL ou data URI)</label>
-        <input id="logo" placeholder="https://.../logo.png ou data:image/...">
-        <label>Descriptif court</label>
-        <textarea id="description" rows="3" placeholder="Description affichée dans le popup"></textarea>
-        <label>Forme</label>
-        <select id="shape">
-          <option value="rect">Rectangle</option>
-          <option value="diamond">Losange</option>
-          <option value="circle">Cercle</option>
-          <option value="poly">Polygone</option>
-        </select>
-        <div class="row">
-          <div><label>X</label><input id="x" type="number" step="1"></div>
-          <div><label>Y</label><input id="y" type="number" step="1"></div>
-          <div><label>Largeur</label><input id="w" type="number" step="1"></div>
-          <div><label>Hauteur</label><input id="h" type="number" step="1"></div>
-        </div>
-        <label>Points polygone, format x,y x,y ...</label>
-        <textarea id="points" rows="4" class="mono"></textarea>
-        <div class="primaryAction">
-          <button id="apply" class="primary">Enregistrer la zone</button>
-        </div>
-      </div>
 
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+        <div class="prepStep">
+          <div class="prepStepNumber">2</div>
           <div>
-            <h3>Actions</h3>
-            <p>Manipulez la zone courante ou gérez la session de travail.</p>
+            <div class="prepStepHeader">
+              <h3>Renseigner la zone sélectionnée</h3>
+              <p>Le nom, le lien et le descriptif alimentent la popup publiée.</p>
+            </div>
+            <div class="prepStepBody">
+              <label>Zone sélectionnée</label>
+              <input id="id" disabled class="mono">
+              <label>Nom affiché / structure</label>
+              <input id="name" list="startupSuggestions" placeholder="Nom de la structure">
+              <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
+              <p id="associationStatus" class="associationStatus">Association à valider</p>
+              <label>URL</label>
+              <input id="url" placeholder="https://...">
+              <label>Logo (URL ou data URI)</label>
+              <input id="logo" placeholder="https://.../logo.png ou data:image/...">
+              <label>Descriptif court</label>
+              <textarea id="description" rows="3" placeholder="Description affichée dans le popup"></textarea>
+              <label>Forme</label>
+              <select id="shape">
+                <option value="rect">Rectangle</option>
+                <option value="diamond">Losange</option>
+                <option value="circle">Cercle</option>
+                <option value="poly">Polygone</option>
+              </select>
+              <div class="row">
+                <div><label>X</label><input id="x" type="number" step="1"></div>
+                <div><label>Y</label><input id="y" type="number" step="1"></div>
+                <div><label>Largeur</label><input id="w" type="number" step="1"></div>
+                <div><label>Hauteur</label><input id="h" type="number" step="1"></div>
+              </div>
+              <label>Points polygone, format x,y x,y ...</label>
+              <textarea id="points" rows="4" class="mono"></textarea>
+              <div class="primaryAction">
+                <button id="apply" class="primary">Enregistrer la zone</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="zoneActionGroup">
-          <p class="groupLabel">Zone</p>
-          <div class="secondaryActions compact">
-            <button id="duplicate">Dupliquer</button>
-            <button id="clearUrl">Vider URL</button>
-            <button id="delete" class="danger">Supprimer</button>
+
+        <div class="prepStep">
+          <div class="prepStepNumber">3</div>
+          <div>
+            <div class="prepStepHeader">
+              <h3>Actions</h3>
+              <p>Manipulez la zone courante ou gérez la session de travail.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="prepChoice">
+                <h4>Zone</h4>
+                <div class="secondaryActions compact">
+                  <button id="duplicate">Dupliquer</button>
+                  <button id="clearUrl">Vider URL</button>
+                  <button id="delete" class="danger">Supprimer</button>
+                </div>
+              </div>
+              <div class="prepChoice" style="margin-top:10px">
+                <h4>Ordre d'affichage</h4>
+                <div class="secondaryActions">
+                  <button id="sendBack">Envoyer derrière</button>
+                  <button id="bringFront">Mettre devant</button>
+                </div>
+              </div>
+              <div class="prepChoice" style="margin-top:10px">
+                <h4>Fichier et session</h4>
+                <div class="secondaryActions compact">
+                  <button id="saveLocal">Sauver localement</button>
+                  <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple initial</button>
+                </div>
+              </div>
+              <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Suppr pour supprimer.</p>
+            </div>
           </div>
         </div>
-        <div class="zoneActionGroup">
-          <p class="groupLabel">Ordre d'affichage</p>
-          <div class="secondaryActions">
-            <button id="sendBack">Envoyer derrière</button>
-            <button id="bringFront">Mettre devant</button>
-          </div>
-        </div>
-        <div class="fileActionGroup">
-          <p class="groupLabel">Fichier et session</p>
-          <div class="secondaryActions compact">
-            <button id="saveLocal">Sauver localement</button>
-            <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple initial</button>
-          </div>
-        </div>
-        <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Suppr pour supprimer.</p>
       </div>
     </section>
 
@@ -547,103 +708,135 @@
           </div>
           <span class="sectionKicker">Étape 3</span>
         </div>
-        <label>Format d'intégration</label>
-        <select id="cfgExportMode">
-          <option value="standalone">Page autonome, pour iframe ou page dédiée</option>
-          <option value="iframe">Snippet iframe responsive, recommandé Wavestone / RiskInsight</option>
-          <option value="snippet">Snippet CMS, CSS isolé + interaction légère</option>
-          <option value="imagemap">Image map sans script</option>
-        </select>
-        <label>Expérience exportée</label>
-        <select id="cfgExportExperience">
-          <option value="visual">Simple : radar + popups au clic</option>
-          <option value="interface">Interface : radar + recherche et filtres</option>
-        </select>
-        <label>Nom de fichier export HTML</label>
-        <input id="cfgHtmlName" value="radar_cliquable.html">
-        <label>Titre exporté</label>
-        <input id="cfgExportTitle" value="Radar cliquable">
-        <label>URL du HTML hébergé, pour le snippet iframe</label>
-        <input id="cfgHostedUrl" placeholder="https://www.example.com/path/radar_cliquable.html">
+        <p class="prepIntro">Paramétrez le format cible, vérifiez le résumé, ajustez l’interaction, puis générez les fichiers ou snippets.</p>
       </div>
 
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+      <div class="prepSteps">
+        <div class="prepStep">
+          <div class="prepStepNumber">1</div>
           <div>
-            <h3>Résumé d'export</h3>
-            <p>Vérifiez rapidement ce qui sera généré.</p>
+            <div class="prepStepHeader">
+              <h3>Choisir le format</h3>
+              <p>Sélectionnez le type d’intégration et les métadonnées du fichier généré.</p>
+            </div>
+            <div class="prepStepBody">
+              <label>Format d'intégration</label>
+              <select id="cfgExportMode">
+                <option value="standalone">Page autonome, pour iframe ou page dédiée</option>
+                <option value="iframe">Snippet iframe responsive, recommandé Wavestone / RiskInsight</option>
+                <option value="snippet">Snippet CMS, CSS isolé + interaction légère</option>
+                <option value="imagemap">Image map sans script</option>
+              </select>
+              <label>Expérience exportée</label>
+              <select id="cfgExportExperience">
+                <option value="visual">Simple : radar + popups au clic</option>
+                <option value="interface">Interface : radar + recherche et filtres</option>
+              </select>
+              <label>Nom de fichier export HTML</label>
+              <input id="cfgHtmlName" value="radar_cliquable.html">
+              <label>Titre exporté</label>
+              <input id="cfgExportTitle" value="Radar cliquable">
+              <label>URL du HTML hébergé, pour le snippet iframe</label>
+              <input id="cfgHostedUrl" placeholder="https://www.example.com/path/radar_cliquable.html">
+            </div>
           </div>
         </div>
-        <div class="exportPreview publishSummary">
-          <div id="previewTitle" class="previewTitle">Radar cliquable</div>
-          <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Page autonome</span></div>
-          <div class="previewRow"><span>Expérience</span><span id="previewExportExperience" class="previewValue">Visuel seul</span></div>
-          <div class="previewRow"><span>Cible</span><span id="previewIntegrationTarget" class="previewValue">Iframe / page dédiée</span></div>
-          <div class="previewRow"><span>Fichier</span><span id="previewHtmlName" class="previewValue">radar_cliquable.html</span></div>
-          <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
-          <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
-          <div class="previewRow"><span>Zones avec URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
-          <div class="previewRow"><span>Exemple</span><span id="previewSampleZone" class="previewValue">-</span></div>
-        </div>
-      </div>
 
-      <details class="advancedGroup" open>
-        <summary>Apparence de l'interaction</summary>
-        <div class="advancedBody">
-          <h3>Effet hover</h3>
-          <div class="row">
-            <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
-            <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
-          </div>
-          <div class="row">
-            <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
-            <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
-          </div>
-          <h3>Popup</h3>
-          <div class="row">
-            <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
-            <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
-          </div>
-          <div class="row">
-            <div><label>Fond popup</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
-            <div><label>Texte popup</label><input id="cfgPopupText" type="color" value="#12314a"></div>
-          </div>
-          <div class="row">
-            <div><label>Contour popup</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
-            <div><label>Accent lien</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
-          </div>
-          <div class="row">
-            <div><label>Largeur max</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
-            <div><label>Taille texte</label><input id="cfgPopupFontSize" type="number" min="11" max="22" step="1" value="14"></div>
-          </div>
-          <div class="row">
-            <div><label>Ombre</label><select id="cfgPopupShadow"><option value="soft">Douce</option><option value="strong">Marquée</option><option value="none">Aucune</option></select></div>
-          </div>
-          <label>Libellé du lien</label>
-          <input id="cfgPopupLinkLabel" value="Ouvrir le site">
-          <label>Contenu affiché</label>
-          <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
-          <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
-          <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
-        </div>
-      </details>
-
-      <div class="sectionGroup">
-        <div class="sectionHeader">
+        <div class="prepStep">
+          <div class="prepStepNumber">2</div>
           <div>
-            <h3>Exports</h3>
-            <p>Le bouton principal suit le format sélectionné au-dessus.</p>
+            <div class="prepStepHeader">
+              <h3>Contrôler le résumé</h3>
+              <p>Vérifiez rapidement ce qui sera généré.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="exportPreview publishSummary">
+                <div id="previewTitle" class="previewTitle">Radar cliquable</div>
+                <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Page autonome</span></div>
+                <div class="previewRow"><span>Expérience</span><span id="previewExportExperience" class="previewValue">Visuel seul</span></div>
+                <div class="previewRow"><span>Cible</span><span id="previewIntegrationTarget" class="previewValue">Iframe / page dédiée</span></div>
+                <div class="previewRow"><span>Fichier</span><span id="previewHtmlName" class="previewValue">radar_cliquable.html</span></div>
+                <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
+                <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
+                <div class="previewRow"><span>Zones avec URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
+                <div class="previewRow"><span>Exemple</span><span id="previewSampleZone" class="previewValue">-</span></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="primaryAction">
-          <button id="exportHtml" class="primary" type="button">Exporter selon le format choisi</button>
+
+        <div class="prepStep">
+          <div class="prepStepNumber">3</div>
+          <div>
+            <div class="prepStepHeader">
+              <h3>Régler l'apparence</h3>
+              <p>Ajustez le hover, la popup et les contenus affichés.</p>
+            </div>
+            <div class="prepStepBody">
+              <details class="advancedGroup" open>
+                <summary>Apparence de l'interaction</summary>
+                <div class="advancedBody">
+                  <h3>Effet hover</h3>
+                  <div class="row">
+                    <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
+                    <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
+                  </div>
+                  <div class="row">
+                    <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
+                    <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
+                  </div>
+                  <h3>Popup</h3>
+                  <div class="row">
+                    <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
+                    <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
+                  </div>
+                  <div class="row">
+                    <div><label>Fond popup</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
+                    <div><label>Texte popup</label><input id="cfgPopupText" type="color" value="#12314a"></div>
+                  </div>
+                  <div class="row">
+                    <div><label>Contour popup</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
+                    <div><label>Accent lien</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
+                  </div>
+                  <div class="row">
+                    <div><label>Largeur max</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
+                    <div><label>Taille texte</label><input id="cfgPopupFontSize" type="number" min="11" max="22" step="1" value="14"></div>
+                  </div>
+                  <div class="row">
+                    <div><label>Ombre</label><select id="cfgPopupShadow"><option value="soft">Douce</option><option value="strong">Marquée</option><option value="none">Aucune</option></select></div>
+                  </div>
+                  <label>Libellé du lien</label>
+                  <input id="cfgPopupLinkLabel" value="Ouvrir le site">
+                  <label>Contenu affiché</label>
+                  <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
+                  <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
+                  <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
+                </div>
+              </details>
+            </div>
+          </div>
         </div>
-        <div class="secondaryActions compact">
-          <button id="copyEmbedSnippet" type="button">Copier le snippet</button>
-          <button id="downloadStandaloneHtml" type="button">Télécharger page autonome</button>
-          <button id="exportJson" type="button">Exporter JSON</button>
+
+        <div class="prepStep">
+          <div class="prepStepNumber">4</div>
+          <div>
+            <div class="prepStepHeader">
+              <h3>Générer l'export</h3>
+              <p>Le bouton principal suit le format sélectionné au-dessus.</p>
+            </div>
+            <div class="prepStepBody">
+              <div class="primaryAction">
+                <button id="exportHtml" class="primary" type="button">Exporter selon le format choisi</button>
+              </div>
+              <div class="secondaryActions compact">
+                <button id="copyEmbedSnippet" type="button">Copier le snippet</button>
+                <button id="downloadStandaloneHtml" type="button">Télécharger page autonome</button>
+                <button id="exportJson" type="button">Exporter JSON</button>
+              </div>
+              <p class="small">Pour Wavestone Insights et RiskInsight, le plus robuste reste d'héberger la page autonome puis d'intégrer le snippet iframe.</p>
+            </div>
+          </div>
         </div>
-        <p class="small">Pour Wavestone Insights et RiskInsight, le plus robuste reste d'héberger la page autonome puis d'intégrer le snippet iframe.</p>
       </div>
     </section>
 
@@ -723,6 +916,8 @@ let startupRecords = storedStartupRecords();
 let selectedId = zones[0]?.id || null;
 let drag = null;
 let lastZonePointer = {id:null, time:0};
+let editPopupSuggestIndex = -1;
+let editPopupSuggestions = [];
 const svg = document.getElementById('overlay');
 const stage = document.getElementById('stage');
 const stageScaler = document.getElementById('stageScaler');
@@ -731,9 +926,9 @@ const q = id => document.getElementById(id);
 radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
-  initPanel:{label:'Préparer', hint:'Préparer : chargez le radar et le CSV, puis détourez localement ou avec LLM.'},
-  editPanel:{label:'Éditer', hint:'Éditer : ajustez les zones orange, puis validez les associations pour les passer en vert.'},
-  exportPanel:{label:'Exporter', hint:'Exporter : choisissez un rendu simple ou filtrable, ajustez le visuel, puis exportez.'}
+  initPanel:{label:'Prepare', hint:'Prepare: import radar visual + structure data, then run local or LLM detection.'},
+  editPanel:{label:'Edit', hint:'Edit: adjust zone geometry, assign structure data, and validate associations.'},
+  exportPanel:{label:'Export', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
@@ -791,6 +986,7 @@ function shapeEl(z){
   }
   el.classList.add('zone');
   el.classList.add(z.dataConfirmed || z.associationConfirmed ? 'confirmed' : 'pending');
+  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated) el.classList.add('prevalidated');
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
@@ -798,16 +994,25 @@ function shapeEl(z){
   el.addEventListener('pointerdown', startMove);
   el.addEventListener('click', showExportLivePopup);
   el.addEventListener('dblclick', showEditZonePopup);
+  el.addEventListener('focus', ()=>{
+    if(isEditMode()){
+      selectedId=z.id;
+      refreshZoneSelectionStyles();
+      const current=zoneById(selectedId);
+      if(current) fillForm(current);
+      renderList();
+      updateShapeButtons();
+    }
+  });
   el.addEventListener('keydown', e=>{
-    if(!isExportMode()) return;
-    if(e.key==='Enter' || e.key===' '){
+    if(isExportMode() && (e.key==='Enter' || e.key===' ')){
       showExportLivePopup({currentTarget:e.currentTarget, preventDefault:()=>e.preventDefault(), stopPropagation:()=>e.stopPropagation(), clientX:window.innerWidth/2, clientY:window.innerHeight/2});
     }
   });
   el.setAttribute('aria-label', z.name || z.id);
-  if(isExportMode()){
+  if(isExportMode() || isEditMode()){
     el.setAttribute('tabindex','0');
-    el.setAttribute('role','button');
+    if(isExportMode()) el.setAttribute('role','button');
   }
   return el;
 }
@@ -824,6 +1029,9 @@ function render(){
   renderList();
   updateShapeButtons();
   updateExportPreview();
+}
+function refreshZoneSelectionStyles(){
+  svg.querySelectorAll('.zone').forEach(el=>el.classList.toggle('selected', el.dataset.id === selectedId));
 }
 function renderHandles(z){
   if(z.shape === 'poly'){
@@ -849,7 +1057,9 @@ function fillForm(z){
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
-  q('associationStatus').textContent = z.dataConfirmed || z.associationConfirmed ? 'Association validée' : 'Association à valider';
+  if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Association validée';
+  else if(z.llmPrevalidated) q('associationStatus').textContent='Pré-validée par le LLM (à confirmer)';
+  else q('associationStatus').textContent='Association à valider';
 }
 function fillEditPopup(z){
   q('editPopupId').value=z.id;
@@ -864,7 +1074,9 @@ function fillEditPopup(z){
   q('editPopupH').value=fmt(z.h);
   q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('editPopupPoints').disabled = z.shape !== 'poly';
-  q('editPopupAssociationStatus').textContent = z.dataConfirmed || z.associationConfirmed ? 'Association validée' : 'Association à valider';
+  if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association validée';
+  else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pré-validée par le LLM (à confirmer)';
+  else q('editPopupAssociationStatus').textContent='Association à valider';
 }
 function placeEditPopup(event){
   const popup=q('editZonePopup');
@@ -891,6 +1103,7 @@ function showEditZonePopup(event){
 }
 function hideEditZonePopup(){
   q('editZonePopup').hidden=true;
+  hideEditPopupSuggestions();
 }
 function handleZoneDoublePointer(e){
   if(!isEditMode()) return;
@@ -898,7 +1111,7 @@ function handleZoneDoublePointer(e){
   if(!zoneEl) return;
   const zoneId=zoneEl.dataset.id;
   const now=Date.now();
-  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 900){
+  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 420){
     lastZonePointer={id:null,time:0};
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -939,21 +1152,53 @@ function confirmAssociation(prefix=''){
   else applyForm();
   const updated=zoneById(selectedId);
   if(!updated) return;
+  const matchedRecord=findStartupRecord(updated.name);
+  if(matchedRecord) applyStartupRecordToZone(updated, matchedRecord);
   updated.dataConfirmed=true;
   updated.associationConfirmed=true;
+  updated.llmPrevalidated=false;
   updated.confirmedAt=new Date().toISOString();
   render();
   if(prefix === 'editPopup') fillEditPopup(updated);
   else fillForm(updated);
+  if(prefix === 'editPopup') hideEditZonePopup();
 }
 function renderList(){
   const s=q('search').value.toLowerCase();
   q('zoneList').innerHTML = '';
   zones.filter(z => !s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.dataConfirmed || z.associationConfirmed ? 'validé' : 'à valider'}</span>`;
+    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.dataConfirmed || z.associationConfirmed ? 'validé' : (z.llmPrevalidated ? 'pré-validé LLM' : 'à valider')}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
     q('zoneList').appendChild(d);
+  });
+  renderPendingCsvList();
+}
+function associatedStartupNames(){
+  return new Set(
+    zones.map(z=>normalizeName(z.name)).filter(Boolean)
+  );
+}
+function renderPendingCsvList(){
+  const container=q('pendingCsvList');
+  const count=q('pendingCsvCount');
+  if(!container || !count) return;
+  const associated=associatedStartupNames();
+  const pending=startupRecords.filter(record=>!associated.has(normalizeName(record.name)));
+  count.textContent=`${pending.length} structure(s) non associée(s).`;
+  container.innerHTML='';
+  if(!pending.length){
+    const done=document.createElement('div');
+    done.className='pendingCsvItem';
+    done.textContent='Toutes les structures du CSV sont associées.';
+    container.appendChild(done);
+    return;
+  }
+  pending.slice(0,200).forEach(record=>{
+    const row=document.createElement('div');
+    row.className='pendingCsvItem';
+    row.textContent=record.name;
+    container.appendChild(row);
   });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -1037,7 +1282,7 @@ function refreshStartupSuggestions(){
 function updateStartupImportStatus(text){
   const el=q('startupImportStatus');
   if(!el) return;
-  el.textContent = text || (startupRecords.length ? `${startupRecords.length} startup(s) disponibles pour l’enrichissement et l’autocomplétion.` : 'Aucune table startup importée.');
+  el.textContent = text || (startupRecords.length ? `${startupRecords.length} structure record(s) available for enrichment and autocomplete.` : 'No structure dataset imported yet.');
 }
 function findStartupRecord(value){
   const wanted=normalizeName(value);
@@ -1051,6 +1296,96 @@ function findStartupRecord(value){
     return name.includes(wanted) || wanted.includes(name);
   }) || null;
 }
+function startupSuggestionMatches(value, limit=8){
+  const wanted=normalizeName(value);
+  if(!wanted) return [];
+  const scored=startupRecords
+    .map(record=>{
+      const name=normalizeName(record.name);
+      if(!name) return null;
+      if(name === wanted) return {record, score:0};
+      if(name.startsWith(wanted)) return {record, score:1};
+      if(name.includes(wanted)) return {record, score:2};
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a,b)=>a.score-b.score || a.record.name.localeCompare(b.record.name));
+  return scored.slice(0,limit).map(item=>item.record);
+}
+function hideEditPopupSuggestions(){
+  const list=q('editPopupNameSuggestions');
+  if(!list) return;
+  list.hidden=true;
+  list.innerHTML='';
+  editPopupSuggestIndex=-1;
+  editPopupSuggestions=[];
+  q('editPopupName')?.removeAttribute('aria-activedescendant');
+  q('editPopupName')?.setAttribute('aria-expanded','false');
+}
+function renderEditPopupSuggestions(){
+  const input=q('editPopupName');
+  const list=q('editPopupNameSuggestions');
+  if(!input || !list) return;
+  editPopupSuggestions=startupSuggestionMatches(input.value);
+  editPopupSuggestIndex=editPopupSuggestions.length ? clamp(editPopupSuggestIndex,0,editPopupSuggestions.length-1) : -1;
+  list.innerHTML='';
+  if(!editPopupSuggestions.length){
+    hideEditPopupSuggestions();
+    return;
+  }
+  list.hidden=false;
+  input.setAttribute('aria-controls','editPopupNameSuggestions');
+  input.setAttribute('aria-expanded','true');
+  editPopupSuggestions.forEach((record,index)=>{
+    const option=document.createElement('button');
+    option.type='button';
+    option.id=`editPopupNameSuggestion${index}`;
+    option.className='suggestOption'+(index===editPopupSuggestIndex ? ' active' : '');
+    option.setAttribute('role','option');
+    option.setAttribute('aria-selected', index===editPopupSuggestIndex ? 'true' : 'false');
+    option.innerHTML=`${escapeHtml(record.name)}${record.url || record.category ? `<span class="suggestMeta">${escapeHtml([record.category, record.url].filter(Boolean).join(' - '))}</span>` : ''}`;
+    option.addEventListener('mousedown', e=>e.preventDefault());
+    option.addEventListener('click', ()=>{
+      chooseEditPopupSuggestion(index);
+      q('editPopupName').focus();
+    });
+    list.appendChild(option);
+  });
+  if(editPopupSuggestIndex>=0) input.setAttribute('aria-activedescendant', `editPopupNameSuggestion${editPopupSuggestIndex}`);
+}
+function chooseEditPopupSuggestion(index=editPopupSuggestIndex){
+  const record=editPopupSuggestions[index] || startupSuggestionMatches(q('editPopupName').value,1)[0] || findStartupRecord(q('editPopupName').value);
+  if(!record) return false;
+  q('editPopupName').value=record.name;
+  applyStartupRecordToInputs('editPopup');
+  applyEditPopup();
+  hideEditPopupSuggestions();
+  return true;
+}
+function validateEditPopup({preferSuggestion=false} = {}){
+  if(preferSuggestion && chooseEditPopupSuggestion()){
+    hideEditZonePopup();
+    return;
+  }
+  applyStartupRecordToInputs('editPopup');
+  applyEditPopup();
+  hideEditZonePopup();
+}
+function startupKeywords(value){
+  const source=value?.startupData || value?.raw || value || {};
+  if(!source || typeof source !== 'object') return '';
+  const known=new Set(['name','nom','startup','start-up','company','entreprise','societe','société','structure','url','website','site','site web','lien','link','logo','logo url','logo_url','logourl','image','image url','description','descriptif','desc','pitch','short description','resume','résumé'].map(normalizeName));
+  const keyAliases=['keyword','keywords','keyword 1','keyword 2','keyword 3','mot cle','mots cles','mots clés','tags','tag','theme','themes','category','categorie','catégorie','secteur','cadran','quadrant'];
+  const items=[];
+  Object.entries(source).forEach(([k,v])=>{
+    const nk=normalizeHeader(k);
+    const isKeyAlias=keyAliases.some(alias=>normalizeHeader(alias)===nk);
+    if(isKeyAlias || !known.has(normalizeName(k))){
+      if(v !== undefined && v !== null && String(v).trim()) items.push(String(v).trim());
+    }
+  });
+  return items.join(' ');
+}
 function applyStartupRecordToZone(z, record){
   if(!z || !record) return false;
   z.name=record.name || z.name;
@@ -1059,6 +1394,7 @@ function applyStartupRecordToZone(z, record){
   if(record.description) z.description=record.description;
   if(record.category) z.category=record.category;
   z.startupData=record.raw || record;
+  z.searchKeywords=startupKeywords(record);
   return true;
 }
 function linkStartupRecordsToZones(){
@@ -1197,16 +1533,13 @@ function hideExportLivePopup(){
 function startMove(e){
   if(!isEditMode()) return;
   const zoneId=e.currentTarget.dataset.id;
-  const now=Date.now();
-  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 900){
-    lastZonePointer={id:null,time:0};
-    showEditZonePopup(e);
-    return;
-  }
-  lastZonePointer={id:zoneId,time:now};
   e.preventDefault(); selectedId=zoneId; const z=zoneById(selectedId); const p=pointerPos(e);
   drag={type:'move', id:selectedId, sx:p.x, sy:p.y, ox:z.x, oy:z.y, pts:(z.points||[]).map(p=>({...p}))};
-  svg.setPointerCapture(e.pointerId); render();
+  svg.setPointerCapture(e.pointerId);
+  refreshZoneSelectionStyles();
+  fillForm(z);
+  renderList();
+  updateShapeButtons();
 }
 function startResize(e){
   if(!isEditMode()) return;
@@ -1238,7 +1571,10 @@ svg.addEventListener('pointermove', e=>{
   }
   render();
 });
-svg.addEventListener('pointerup', ()=>{ drag=null; });
+svg.addEventListener('pointerup', ()=>{
+  if(drag && isEditMode()) render();
+  drag=null;
+});
 svg.addEventListener('pointercancel', ()=>{ drag=null; });
 svg.addEventListener('pointerdown', e=>{ if(isEditMode() && e.target===svg){ selectedId=null; render(); } });
 stage.addEventListener('click', e=>{ if(isExportMode() && e.target===stage) hideExportLivePopup(); });
@@ -1258,8 +1594,15 @@ function applyForm(){
 }
 q('apply').onclick=applyForm;
 ['name','url','logo','description','shape','x','y','w','h','points'].forEach(id=>q(id).addEventListener('change',applyForm));
-q('editPopupApply').onclick=applyEditPopup;
+q('editPopupApply').onclick=()=>validateEditPopup();
 q('editPopupClose').onclick=hideEditZonePopup;
+q('editZonePopup').addEventListener('keydown',e=>{
+  if(e.key !== 'Enter') return;
+  if(e.target.tagName === 'TEXTAREA') return;
+  if(e.target.id === 'editPopupName') return;
+  e.preventDefault();
+  validateEditPopup();
+});
 q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
 q('confirmAssociation').onclick=()=>confirmAssociation('');
 q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
@@ -1269,37 +1612,74 @@ q('name').addEventListener('keydown',e=>{
   e.preventDefault();
   confirmAssociation('');
 });
-q('editPopupName').addEventListener('change',()=>{ if(applyStartupRecordToInputs('editPopup')) applyEditPopup(); });
+q('editPopupName').setAttribute('role','combobox');
+q('editPopupName').setAttribute('aria-autocomplete','list');
+q('editPopupName').setAttribute('aria-expanded','false');
+q('editPopupName').addEventListener('input',()=>{
+  editPopupSuggestIndex=0;
+  renderEditPopupSuggestions();
+});
+q('editPopupName').addEventListener('focus',renderEditPopupSuggestions);
+q('editPopupName').addEventListener('blur',()=>setTimeout(hideEditPopupSuggestions,120));
+q('editPopupName').addEventListener('change',()=>{
+  if(applyStartupRecordToInputs('editPopup')) applyEditPopup();
+});
 q('editPopupName').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    if(!editPopupSuggestions.length) renderEditPopupSuggestions();
+    editPopupSuggestIndex=editPopupSuggestions.length ? (editPopupSuggestIndex+1)%editPopupSuggestions.length : -1;
+    renderEditPopupSuggestions();
+    return;
+  }
+  if(e.key==='ArrowUp'){
+    e.preventDefault();
+    if(!editPopupSuggestions.length) renderEditPopupSuggestions();
+    editPopupSuggestIndex=editPopupSuggestions.length ? (editPopupSuggestIndex-1+editPopupSuggestions.length)%editPopupSuggestions.length : -1;
+    renderEditPopupSuggestions();
+    return;
+  }
+  if(e.key==='Escape'){
+    hideEditPopupSuggestions();
+    return;
+  }
   if(e.key !== 'Enter') return;
   e.preventDefault();
-  confirmAssociation('editPopup');
+  e.stopPropagation();
+  validateEditPopup({preferSuggestion:true});
 });
-q('importStartupData').onclick=()=>q('startupDataFile').click();
+q('uploadRadarVisual').onclick=()=>q('radarUpload').click();
+q('uploadStructureData').onclick=()=>q('startupDataFile').click();
 q('startupDataFile').onchange=async e=>{
   const file=e.target.files[0];
   if(!file) return;
   try{
+    if(/\.xlsx?$/.test(file.name.toLowerCase())){
+      throw new Error('XLS/XLSX parsing is not built in yet. Please export this sheet to CSV and import again.');
+    }
     startupRecords=parseStartupRecords(await file.text(), file.name);
-    if(!startupRecords.length) throw new Error('Aucune ligne exploitable. Ajoutez au minimum une colonne name, startup, nom ou entreprise.');
+    if(!startupRecords.length) throw new Error('No usable row found. Add at least one name/startup column.');
     persistStartupRecords();
     refreshStartupSuggestions();
     const linked=linkStartupRecordsToZones();
     render();
-    updateStartupImportStatus(`${startupRecords.length} startup(s) importée(s). ${linked} zone(s) enrichie(s) automatiquement. Les logos absents sont simplement ignorés.`);
-    logAnalysis(`Données startups importées : ${startupRecords.length} entrée(s), ${linked} zone(s) enrichie(s).`);
+    updateStartupImportStatus(`${startupRecords.length} structure record(s) imported. ${linked} zone(s) auto-enriched. Missing logos are skipped.`);
+    setInitStatus(`Structure dataset imported successfully (${startupRecords.length} rows). ${importSummaryLine()}`,'success');
+    logAnalysis(`Structure dataset imported: ${startupRecords.length} record(s), ${linked} zone(s) enriched.`);
   } catch(err){
-    updateStartupImportStatus(`Import impossible : ${err.message}`);
-    alert(`Import impossible : ${err.message}`);
+    updateStartupImportStatus(`Import failed: ${err.message}`);
+    setInitStatus(`Structure data import failed: ${err.message}`,'error');
+    alert(`Structure data import failed: ${err.message}`);
   } finally {
     e.target.value='';
   }
 };
-q('clearStartupData').onclick=()=>{
+if(q('clearStartupData')) q('clearStartupData').onclick=()=>{
   startupRecords=[];
   persistStartupRecords();
   refreshStartupSuggestions();
   updateStartupImportStatus();
+  setInitStatus('Structure dataset cleared from local workspace.','success');
 };
 q('search').oninput=renderList; q('showFill').onchange=render;
 function refreshStageGeometry(){
@@ -1354,7 +1734,7 @@ function selectWorkflowTab(tabId){
 document.querySelectorAll('.phaseBtn').forEach(btn=>{
   btn.addEventListener('click',()=>selectWorkflowTab(btn.dataset.tab));
 });
-q('stageExportBtn').addEventListener('click',()=>selectWorkflowTab('exportPanel'));
+if(q('stageExportBtn')) q('stageExportBtn').addEventListener('click',()=>selectWorkflowTab('exportPanel'));
 function closeConfigMenu(){
   q('configPanel').classList.remove('open');
   q('configPanel').setAttribute('aria-hidden','true');
@@ -1378,6 +1758,40 @@ function logAnalysis(message){
   const el=q('analysisLog');
   el.value += `${new Date().toLocaleTimeString()} - ${message}\n`;
   el.scrollTop = el.scrollHeight;
+}
+function setInitStatus(message,type=''){
+  const el=q('initStatusLine');
+  if(!el) return;
+  el.textContent=message;
+  el.classList.remove('success','error');
+  if(type) el.classList.add(type);
+}
+function setLlmInAppStatus(message,type=''){
+  const el=q('llmInAppStatus');
+  if(!el) return;
+  el.textContent=message;
+  el.classList.remove('success','error');
+  if(type) el.classList.add(type);
+}
+function setLlmInAppHint(message){
+  const el=q('llmInAppHint');
+  if(el) el.textContent=`Activity: ${message}`;
+}
+function clearLlmInAppTrace(){
+  const el=q('llmInAppTrace');
+  if(el) el.value='';
+}
+function appendLlmInAppTrace(message){
+  const el=q('llmInAppTrace');
+  if(!el) return;
+  el.value += `${new Date().toLocaleTimeString()} - ${message}\n`;
+  el.scrollTop = el.scrollHeight;
+}
+function mappedAssociationCount(){
+  return zones.filter(z=>!!findStartupRecord(z.name)).length;
+}
+function importSummaryLine(){
+  return `Zones detected: ${zones.length} | Structures detected: ${startupRecords.length} | Associations already linked: ${mappedAssociationCount()}`;
 }
 function updateSaveStatus(text){ const el=q('saveStatusText'); if(el) el.textContent=text; }
 function persistZones({silent=false, reason='manual'} = {}){
@@ -1570,6 +1984,7 @@ function updateAiStatus(){
   const connected=isAiConnected();
   el.textContent=connected ? 'AI connected' : 'AI not connected';
   el.classList.toggle('connected', connected);
+  setLlmInAppStatus(connected ? 'LLM status: connected and ready.' : 'LLM status: not connected. Open configuration first.', connected ? 'success' : 'error');
 }
 function setDefaultModel(){
   refreshModelOptions({preserve:true});
@@ -1603,6 +2018,7 @@ function loadAiConfig(){
   refreshModelOptions({preserve:true});
   refreshProviderFields();
   updateAiStatus();
+  setLlmInAppHint('idle');
 }
 function clearAiConfig(){
   localStorage.removeItem('radarMapperAiConfig');
@@ -1624,6 +2040,7 @@ function imagePayload(){
 }
 function llmPrompt(candidateZones=[], textCandidates=[]){
   const skeleton=buildProjectJson('llm_detourage_request');
+  const extraInstructions=(q('llmExtraInstructions')?.value || '').trim();
   skeleton.image.dataUrl='[image attached separately]';
   skeleton.zones=candidateZones;
   skeleton.localDetection={
@@ -1654,7 +2071,21 @@ Contraintes strictes:
 - points est vide sauf pour shape=poly.
 
 JSON:
-${JSON.stringify(skeleton,null,2)}`;
+${JSON.stringify(skeleton,null,2)}
+${extraInstructions ? `\nConsignes additionnelles utilisateur:\n${extraInstructions}` : ''}`;
+}
+function externalLlmInstructions(){
+  return [
+    'You are assisting with RadarMapper mapping.',
+    'Task: detect logos, run OCR, adjust zones, and map each zone to the correct structure record when possible.',
+    'Output: return only valid JSON matching the provided schema.',
+    '',
+    'Workflow:',
+    '1) Paste the JSON file content provided by RadarMapper.',
+    '2) Attach the radar visual file.',
+    '3) Attach the structures dataset file (CSV/JSON).',
+    '4) Return the updated JSON only, no markdown.'
+  ].join('\n');
 }
 async function callOpenAiLike(cfg,prompt){
   const messages=[{role:'user',content:[
@@ -1781,17 +2212,27 @@ q('testAiConfig').onclick=async()=>{
 q('clearAiConfig').onclick=clearAiConfig;
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
-  if(!cfg.approved){ alert('Validation confidentialité requise dans Configuration.'); return; }
-  if(!cfg.apiKey || !cfg.model){ alert('Configure le fournisseur, le modèle et la clé API avant de lancer le détourage avec LLM.'); return; }
-  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
+  if(!cfg.approved){ setLlmInAppStatus('LLM status: missing privacy approval in configuration.','error'); alert('Validation confidentialité requise dans Configuration.'); return; }
+  if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure le fournisseur, le modèle et la clé API avant de lancer le détourage avec LLM.'); return; }
+  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
   q('analysisLog').value='';
+  clearLlmInAppTrace();
+  setLlmInAppHint('preparing local candidates');
+  appendLlmInAppTrace('LLM run started.');
+  appendLlmInAppTrace(`Provider=${cfg.provider} | Model=${cfg.model}`);
   logAnalysis(`Détourage local préalable démarré.`);
   try{
     q('runAiMapping').disabled=true;
-    q('runAiMapping').textContent='Détourage LLM...';
+    q('runAiMapping').textContent='Running LLM...';
+    setLlmInAppStatus('LLM status: running analysis...','success');
     const local=await createDetectedZones();
+    setLlmInAppHint('local candidate detection completed');
+    appendLlmInAppTrace(`Local components: ${local.components.length}`);
+    appendLlmInAppTrace(`Local candidate zones: ${local.zones.length}`);
     const candidateZones=local.zones.length ? local.zones : structuredClone(zones);
     if(!candidateZones.length){
+      setLlmInAppHint('failed: no candidate zone detected');
+      appendLlmInAppTrace('No candidate zone detected. Stopping.');
       logAnalysis('Aucune zone candidate détectée : arrêt du détourage LLM.');
       alert('Aucune zone candidate détectée localement. Ajuste les réglages de détection ou charge une image plus lisible.');
       return;
@@ -1802,25 +2243,38 @@ q('runAiMapping').onclick=async()=>{
     render();
     logAnalysis(`${local.components.length} composant(s) visuel(s), ${candidateZones.length} zone(s) candidate(s) envoyée(s) au LLM.`);
     logAnalysis(`Analyse LLM démarrée avec ${cfg.provider}.`);
+    setLlmInAppHint('sending prompt and files to LLM');
     const prompt=llmPrompt(candidateZones, local.textCandidates);
+    appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
+    appendLlmInAppTrace('Raw LLM response received.');
+    appendLlmInAppTrace(text.slice(0,2000) + (text.length>2000 ? '\n... [truncated]' : ''));
+    setLlmInAppHint('parsing LLM JSON response');
     const data=parseJsonFromText(text);
     if(!Array.isArray(data?.zones) || !data.zones.length) throw new Error('Réponse LLM sans zones exploitables.');
-    data.zones.forEach(z=>{ z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt; });
+    data.zones.forEach(z=>{ z.llmPrevalidated=true; z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt; });
     await importProjectJson(JSON.stringify(data));
+    setLlmInAppHint('completed successfully');
+    setLlmInAppStatus(`LLM status: completed successfully. ${importSummaryLine()}`,'success');
+    appendLlmInAppTrace(`Imported zones from LLM: ${data.zones.length}`);
     logAnalysis(`Détourage et OCR LLM importés avec succès : ${zones.length} zone(s).`);
+    alert(`LLM analysis completed successfully.\n${importSummaryLine()}`);
   } catch(err){
+    setLlmInAppHint('failed');
+    setLlmInAppStatus(`LLM status: analysis failed (${err.message}).`,'error');
+    appendLlmInAppTrace(`ERROR: ${err.message}`);
     logAnalysis(`Erreur LLM : ${err.message}`);
     alert('Le détourage avec LLM a échoué. Voir le journal pour le détail.');
   } finally {
     q('runAiMapping').disabled=false;
-    q('runAiMapping').textContent='Détourer avec LLM';
+    q('runAiMapping').textContent='LLM Detection In App';
   }
 };
 function setRadarImage(dataUrl,width,height){
   IMAGE_DATA=dataUrl;
   IMG_W=Math.round(width||IMG_W); IMG_H=Math.round(height||IMG_H);
-  radarImg.src=IMAGE_DATA;
+  if(IMAGE_DATA) radarImg.src=IMAGE_DATA;
+  else radarImg.removeAttribute('src');
   refreshStageGeometry();
 }
 function fileToDataUrl(file){
@@ -1831,12 +2285,20 @@ function loadImage(dataUrl){
 }
 q('radarUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
-  const dataUrl=await fileToDataUrl(file);
-  const img=await loadImage(dataUrl);
-  setRadarImage(dataUrl,img.naturalWidth,img.naturalHeight);
-  zones=[]; selectedId=null; render();
-  q('analysisLog').value='';
-  logAnalysis(`Image chargée : ${file.name} (${IMG_W}x${IMG_H}).`);
+  try{
+    const dataUrl=await fileToDataUrl(file);
+    const img=await loadImage(dataUrl);
+    setRadarImage(dataUrl,img.naturalWidth,img.naturalHeight);
+    zones=[]; selectedId=null; render();
+    q('analysisLog').value='';
+    setInitStatus(`Radar visual imported successfully: ${file.name} (${IMG_W}x${IMG_H}). ${importSummaryLine()}`,'success');
+    logAnalysis(`Radar image loaded: ${file.name} (${IMG_W}x${IMG_H}).`);
+  } catch(err){
+    setInitStatus(`Radar visual import failed: ${err.message}`,'error');
+    alert(`Radar visual import failed: ${err.message}`);
+  } finally {
+    e.target.value='';
+  }
 };
 function paddedBox(box,pad){
   const x=clamp(box.x-pad,0,IMG_W), y=clamp(box.y-pad,0,IMG_H);
@@ -1947,7 +2409,10 @@ async function createDetectedZones(){
       h:fmt(b.h),
       points:[],
       ocrCandidate:text,
-      confidence:text?0.35:0
+      confidence:text?0.35:0,
+      llmPrevalidated:false,
+      dataConfirmed:false,
+      associationConfirmed:false
     };
   });
   return {cfg, components, boxes, textCandidates, zones:detectedZones};
@@ -1969,6 +2434,18 @@ q('detectZones').onclick=async()=>{
   logAnalysis(result.textCandidates.length ? `${result.textCandidates.length} candidat(s) texte détecté(s) par API navigateur expérimentale.` : 'OCR natif non disponible : noms génériques à compléter via LLM.');
 };
 q('exportInitJson').onclick=()=>download('radar_initialisation.json', JSON.stringify(buildProjectJson('initialisation'),null,2), 'application/json');
+q('copyExternalPrompt').onclick=async()=>{
+  const instructions=externalLlmInstructions();
+  const promptPayload=llmPrompt(zones.length ? zones : [], []);
+  const text=`${instructions}\n\n--- PROMPT ---\n${promptPayload}`;
+  try{
+    await navigator.clipboard.writeText(text);
+    setInitStatus('External LLM prompt copied to clipboard.','success');
+  } catch(err){
+    setInitStatus(`Failed to copy prompt: ${err.message}`,'error');
+    alert(`Failed to copy prompt: ${err.message}`);
+  }
+};
 function makeZone(shape){
   if(!isEditMode()) return;
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
@@ -1983,10 +2460,42 @@ q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedI
 q('bringFront').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.push(zones.splice(i,1)[0]); render(); } };
 q('sendBack').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.unshift(zones.splice(i,1)[0]); render(); } };
 q('saveLocal').onclick=()=>persistZones({silent:false, reason:'manual'});
-q('resetAuto').onclick=()=>{ if(confirm('Restaurer les zones d’exemple embarquées et effacer les corrections locales ?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
+q('resetAuto').onclick=()=>{ if(confirm('Restore bundled sample zones and remove local overlay edits?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
+q('resetLocalBase').onclick=()=>{
+  if(!confirm('Réinitialiser la préparation ? Les zones locales, les données importées et le visuel courant seront effacés pour ce navigateur.')) return;
+  zones=[];
+  selectedId=null;
+  startupRecords=[];
+  setRadarImage('',1280,720);
+  localStorage.removeItem('radarOverlayZones');
+  localStorage.removeItem('radarStartupRecords');
+  refreshStartupSuggestions();
+  updateStartupImportStatus('Aucun fichier de structures importé.');
+  q('radarUpload').value='';
+  q('startupDataFile').value='';
+  q('importFile').value='';
+  q('analysisLog').value='';
+  clearLlmInAppTrace();
+  setLlmInAppStatus('Statut LLM : non connecté.');
+  setLlmInAppHint('en attente');
+  render();
+  setInitStatus('Préparation réinitialisée : visuel, zones et données importées effacés.','success');
+};
 q('exportJson').onclick=()=>download('radar_overlay_zones.json', JSON.stringify(buildProjectJson('edition'),null,2), 'application/json');
 q('importBtn').onclick=()=>q('importFile').click();
-q('importFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await importProjectJson(await f.text()); };
+q('importFile').onchange=async e=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  try{
+    await importProjectJson(await f.text());
+    setInitStatus(`Completed JSON imported successfully: ${f.name}. ${importSummaryLine()}`,'success');
+  } catch(err){
+    setInitStatus(`Completed JSON import failed: ${err.message}`,'error');
+    alert(`Completed JSON import failed: ${err.message}`);
+  } finally {
+    e.target.value='';
+  }
+};
 window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
   const z=zoneById(selectedId); if(!z) return;
@@ -2012,7 +2521,7 @@ function zoneCadran(z){
   return 'Bas droit';
 }
 function zoneSearchText(z){
-  return [z.id,z.name,z.url,z.description,zoneCadran(z)].filter(Boolean).join(' ');
+  return [z.id,z.name,z.url,z.description,z.category,zoneCadran(z),z.searchKeywords,startupKeywords(z)].filter(Boolean).join(' ');
 }
 function zoneShapeMarkup(z, cls='click-zone'){
   const title=escapeHtml(z.name||z.id);
