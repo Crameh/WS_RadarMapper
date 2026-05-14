@@ -738,7 +738,6 @@
           </div>
           <span class="sectionKicker">Étape 3</span>
         </div>
-        <p class="prepIntro">Paramétrez le format cible, vérifiez le résumé, ajustez l’interaction, puis générez les fichiers ou snippets.</p>
       </div>
 
       <div class="prepSteps">
@@ -747,7 +746,6 @@
           <div>
             <div class="prepStepHeader">
               <h3>Choisir le format</h3>
-              <p>Sélectionnez le type d’intégration et les métadonnées du fichier généré.</p>
             </div>
             <div class="prepStepBody">
               <label>Format d'intégration</label>
@@ -776,20 +774,17 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Contrôler le résumé</h3>
-              <p>Vérifiez rapidement ce qui sera généré.</p>
+              <h3>Résumé</h3>
             </div>
             <div class="prepStepBody">
               <div class="exportPreview publishSummary">
                 <div id="previewTitle" class="previewTitle">Radar cliquable</div>
                 <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Page autonome</span></div>
                 <div class="previewRow"><span>Expérience</span><span id="previewExportExperience" class="previewValue">Visuel seul</span></div>
-                <div class="previewRow"><span>Cible</span><span id="previewIntegrationTarget" class="previewValue">Iframe / page dédiée</span></div>
                 <div class="previewRow"><span>Fichier</span><span id="previewHtmlName" class="previewValue">radar_cliquable.html</span></div>
                 <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
                 <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
                 <div class="previewRow"><span>Zones avec URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
-                <div class="previewRow"><span>Exemple</span><span id="previewSampleZone" class="previewValue">-</span></div>
               </div>
             </div>
           </div>
@@ -799,14 +794,10 @@
           <div class="prepStepNumber">3</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Régler l'apparence</h3>
-              <p>Ajustez le hover, la popup et les contenus affichés.</p>
+              <h3>Apparence</h3>
             </div>
             <div class="prepStepBody">
-              <details class="advancedGroup" open>
-                <summary>Apparence de l'interaction</summary>
-                <div class="advancedBody">
-                  <h3>Effet hover</h3>
+                  <p class="groupLabel">Effet hover</p>
                   <div class="row">
                     <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
                     <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
@@ -815,7 +806,7 @@
                     <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
                     <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
                   </div>
-                  <h3>Popup</h3>
+                  <p class="groupLabel" style="margin-top:12px">Popup</p>
                   <div class="row">
                     <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
                     <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
@@ -841,8 +832,6 @@
                   <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
                   <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
                   <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
-                </div>
-              </details>
             </div>
           </div>
         </div>
@@ -851,8 +840,7 @@
           <div class="prepStepNumber">4</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Générer l'export</h3>
-              <p>Le bouton principal suit le format sélectionné au-dessus.</p>
+              <h3>Générer</h3>
             </div>
             <div class="prepStepBody">
               <div class="primaryAction">
@@ -863,7 +851,6 @@
                 <button id="downloadStandaloneHtml" type="button">Télécharger page autonome</button>
                 <button id="exportJson" type="button">Exporter JSON</button>
               </div>
-              <p class="small">Pour Wavestone Insights et RiskInsight, le plus robuste reste d'héberger la page autonome puis d'intégrer le snippet iframe.</p>
             </div>
           </div>
         </div>
@@ -2001,19 +1988,12 @@ function persistStartupRecords(){
 }
 function updateExportPreview(){
   if(!q('previewTitle')) return;
-  const named = zones.find(z=>z.name && !/^zone_\d+$/i.test(z.name));
   const mode = getExportMode();
   const modeLabels = {
     standalone:'Page autonome',
     snippet:'Snippet CMS',
     iframe:'Iframe responsive',
     imagemap:'Image map sans script'
-  };
-  const targets = {
-    standalone:'Iframe / page dédiée',
-    snippet:'Bloc HTML WordPress',
-    iframe:'Wavestone / RiskInsight',
-    imagemap:'CMS sans JavaScript'
   };
   const experienceLabels = {
     visual:'Visuel seul',
@@ -2022,12 +2002,10 @@ function updateExportPreview(){
   q('previewTitle').textContent = q('cfgExportTitle').value || 'Radar cliquable';
   q('previewExportMode').textContent = modeLabels[mode] || modeLabels.standalone;
   q('previewExportExperience').textContent = experienceLabels[getExportExperience()] || experienceLabels.visual;
-  q('previewIntegrationTarget').textContent = targets[mode] || targets.standalone;
   q('previewHtmlName').textContent = q('cfgHtmlName').value || 'radar_cliquable.html';
   q('previewImageSize').textContent = `${IMG_W} x ${IMG_H}`;
   q('previewZoneCount').textContent = String(zones.length);
   q('previewUrlCount').textContent = String(zones.filter(z=>z.url).length);
-  q('previewSampleZone').textContent = named?.name || zones[0]?.id || '-';
 }
 function getExportMode(){ return q('cfgExportMode')?.value || 'standalone'; }
 function getExportExperience(){ return q('cfgExportExperience')?.value || 'visual'; }
