@@ -1666,7 +1666,11 @@ svg.addEventListener('pointerup', ()=>{
 });
 svg.addEventListener('pointercancel', ()=>{ drag=null; });
 svg.addEventListener('pointerdown', e=>{ if(isEditMode() && e.target===svg){ selectedId=null; render(); } });
-stage.addEventListener('click', e=>{ if(isExportMode() && e.target===stage) hideExportLivePopup(); });
+stage.addEventListener('click', e=>{
+  if(!isExportMode()) return;
+  if(e.target.closest?.('.zone') || e.target.closest?.('#exportLivePopup')) return;
+  hideExportLivePopup();
+});
 function applyForm(){
   if(!isEditMode()) return;
   let z=zoneById(selectedId); if(!z) return;
@@ -1839,6 +1843,13 @@ document.addEventListener('click',e=>{
   if(!q('configPanel').classList.contains('open')) return;
   if(q('configPanel').contains(e.target) || q('openConfigBtn').contains(e.target)) return;
   closeConfigMenu();
+});
+document.addEventListener('click',e=>{
+  if(!isExportMode()) return;
+  const popup=q('exportLivePopup');
+  if(!popup || popup.hidden) return;
+  if(popup.contains(e.target) || e.target.closest?.('.zone')) return;
+  hideExportLivePopup();
 });
 document.addEventListener('keydown',e=>{
   if(e.key === 'Escape') hideEditZonePopup();
