@@ -539,62 +539,62 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Générer une première cartographie</h3>
-              <p>Choisissez un traitement externe manuel ou le LLM intégré à RadarMapper.</p>
+              <h3>Generate a first mapping</h3>
+              <p>Choose between manual external processing or the LLM built into RadarMapper.</p>
             </div>
             <div class="prepStepBody">
               <div class="prepChoiceGrid">
                 <div class="prepChoice">
-                  <h4>Utilisation d'un LLM externe</h4>
-                  <p>Préparez une base locale, copiez le prompt, joignez l’image du radar et le JSON, puis réimportez le JSON complété.</p>
+                  <h4>Using an external LLM</h4>
+                  <p>Build a local base, copy the prompt, attach the radar image and JSON, then re-import the completed JSON.</p>
                   <div class="primaryAction">
-                    <button id="detectZones" class="primary" type="button">Créer une base par détection locale</button>
+                    <button id="detectZones" class="primary" type="button">Create base via local detection</button>
                   </div>
                   <div class="secondaryActions">
-                    <button id="copyExternalPrompt" type="button">Copier le prompt</button>
-                    <button id="exportInitJson" type="button">Télécharger le JSON</button>
+                    <button id="copyExternalPrompt" type="button">Copy prompt</button>
+                    <button id="exportInitJson" type="button">Download JSON</button>
                   </div>
                   <div class="secondaryActions">
-                    <button id="importBtn" type="button">Importer le JSON complété</button>
+                    <button id="importBtn" type="button">Import completed JSON</button>
                   </div>
                   <input id="importFile" type="file" accept="application/json" style="display:none">
-                  <p class="actionNote">Ce mode garde la clé et l’analyse hors de RadarMapper : vous collez le prompt dans votre outil LLM, puis vous importez son résultat.</p>
+                  <p class="actionNote">This mode keeps the key and analysis outside of RadarMapper: paste the prompt into your LLM tool, then import the result.</p>
                   <details class="advancedGroup">
-                    <summary>Contrôle de l’import manuel</summary>
+                    <summary>Manual import control</summary>
                     <div class="advancedBody">
-                      <p class="small">Suivez ici la détection locale, la copie du prompt et l’import du JSON complété.</p>
+                      <p class="small">Track local detection, prompt copying and completed JSON import here.</p>
                       <textarea id="analysisLog" rows="6" class="mono" readonly></textarea>
                     </div>
                   </details>
                 </div>
 
                 <div class="prepChoice">
-                  <h4>Utilisation du LLM intégré</h4>
-                  <p>Lancez directement le détourage et l’association avec le fournisseur configuré dans RadarMapper.</p>
+                  <h4>Using the built-in LLM</h4>
+                  <p>Directly launch detection and association with the provider configured in RadarMapper.</p>
                   <div class="primaryAction">
-                    <button id="runAiMapping" class="primary" type="button">Détection LLM intégrée</button>
+                    <button id="runAiMapping" class="primary" type="button">Built-in LLM detection</button>
                   </div>
-                  <label>Instructions complémentaires</label>
-                  <textarea id="llmExtraInstructions" rows="3" placeholder="Exemple : privilégier les noms exacts, limiter les faux positifs, conserver les logos étroits."></textarea>
-                  <div id="llmInAppStatus" class="initStatus">Statut LLM : non connecté.</div>
-                  <p id="llmInAppHint" class="actionNote">Activité : en attente.</p>
+                  <label>Additional instructions</label>
+                  <textarea id="llmExtraInstructions" rows="3" placeholder="Example: prefer exact names, reduce false positives, keep narrow logos."></textarea>
+                  <div id="llmInAppStatus" class="initStatus">LLM status: not connected.</div>
+                  <p id="llmInAppHint" class="actionNote">Activity: idle.</p>
                   <hr class="prepChoiceDivider">
-                  <label>Trace de réponse LLM</label>
+                  <label>LLM response trace</label>
                   <textarea id="llmInAppTrace" rows="6" class="mono" readonly></textarea>
                 </div>
               </div>
               <details class="advancedGroup">
-                <summary>Réglages de détection locale</summary>
+                <summary>Local detection settings</summary>
                 <div class="advancedBody">
-                  <label>Seuil de contraste (0-255)</label>
+                  <label>Contrast threshold (0-255)</label>
                   <input id="cfgContrast" type="number" min="1" max="255" value="58">
                   <div class="row">
-                    <div><label>Aire min. (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
-                    <div><label>Aire max. (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
-                    <div><label>Marge (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
-                    <div><label>Fusion (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
+                    <div><label>Min. area (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
+                    <div><label>Max. area (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
+                    <div><label>Margin (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
+                    <div><label>Merge gap (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
                   </div>
-                  <label>Ratio largeur/hauteur max</label>
+                  <label>Max width/height ratio</label>
                   <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
                 </div>
               </details>
@@ -606,20 +606,20 @@
           <div class="prepStepNumber">3</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Réinitialisation</h3>
-              <p>Effacez la préparation courante pour repartir d’un espace vide.</p>
+              <h3>Reset</h3>
+              <p>Clear the current preparation to start from a blank slate.</p>
             </div>
             <div class="prepStepBody">
               <div class="sectionHeader">
                 <div>
-                  <h3>Repartir de zéro</h3>
-                  <p>Efface les zones locales, les données importées et vide le visuel du radar.</p>
+                  <h3>Start from scratch</h3>
+                  <p>Clears local zones, imported data and empties the radar visual.</p>
                 </div>
               </div>
               <div class="secondaryActions">
-                <button id="resetLocalBase" class="danger" type="button">Réinitialiser la préparation</button>
+                <button id="resetLocalBase" class="danger" type="button">Reset preparation</button>
               </div>
-              <p class="actionNote dangerNote">Cette action ne touche pas aux fichiers source sur votre machine.</p>
+              <p class="actionNote dangerNote">This action does not affect source files on your machine.</p>
             </div>
           </div>
         </div>
@@ -630,10 +630,10 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h2>Éditer le contenu des zones</h2>
-            <p>Ajustez les cadres, puis validez l’association entre chaque logo et sa structure.</p>
+            <h2>Edit zone content</h2>
+            <p>Adjust the frames, then confirm the association between each logo and its structure.</p>
           </div>
-          <span class="sectionKicker">Étape 2</span>
+          <span class="sectionKicker">Step 2</span>
         </div>
       </div>
 
@@ -642,22 +642,22 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Sélectionner une zone</h3>
+              <h3>Select a zone</h3>
             </div>
             <div class="prepStepBody">
-              <label>Recherche</label>
-              <input id="search" placeholder="nom, id ou URL">
+              <label>Search</label>
+              <input id="search" placeholder="name, id or URL">
               <div class="structureFilter" id="structureFilter">
-                <button type="button" class="structFilterBtn active" data-sf="all">Toutes</button>
-                <button type="button" class="structFilterBtn sfNoStructure" data-sf="nostructure" title="Zones sans structure associée dans le CSV">Sans structure</button>
-                <button type="button" class="structFilterBtn sfDuplicate" data-sf="duplicate" title="Zones dont la structure est associée à plusieurs blocs">Doublons</button>
+                <button type="button" class="structFilterBtn active" data-sf="all">All</button>
+                <button type="button" class="structFilterBtn sfNoStructure" data-sf="nostructure" title="Zones with no associated structure in the CSV">No structure</button>
+                <button type="button" class="structFilterBtn sfDuplicate" data-sf="duplicate" title="Zones whose structure is associated with multiple blocks">Duplicates</button>
               </div>
               <div id="zoneList"></div>
-              <p class="groupLabel" style="margin-top:10px">Données CSV restantes</p>
-              <p id="pendingCsvCount" class="small">0 structure(s) non associée(s).</p>
+              <p class="groupLabel" style="margin-top:10px">Remaining CSV data</p>
+              <p id="pendingCsvCount" class="small">0 unassociated structure(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
-              <p class="groupLabel" style="margin-top:10px">Associations en doublon</p>
-              <p id="duplicateAssocCount" class="small">0 structure associée à plusieurs zones.</p>
+              <p class="groupLabel" style="margin-top:10px">Duplicate associations</p>
+              <p id="duplicateAssocCount" class="small">0 structure associated with multiple zones.</p>
               <div id="duplicateAssocList" class="duplicateAssocList"></div>
             </div>
           </div>
@@ -667,38 +667,38 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Éditer la zone</h3>
+              <h3>Edit zone</h3>
             </div>
             <div class="prepStepBody">
-              <label>Zone sélectionnée</label>
+              <label>Selected zone</label>
               <input id="id" disabled class="mono">
-              <label>Nom affiché / structure</label>
-              <input id="name" list="startupSuggestions" placeholder="Nom de la structure">
-              <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Valider l'association</button>
-              <p id="associationStatus" class="associationStatus">Association à valider</p>
+              <label>Display name / structure</label>
+              <input id="name" list="startupSuggestions" placeholder="Structure name">
+              <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Confirm association</button>
+              <p id="associationStatus" class="associationStatus">Association to confirm</p>
               <label>URL</label>
               <input id="url" placeholder="https://...">
-              <label>Logo (URL ou data URI)</label>
-              <input id="logo" placeholder="https://.../logo.png ou data:image/...">
-              <label>Descriptif court</label>
-              <textarea id="description" rows="3" placeholder="Description affichée dans le popup"></textarea>
-              <label>Forme</label>
+              <label>Logo (URL or data URI)</label>
+              <input id="logo" placeholder="https://.../logo.png or data:image/...">
+              <label>Short description</label>
+              <textarea id="description" rows="3" placeholder="Description shown in popup"></textarea>
+              <label>Shape</label>
               <select id="shape">
                 <option value="rect">Rectangle</option>
-                <option value="diamond">Losange</option>
-                <option value="circle">Cercle</option>
-                <option value="poly">Polygone</option>
+                <option value="diamond">Diamond</option>
+                <option value="circle">Circle</option>
+                <option value="poly">Polygon</option>
               </select>
               <div class="row">
                 <div><label>X</label><input id="x" type="number" step="1"></div>
                 <div><label>Y</label><input id="y" type="number" step="1"></div>
-                <div><label>Largeur</label><input id="w" type="number" step="1"></div>
-                <div><label>Hauteur</label><input id="h" type="number" step="1"></div>
+                <div><label>Width</label><input id="w" type="number" step="1"></div>
+                <div><label>Height</label><input id="h" type="number" step="1"></div>
               </div>
-              <label>Points polygone, format x,y x,y ...</label>
+              <label>Polygon points, format x,y x,y ...</label>
               <textarea id="points" rows="4" class="mono"></textarea>
               <div class="primaryAction">
-                <button id="apply" class="primary">Enregistrer la zone</button>
+                <button id="apply" class="primary">Save zone</button>
               </div>
             </div>
           </div>
@@ -712,13 +712,13 @@
             </div>
             <div class="prepStepBody">
               <div class="secondaryActions compact">
-                <button id="duplicate">Dupliquer</button>
-                <button id="clearUrl">Vider URL</button>
-                <button id="delete" class="danger">Supprimer</button>
+                <button id="duplicate">Duplicate</button>
+                <button id="clearUrl">Clear URL</button>
+                <button id="delete" class="danger">Delete</button>
               </div>
               <div class="secondaryActions" style="margin-top:8px">
-                <button id="saveLocal">Sauver localement</button>
-                <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple</button>
+                <button id="saveLocal">Save locally</button>
+                <button id="resetAuto" class="danger" title="Restores the bundled sample zones and removes local edits.">Restore example</button>
               </div>
             </div>
           </div>
@@ -730,10 +730,10 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h2>Exporter le radar</h2>
-            <p>Choisissez un export simple ou avec recherche, puis ajustez le visuel des popups.</p>
+            <h2>Export radar</h2>
+            <p>Choose a simple or searchable export, then adjust the popup appearance.</p>
           </div>
-          <span class="sectionKicker">Étape 3</span>
+          <span class="sectionKicker">Step 3</span>
         </div>
       </div>
 
@@ -742,27 +742,27 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Choisir le format</h3>
+              <h3>Choose format</h3>
             </div>
             <div class="prepStepBody">
-              <label>Format d'intégration</label>
+              <label>Integration format</label>
               <select id="cfgExportMode">
-                <option value="standalone">Page autonome, pour iframe ou page dédiée</option>
-                <option value="iframe">Snippet iframe responsive, recommandé Wavestone / RiskInsight</option>
-                <option value="snippet">Snippet CMS, CSS isolé + interaction légère</option>
-                <option value="imagemap">Image map sans script</option>
+                <option value="standalone">Standalone page, for iframe or dedicated page</option>
+                <option value="iframe">Responsive iframe snippet, recommended for Wavestone / RiskInsight</option>
+                <option value="snippet">CMS snippet, isolated CSS + lightweight interaction</option>
+                <option value="imagemap">Image map without script</option>
               </select>
-              <label>Expérience exportée</label>
+              <label>Exported experience</label>
               <select id="cfgExportExperience">
-                <option value="visual">Simple : radar + popups au clic</option>
-                <option value="interface">Interface : radar + recherche et filtres</option>
+                <option value="visual">Simple: radar + popups on click</option>
+                <option value="interface">Interface: radar + search and filters</option>
               </select>
-              <label>Nom de fichier export HTML</label>
-              <input id="cfgHtmlName" value="radar_cliquable.html">
-              <label>Titre exporté</label>
-              <input id="cfgExportTitle" value="Radar cliquable">
-              <label>URL du HTML hébergé, pour le snippet iframe</label>
-              <input id="cfgHostedUrl" placeholder="https://www.example.com/path/radar_cliquable.html">
+              <label>HTML export filename</label>
+              <input id="cfgHtmlName" value="clickable_radar.html">
+              <label>Exported title</label>
+              <input id="cfgExportTitle" value="Clickable radar">
+              <label>Hosted HTML URL, for iframe snippet</label>
+              <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
             </div>
           </div>
         </div>
@@ -771,17 +771,17 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Résumé</h3>
+              <h3>Summary</h3>
             </div>
             <div class="prepStepBody">
               <div class="exportPreview publishSummary">
-                <div id="previewTitle" class="previewTitle">Radar cliquable</div>
-                <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Page autonome</span></div>
-                <div class="previewRow"><span>Expérience</span><span id="previewExportExperience" class="previewValue">Visuel seul</span></div>
-                <div class="previewRow"><span>Fichier</span><span id="previewHtmlName" class="previewValue">radar_cliquable.html</span></div>
+                <div id="previewTitle" class="previewTitle">Clickable radar</div>
+                <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Standalone page</span></div>
+                <div class="previewRow"><span>Experience</span><span id="previewExportExperience" class="previewValue">Visual only</span></div>
+                <div class="previewRow"><span>File</span><span id="previewHtmlName" class="previewValue">clickable_radar.html</span></div>
                 <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
                 <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
-                <div class="previewRow"><span>Zones avec URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
+                <div class="previewRow"><span>Zones with URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
               </div>
             </div>
           </div>
@@ -791,44 +791,44 @@
           <div class="prepStepNumber">3</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Apparence</h3>
+              <h3>Appearance</h3>
             </div>
             <div class="prepStepBody">
-                  <p class="groupLabel">Effet hover</p>
+                  <p class="groupLabel">Hover effect</p>
                   <div class="row">
-                    <div><label>Couleur de fond</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
-                    <div><label>Opacité fond</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
+                    <div><label>Background color</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
+                    <div><label>Background opacity</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
                   </div>
                   <div class="row">
-                    <div><label>Contour</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
-                    <div><label>Épaisseur contour</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
+                    <div><label>Border</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
+                    <div><label>Border width</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
                   </div>
                   <p class="groupLabel" style="margin-top:12px">Popup</p>
                   <div class="row">
-                    <div><label>Forme</label><select id="cfgPopupShape"><option value="card">Carte</option><option value="pill">Arrondie</option><option value="sharp">Angle droit</option></select></div>
-                    <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Près du clic</option><option value="center">Centrée sur le radar</option></select></div>
+                    <div><label>Shape</label><select id="cfgPopupShape"><option value="card">Card</option><option value="pill">Rounded</option><option value="sharp">Sharp corners</option></select></div>
+                    <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Near click</option><option value="center">Centered on radar</option></select></div>
                   </div>
                   <div class="row">
-                    <div><label>Fond popup</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
-                    <div><label>Texte popup</label><input id="cfgPopupText" type="color" value="#12314a"></div>
+                    <div><label>Popup background</label><input id="cfgPopupBg" type="color" value="#ffffff"></div>
+                    <div><label>Popup text</label><input id="cfgPopupText" type="color" value="#12314a"></div>
                   </div>
                   <div class="row">
-                    <div><label>Contour popup</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
-                    <div><label>Accent lien</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
+                    <div><label>Popup border</label><input id="cfgPopupBorder" type="color" value="#cbdde6"></div>
+                    <div><label>Link accent</label><input id="cfgPopupAccent" type="color" value="#137f9a"></div>
                   </div>
                   <div class="row">
-                    <div><label>Largeur max</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
-                    <div><label>Taille texte</label><input id="cfgPopupFontSize" type="number" min="11" max="22" step="1" value="14"></div>
+                    <div><label>Max width</label><input id="cfgPopupWidth" type="number" min="180" max="520" step="10" value="280"></div>
+                    <div><label>Font size</label><input id="cfgPopupFontSize" type="number" min="11" max="22" step="1" value="14"></div>
                   </div>
                   <div class="row">
-                    <div><label>Ombre</label><select id="cfgPopupShadow"><option value="soft">Douce</option><option value="strong">Marquée</option><option value="none">Aucune</option></select></div>
+                    <div><label>Shadow</label><select id="cfgPopupShadow"><option value="soft">Soft</option><option value="strong">Strong</option><option value="none">None</option></select></div>
                   </div>
-                  <label>Libellé du lien</label>
-                  <input id="cfgPopupLinkLabel" value="Ouvrir le site">
-                  <label>Contenu affiché</label>
-                  <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo si disponible</label>
+                  <label>Link label</label>
+                  <input id="cfgPopupLinkLabel" value="Visit website">
+                  <label>Displayed content</label>
+                  <label class="inlineCheck"><input id="cfgPopupShowLogo" type="checkbox" checked> Logo if available</label>
                   <label class="inlineCheck"><input id="cfgPopupShowDescription" type="checkbox" checked> Description</label>
-                  <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Lien</label>
+                  <label class="inlineCheck"><input id="cfgPopupShowLink" type="checkbox" checked> Link</label>
             </div>
           </div>
         </div>
@@ -837,16 +837,16 @@
           <div class="prepStepNumber">4</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Générer</h3>
+              <h3>Generate</h3>
             </div>
             <div class="prepStepBody">
               <div class="primaryAction">
-                <button id="exportHtml" class="primary" type="button">Exporter selon le format choisi</button>
+                <button id="exportHtml" class="primary" type="button">Export in chosen format</button>
               </div>
               <div class="secondaryActions compact">
-                <button id="copyEmbedSnippet" type="button">Copier le snippet</button>
-                <button id="downloadStandaloneHtml" type="button">Télécharger page autonome</button>
-                <button id="exportJson" type="button">Exporter JSON</button>
+                <button id="copyEmbedSnippet" type="button">Copy snippet</button>
+                <button id="downloadStandaloneHtml" type="button">Download standalone page</button>
+                <button id="exportJson" type="button">Export JSON</button>
               </div>
             </div>
           </div>
@@ -857,50 +857,50 @@
     <section id="configPanel" class="configMenu" aria-hidden="true">
       <div class="configMenuHeader">
         <h2>Configuration</h2>
-        <button id="closeConfigBtn" class="configMenuClose" type="button" aria-label="Fermer la configuration">✕</button>
+        <button id="closeConfigBtn" class="configMenuClose" type="button" aria-label="Close configuration">✕</button>
       </div>
-      <div class="warningBox">Aucune clé API n’est nécessaire pour l’édition manuelle. La clé API n’est jamais sauvegardée : elle reste uniquement dans le champ courant et doit être ressaisie après rechargement.</div>
+      <div class="warningBox">No API key is required for manual editing. The API key is never saved: it only stays in the current field and must be re-entered after reload.</div>
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h3>Sauvegarde</h3>
-            <p>Conserve automatiquement les corrections dans ce navigateur.</p>
+            <h3>Save</h3>
+            <p>Automatically saves edits in this browser.</p>
           </div>
         </div>
         <label class="inlineCheck"><input id="autosaveToggle" type="checkbox"> Auto-save 30s</label>
       </div>
       <div class="dangerBox">
-        <strong>Confidentialité</strong>
-        <p>Pour des raisons de confidentialité, l’usage d’un fournisseur d’IA doit être explicitement approuvé par l’organisation concernée.</p>
-        <label class="inlineCheck"><input id="aiApproved" type="checkbox"> J’ai une approbation écrite</label>
+        <strong>Privacy</strong>
+        <p>For privacy reasons, the use of an AI provider must be explicitly approved by the relevant organization.</p>
+        <label class="inlineCheck"><input id="aiApproved" type="checkbox"> I have written approval</label>
       </div>
-      <label>Fournisseur LLM</label>
+      <label>LLM Provider</label>
       <select id="aiProvider">
         <option value="anthropic">Anthropic</option>
         <option value="openai">OpenAI</option>
         <option value="azure">Azure OpenAI</option>
       </select>
-      <label>Modèle</label>
+      <label>Model</label>
       <select id="aiModel"></select>
-      <label>Clé API</label>
+      <label>API Key</label>
       <input id="aiApiKey" type="password" placeholder="sk-..." autocomplete="off" autocapitalize="off" spellcheck="false">
       <div id="azureFields" class="providerFields">
-        <label>Endpoint Azure OpenAI</label>
-        <input id="aiAzureEndpoint" placeholder="https://ressource.openai.azure.com">
-        <label>Déploiement Azure</label>
-        <input id="aiAzureDeployment" placeholder="nom-du-deploiement">
-        <label>Version API Azure</label>
+        <label>Azure OpenAI Endpoint</label>
+        <input id="aiAzureEndpoint" placeholder="https://resource.openai.azure.com">
+        <label>Azure Deployment</label>
+        <input id="aiAzureDeployment" placeholder="deployment-name">
+        <label>Azure API Version</label>
         <input id="aiAzureVersion" value="2024-12-01-preview">
       </div>
-      <label>Langue de restitution</label>
+      <label>Output language</label>
       <select id="aiLanguage">
         <option value="fr">Français</option>
         <option value="en">English</option>
       </select>
       <div class="actions">
-        <button id="saveAiConfig" class="primary">Sauver la configuration</button>
-        <button id="testAiConfig">Tester la connexion LLM</button>
-        <button id="clearAiConfig">Effacer</button>
+        <button id="saveAiConfig" class="primary">Save configuration</button>
+        <button id="testAiConfig">Test LLM connection</button>
+        <button id="clearAiConfig">Clear</button>
       </div>
     </section>
   </aside>
@@ -1091,10 +1091,10 @@ function fillForm(z){
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
-  if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Association validée';
-  else if(z.llmPrevalidated && z.llmFound===false) q('associationStatus').textContent='Non identifiée par le LLM (aucune correspondance)';
-  else if(z.llmPrevalidated) q('associationStatus').textContent='Pré-validée par le LLM (à confirmer)';
-  else q('associationStatus').textContent='Association à valider';
+  if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Association confirmed';
+  else if(z.llmPrevalidated && z.llmFound===false) q('associationStatus').textContent='Not identified by LLM (no match found)';
+  else if(z.llmPrevalidated) q('associationStatus').textContent='Pre-validated by LLM (to confirm)';
+  else q('associationStatus').textContent='Association to confirm';
 }
 function fillEditPopup(z){
   q('editPopupId').value=z.id;
@@ -1109,10 +1109,10 @@ function fillEditPopup(z){
   q('editPopupH').value=fmt(z.h);
   q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('editPopupPoints').disabled = z.shape !== 'poly';
-  if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association validée';
-  else if(z.llmPrevalidated && z.llmFound===false) q('editPopupAssociationStatus').textContent='Non identifiée par le LLM (aucune correspondance)';
-  else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pré-validée par le LLM (à confirmer)';
-  else q('editPopupAssociationStatus').textContent='Association à valider';
+  if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association confirmed';
+  else if(z.llmPrevalidated && z.llmFound===false) q('editPopupAssociationStatus').textContent='Not identified by LLM (no match found)';
+  else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pre-validated by LLM (to confirm)';
+  else q('editPopupAssociationStatus').textContent='Association to confirm';
 }
 function updateEditLogoZoom(){
   const zoom=q('editLogoZoom');
@@ -1250,7 +1250,7 @@ function renderList(){
     zoneMatchesStructureFilter(z, dupeIds)
   ).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    const pill = z.dataConfirmed || z.associationConfirmed ? 'validé' : z.llmPrevalidated ? (z.llmFound===false ? 'non identifié' : 'pré-validé LLM') : 'à valider';
+    const pill = z.dataConfirmed || z.associationConfirmed ? 'confirmed' : z.llmPrevalidated ? (z.llmFound===false ? 'unmatched' : 'pre-validated LLM') : 'to confirm';
     d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${pill}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
     q('zoneList').appendChild(d);
@@ -1269,12 +1269,12 @@ function renderPendingCsvList(){
   if(!container || !count) return;
   const associated=associatedStartupNames();
   const pending=startupRecords.filter(record=>!associated.has(normalizeName(record.name)));
-  count.textContent=`${pending.length} structure(s) non associée(s).`;
+  count.textContent=`${pending.length} unassociated structure(s).`;
   container.innerHTML='';
   if(!pending.length){
     const done=document.createElement('div');
     done.className='pendingCsvItem';
-    done.textContent='Toutes les structures du CSV sont associées.';
+    done.textContent='All structures from the CSV are associated.';
     container.appendChild(done);
     return;
   }
@@ -1306,13 +1306,13 @@ function renderDuplicateAssociations(){
   const duplicates=duplicateAssociations();
   const zoneTotal=duplicates.reduce((sum,group)=>sum+group.zones.length,0);
   count.textContent=duplicates.length
-    ? `${duplicates.length} structure(s) associée(s) à ${zoneTotal} zones.`
-    : '0 structure associée à plusieurs zones.';
+    ? `${duplicates.length} structure(s) associated with ${zoneTotal} zones.`
+    : '0 structures associated with multiple zones.';
   container.innerHTML='';
   if(!duplicates.length){
     const done=document.createElement('div');
     done.className='duplicateAssocItem';
-    done.textContent='Aucun doublon détecté.';
+    done.textContent='No duplicates detected.';
     container.appendChild(done);
     return;
   }
@@ -1329,7 +1329,7 @@ function renderDuplicateAssociations(){
       const btn=document.createElement('button');
       btn.type='button';
       btn.className=z.id===selectedId ? 'active' : '';
-      btn.textContent=`${z.id} - ${z.name || 'sans nom'}`;
+      btn.textContent=`${z.id} - ${z.name || 'unnamed'}`;
       btn.onclick=()=>{
         selectedId=z.id;
         render();
@@ -1634,7 +1634,7 @@ function getExportRenderConfig(){
     popupPadding:shape.padding,
     popupShadowKind,
     popupShadow:exportShadowValue(popupShadowKind),
-    popupLinkLabel:q('cfgPopupLinkLabel')?.value.trim() || 'Ouvrir le site',
+    popupLinkLabel:q('cfgPopupLinkLabel')?.value.trim() || 'Visit website',
     showLogo:!!q('cfgPopupShowLogo')?.checked,
     showDescription:!!q('cfgPopupShowDescription')?.checked,
     showLink:!!q('cfgPopupShowLink')?.checked
@@ -1679,7 +1679,7 @@ function applyExportRenderConfig(){
 }
 function popupHtmlForZone(z, cfg=getExportRenderConfig()){
   const url=safeUrl(z?.url);
-  return `${cfg.showLogo && z?.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}" onerror="this.hidden=true">` : ''}<strong>${escapeHtml(z?.name || z?.id || 'Zone')}</strong>${cfg.showDescription && z?.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink ? (url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : '<br><span>URL non renseignée</span>') : ''}`;
+  return `${cfg.showLogo && z?.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}" onerror="this.hidden=true">` : ''}<strong>${escapeHtml(z?.name || z?.id || 'Zone')}</strong>${cfg.showDescription && z?.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink ? (url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : '<br><span>URL not set</span>') : ''}`;
 }
 function placePopup(popup, event, cfg=getExportRenderConfig()){
   popup.hidden=false;
@@ -2001,8 +2001,8 @@ function updateSaveStatus(text){ const el=q('saveStatusText'); if(el) el.textCon
 function persistZones({silent=false, reason='manual'} = {}){
   localStorage.setItem('radarOverlayZones', JSON.stringify(zones));
   const stamp=new Date().toLocaleTimeString();
-  updateSaveStatus(`Sauvé ${stamp}${reason==='auto' ? ' (auto)' : ''}`);
-  if(!silent) alert('Overlay sauvegardé dans le navigateur.');
+  updateSaveStatus(`Saved ${stamp}${reason==='auto' ? ' (auto)' : ''}`);
+  if(!silent) alert('Overlay saved in browser.');
 }
 function persistStartupRecords(){
   localStorage.setItem('radarStartupRecords', JSON.stringify(startupRecords));
@@ -2011,19 +2011,19 @@ function updateExportPreview(){
   if(!q('previewTitle')) return;
   const mode = getExportMode();
   const modeLabels = {
-    standalone:'Page autonome',
-    snippet:'Snippet CMS',
-    iframe:'Iframe responsive',
-    imagemap:'Image map sans script'
+    standalone:'Standalone page',
+    snippet:'CMS snippet',
+    iframe:'Responsive iframe',
+    imagemap:'Image map without script'
   };
   const experienceLabels = {
-    visual:'Visuel seul',
-    interface:'Visuel et interface'
+    visual:'Visual only',
+    interface:'Visual and interface'
   };
-  q('previewTitle').textContent = q('cfgExportTitle').value || 'Radar cliquable';
+  q('previewTitle').textContent = q('cfgExportTitle').value || 'Clickable radar';
   q('previewExportMode').textContent = modeLabels[mode] || modeLabels.standalone;
   q('previewExportExperience').textContent = experienceLabels[getExportExperience()] || experienceLabels.visual;
-  q('previewHtmlName').textContent = q('cfgHtmlName').value || 'radar_cliquable.html';
+  q('previewHtmlName').textContent = q('cfgHtmlName').value || 'clickable_radar.html';
   q('previewImageSize').textContent = `${IMG_W} x ${IMG_H}`;
   q('previewZoneCount').textContent = String(zones.length);
   q('previewUrlCount').textContent = String(zones.filter(z=>z.url).length);
@@ -2047,15 +2047,15 @@ function buildProjectJson(source){
     image:{ width:IMG_W, height:IMG_H, dataUrl:IMAGE_DATA },
     config:getDetectionConfig(),
     llmInstructions:{
-      goal:'Identifier les organisations/logos visibles dans le radar, rapprocher chaque zone du bon nom et compléter les champs sans changer le schema.',
-      output:'Retourner uniquement un JSON valide. Conserver image.width, image.height, config et zones. Les coordonnées sont en pixels dans le repère de l’image.',
+      goal:’Identify organizations/logos visible in the radar, match each zone to the correct name, and complete the fields without changing the schema.’,
+      output:’Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.’,
       zoneRules:[
-        'id doit rester stable si une zone existe déjà.',
-        'shape vaut rect, diamond, circle ou poly.',
-        'x, y, w, h décrivent la boîte englobante.',
-        'points est vide sauf pour shape=poly, où il contient des objets {x,y}.',
-        'name est le nom public reconnu, url son site officiel si connu, logo une URL ou data URI optionnelle, description une phrase courte.',
-        'llmFound vaut true si tu as identifié un nom fiable (confidence >= 0.55 et name != zone_XXX), false sinon.'
+        ‘id must remain stable if a zone already exists.’,
+        ‘shape is rect, diamond, circle or poly.’,
+        ‘x, y, w, h describe the bounding box.’,
+        ‘points is empty except for shape=poly, where it contains {x,y} objects.’,
+        ‘name is the recognized public name, url its official website if known, logo an optional URL or data URI, description a short sentence.’,
+        ‘llmFound is true if you identified a reliable name (confidence >= 0.55 and name != zone_XXX), false otherwise.’
       ]
     },
     examples:{
@@ -2064,7 +2064,7 @@ function buildProjectJson(source){
         name:'Example Security',
         url:'https://www.example-security.com',
         logo:'https://www.example-security.com/logo.png',
-        description:'Éditeur spécialisé en sécurité applicative.',
+        description:'Publisher specializing in application security.',
         shape:'rect',
         x:120,
         y:80,
@@ -2120,8 +2120,8 @@ async function importProjectJson(text){
   const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
   selectedId=zones[0]?.id||null;
   render();
-  logAnalysis(`JSON importé : ${zones.length} zone(s).`);
-  if(linked) logAnalysis(`${linked} zone(s) enrichie(s) depuis les données startups importées.`);
+  logAnalysis(`JSON imported: ${zones.length} zone(s).`);
+  if(linked) logAnalysis(`${linked} zone(s) enriched from imported startup data.`);
 }
 function getAiConfig(){
   return {
@@ -2167,7 +2167,7 @@ function refreshModelOptions({preserve=true} = {}){
   const options=AI_MODEL_CATALOG[provider] || AI_MODEL_CATALOG.openai;
   const current=q('aiModel').value.trim();
   const hasCurrent=options.some(model=>model.value === current);
-  const customOption=preserve && current && !hasCurrent ? [{value:current,label:`${current} (personnalisé)`}] : [];
+  const customOption=preserve && current && !hasCurrent ? [{value:current,label:`${current} (custom)`}] : [];
   q('aiModel').innerHTML=[...customOption,...options].map(model=>`<option value="${escapeHtml(model.value)}">${escapeHtml(model.label)}</option>`).join('');
   q('aiModel').value=(preserve && current) ? current : (options[0]?.value || '');
 }
@@ -2197,7 +2197,7 @@ function saveAiConfig(){
   const {apiKey, ...safeCfg}=cfg;
   localStorage.setItem('radarMapperAiConfig', JSON.stringify(safeCfg));
   updateAiStatus();
-  alert('Configuration LLM sauvegardée sans la clé API. La clé reste uniquement en mémoire de cette session.');
+  alert('LLM configuration saved without the API key. The key is only kept in this session memory.');
 }
 function loadAiConfig(){
   const cfg=JSON.parse(localStorage.getItem('radarMapperAiConfig') || '{}');
@@ -2212,7 +2212,7 @@ function loadAiConfig(){
   q('aiAzureEndpoint').value=cfg.azureEndpoint||'';
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
-  q('aiLanguage').value=cfg.language||'fr';
+  q('aiLanguage').value=cfg.language||'en';
   refreshModelOptions({preserve:true});
   refreshProviderFields();
   updateAiStatus();
@@ -2227,7 +2227,7 @@ function clearAiConfig(){
   q('aiAzureEndpoint').value='';
   q('aiAzureDeployment').value='';
   q('aiAzureVersion').value='2024-12-01-preview';
-  q('aiLanguage').value='fr';
+  q('aiLanguage').value='en';
   refreshProviderFields();
   updateAiStatus();
 }
@@ -2242,36 +2242,36 @@ function llmPrompt(candidateZones=[], textCandidates=[]){
   skeleton.image.dataUrl='[image attached separately]';
   skeleton.zones=candidateZones;
   skeleton.localDetection={
-    note:'Ces zones sont issues du détourage local par canvas. Utilise-les comme base géométrique prioritaire.',
+    note:'These zones come from local canvas detection. Use them as the primary geometric base.',
     candidateCount:candidateZones.length,
     browserTextCandidates:textCandidates
   };
-  return `Tu es un assistant de mapping pour RadarMapper.
-Analyse l'image du radar et le JSON ci-dessous. Le but est de détourer les logos/startups du radar et d'effectuer l'OCR/mapping via LLM.
-Langue attendue: ${getAiConfig().language === 'fr' ? 'francais' : 'anglais'}.
+  return `You are a mapping assistant for RadarMapper.
+Analyze the radar image and the JSON below. The goal is to detect logos/startups in the radar and perform OCR/mapping via LLM.
+Expected language: ${getAiConfig().language === 'fr' ? 'French' : 'English'}.
 
-Méthode attendue:
-- pars des zones candidates fournies dans zones: elles contiennent les coordonnées pixel calculées localement;
-- corrige seulement les erreurs évidentes de forme, de fusion ou de découpage;
-- reconnais les noms visibles dans chaque zone depuis l'image;
-- utilise startupRecords comme référentiel CSV de structures quand il est fourni;
-- complète name, ocrCandidate, confidence, url, logo et description quand c'est fiable ou présent dans startupRecords;
-- garde une zone candidate même si son nom reste incertain.
+Expected method:
+- start from the candidate zones provided in zones: they contain pixel coordinates calculated locally;
+- only correct obvious shape, merge or split errors;
+- recognize the names visible in each zone from the image;
+- use startupRecords as the CSV structure reference when provided;
+- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords;
+- keep a candidate zone even if its name remains uncertain.
 
-Contraintes strictes:
-- retourne uniquement un JSON valide, sans markdown;
-- conserve le schema wavestone-radar-mapper-v1;
-- conserve les id existants autant que possible, surtout ceux des zones candidates;
-- n'invente pas une URL si elle est incertaine;
-- ne marque jamais dataConfirmed ou associationConfirmed à true: la validation humaine se fait ensuite dans l'onglet Éditer;
-- si une zone reste incertaine, garde un nom zone_XXX, baisse confidence sous 0.55 et mets llmFound à false;
-- si tu identifies un nom avec confidence >= 0.55, mets llmFound à true;
-- les coordonnées x, y, w, h restent dans le repère ${IMG_W} x ${IMG_H};
-- points est vide sauf pour shape=poly.
+Strict constraints:
+- return only valid JSON, without markdown;
+- keep the wavestone-radar-mapper-v1 schema;
+- keep existing ids as much as possible, especially those of candidate zones;
+- do not invent a URL if uncertain;
+- never set dataConfirmed or associationConfirmed to true: human validation is done afterwards in the Edit tab;
+- if a zone remains uncertain, keep a zone_XXX name, lower confidence below 0.55 and set llmFound to false;
+- if you identify a name with confidence >= 0.55, set llmFound to true;
+- x, y, w, h coordinates stay in the ${IMG_W} x ${IMG_H} coordinate system;
+- points is empty except for shape=poly.
 
 JSON:
 ${JSON.stringify(skeleton,null,2)}
-${extraInstructions ? `\nConsignes additionnelles utilisateur:\n${extraInstructions}` : ''}`;
+${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : ''}`;
 }
 function externalLlmInstructions(){
   return [
@@ -2309,7 +2309,7 @@ async function callOpenAiLike(cfg,prompt){
   return data.choices?.[0]?.message?.content || '';
 }
 async function testOpenAiLike(cfg){
-  const messages=[{role:'user',content:'Réponds uniquement OK.'}];
+  const messages=[{role:'user',content:'Reply with OK only.'}];
   const isAzure=cfg.provider === 'azure';
   const url=isAzure
     ? `${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
@@ -2368,7 +2368,7 @@ async function testAnthropic(cfg){
       model:cfg.model,
       max_tokens:8,
       temperature:0,
-      messages:[{role:'user',content:'Réponds uniquement OK.'}]
+      messages:[{role:'user',content:'Reply with OK only.'}]
     })
   });
   if(!res.ok) throw new Error(await res.text());
@@ -2379,7 +2379,7 @@ function parseJsonFromText(text){
   try{ return JSON.parse(trimmed); } catch(_err){}
   const start=trimmed.indexOf('{'), end=trimmed.lastIndexOf('}');
   if(start>=0 && end>start) return JSON.parse(trimmed.slice(start,end+1));
-  throw new Error('Réponse LLM sans JSON exploitable.');
+  throw new Error('LLM response contains no usable JSON.');
 }
 q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
 ['aiApproved','aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
@@ -2390,36 +2390,36 @@ q('saveAiConfig').onclick=saveAiConfig;
 q('testAiConfig').onclick=async()=>{
   const cfg=getAiConfig();
   updateAiStatus();
-  if(!cfg.approved){ alert('Validation confidentialité requise avant de tester la connexion LLM.'); return; }
-  if(!cfg.apiKey || !cfg.model){ alert('Choisis un modèle et renseigne la clé API avant de tester.'); return; }
-  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
+  if(!cfg.approved){ alert('Privacy approval required before testing the LLM connection.'); return; }
+  if(!cfg.apiKey || !cfg.model){ alert('Choose a model and enter the API key before testing.'); return; }
+  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Azure OpenAI endpoint and deployment required.'); return; }
   try{
     q('testAiConfig').disabled=true;
-    q('testAiConfig').textContent='Test en cours...';
+    q('testAiConfig').textContent='Testing...';
     if(cfg.provider==='anthropic') await testAnthropic(cfg);
     else await testOpenAiLike(cfg);
     updateAiStatus();
-    alert('Connexion LLM réussie.');
+    alert('LLM connection successful.');
   }catch(err){
     updateAiStatus();
-    alert(`Connexion LLM échouée : ${err.message}`);
+    alert(`LLM connection failed: ${err.message}`);
   }finally{
     q('testAiConfig').disabled=false;
-    q('testAiConfig').textContent='Tester la connexion LLM';
+    q('testAiConfig').textContent='Test LLM connection';
   }
 };
 q('clearAiConfig').onclick=clearAiConfig;
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
-  if(!cfg.approved){ setLlmInAppStatus('LLM status: missing privacy approval in configuration.','error'); alert('Validation confidentialité requise dans Configuration.'); return; }
-  if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure le fournisseur, le modèle et la clé API avant de lancer le détourage avec LLM.'); return; }
-  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Endpoint et déploiement Azure OpenAI requis.'); return; }
+  if(!cfg.approved){ setLlmInAppStatus('LLM status: missing privacy approval in configuration.','error'); alert('Privacy approval required in Configuration.'); return; }
+  if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure the provider, model and API key before launching LLM detection.'); return; }
+  if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Azure OpenAI endpoint and deployment required.'); return; }
   q('analysisLog').value='';
   clearLlmInAppTrace();
   setLlmInAppHint('preparing local candidates');
   appendLlmInAppTrace('LLM run started.');
   appendLlmInAppTrace(`Provider=${cfg.provider} | Model=${cfg.model}`);
-  logAnalysis(`Détourage local préalable démarré.`);
+  logAnalysis(`Local pre-detection started.`);
   try{
     q('runAiMapping').disabled=true;
     q('runAiMapping').textContent='Running LLM...';
@@ -2432,16 +2432,16 @@ q('runAiMapping').onclick=async()=>{
     if(!candidateZones.length){
       setLlmInAppHint('failed: no candidate zone detected');
       appendLlmInAppTrace('No candidate zone detected. Stopping.');
-      logAnalysis('Aucune zone candidate détectée : arrêt du détourage LLM.');
-      alert('Aucune zone candidate détectée localement. Ajuste les réglages de détection ou charge une image plus lisible.');
+      logAnalysis('No candidate zone detected: LLM detection stopped.');
+      alert('No candidate zone detected locally. Adjust detection settings or load a clearer image.');
       return;
     }
-    if(!local.zones.length) logAnalysis('Aucune nouvelle zone locale : utilisation des zones existantes comme candidates LLM.');
+    if(!local.zones.length) logAnalysis('No new local zones: using existing zones as LLM candidates.');
     zones=candidateZones;
     selectedId=zones[0]?.id||null;
     render();
-    logAnalysis(`${local.components.length} composant(s) visuel(s), ${candidateZones.length} zone(s) candidate(s) envoyée(s) au LLM.`);
-    logAnalysis(`Analyse LLM démarrée avec ${cfg.provider}.`);
+    logAnalysis(`${local.components.length} visual component(s), ${candidateZones.length} candidate zone(s) sent to LLM.`);
+    logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
     const prompt=llmPrompt(candidateZones, local.textCandidates);
     appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
@@ -2450,7 +2450,7 @@ q('runAiMapping').onclick=async()=>{
     appendLlmInAppTrace(text.slice(0,2000) + (text.length>2000 ? '\n... [truncated]' : ''));
     setLlmInAppHint('parsing LLM JSON response');
     const data=parseJsonFromText(text);
-    if(!Array.isArray(data?.zones) || !data.zones.length) throw new Error('Réponse LLM sans zones exploitables.');
+    if(!Array.isArray(data?.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
     data.zones.forEach(z=>{
       z.llmPrevalidated=true; z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt;
       if(z.llmFound===undefined) z.llmFound=!!(z.name && !/^zone_\d+$/i.test(z.name) && (z.confidence??0)>=0.55);
@@ -2459,17 +2459,17 @@ q('runAiMapping').onclick=async()=>{
     setLlmInAppHint('completed successfully');
     setLlmInAppStatus(`LLM status: completed successfully. ${importSummaryLine()}`,'success');
     appendLlmInAppTrace(`Imported zones from LLM: ${data.zones.length}`);
-    logAnalysis(`Détourage et OCR LLM importés avec succès : ${zones.length} zone(s).`);
+    logAnalysis(`LLM detection and OCR imported successfully: ${zones.length} zone(s).`);
     alert(`LLM analysis completed successfully.\n${importSummaryLine()}`);
   } catch(err){
     setLlmInAppHint('failed');
     setLlmInAppStatus(`LLM status: analysis failed (${err.message}).`,'error');
     appendLlmInAppTrace(`ERROR: ${err.message}`);
-    logAnalysis(`Erreur LLM : ${err.message}`);
-    alert('Le détourage avec LLM a échoué. Voir le journal pour le détail.');
+    logAnalysis(`LLM error: ${err.message}`);
+    alert('LLM detection failed. See the log for details.');
   } finally {
     q('runAiMapping').disabled=false;
-    q('runAiMapping').textContent='LLM Detection In App';
+    q('runAiMapping').textContent='Built-in LLM detection';
   }
 };
 function setRadarImage(dataUrl,width,height){
@@ -2583,7 +2583,7 @@ async function detectTextWithBrowserApi(){
     const results=await detector.detect(radarImg);
     return results.map(r=>({text:r.rawValue||'', box:{x:r.boundingBox.x,y:r.boundingBox.y,w:r.boundingBox.width,h:r.boundingBox.height}}));
   } catch(err){
-    logAnalysis(`OCR navigateur indisponible : ${err.message}`);
+    logAnalysis(`Browser OCR unavailable: ${err.message}`);
     return [];
   }
 }
@@ -2621,21 +2621,21 @@ async function createDetectedZones(){
 }
 q('detectZones').onclick=async()=>{
   q('analysisLog').value='';
-  logAnalysis('Analyse locale démarrée.');
+  logAnalysis('Local analysis started.');
   const result=await createDetectedZones();
-  logAnalysis(`${result.components.length} composant(s) visuel(s) détecté(s) avant fusion.`);
+  logAnalysis(`${result.components.length} visual component(s) detected before merging.`);
   if(!result.zones.length){
-    logAnalysis('Aucune zone détectée : les zones existantes sont conservées.');
+    logAnalysis('No zone detected: existing zones are kept.');
     return;
   }
   zones=result.zones;
   const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
   selectedId=zones[0]?.id||null; render();
-  logAnalysis(`${zones.length} zone(s) initiale(s) créée(s).`);
-  if(linked) logAnalysis(`${linked} zone(s) enrichie(s) depuis les données startups importées.`);
-  logAnalysis(result.textCandidates.length ? `${result.textCandidates.length} candidat(s) texte détecté(s) par API navigateur expérimentale.` : 'OCR natif non disponible : noms génériques à compléter via LLM.');
+  logAnalysis(`${zones.length} initial zone(s) created.`);
+  if(linked) logAnalysis(`${linked} zone(s) enriched from imported startup data.`);
+  logAnalysis(result.textCandidates.length ? `${result.textCandidates.length} text candidate(s) detected by experimental browser API.` : 'Native OCR unavailable: generic names to be completed via LLM.');
 };
-q('exportInitJson').onclick=()=>download('radar_initialisation.json', JSON.stringify(buildProjectJson('initialisation'),null,2), 'application/json');
+q('exportInitJson').onclick=()=>download('radar_initialization.json', JSON.stringify(buildProjectJson('initialisation'),null,2), 'application/json');
 q('copyExternalPrompt').onclick=async()=>{
   const instructions=externalLlmInstructions();
   const promptPayload=llmPrompt(zones.length ? zones : [], []);
@@ -2651,7 +2651,7 @@ q('copyExternalPrompt').onclick=async()=>{
 function makeZone(shape){
   if(!isEditMode()) return;
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
-  const z={id,name:'nouvelle_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
+  const z={id,name:'new_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
   if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
   zones.push(z); selectedId=id; render();
 }
@@ -2662,7 +2662,7 @@ q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedI
 q('saveLocal').onclick=()=>persistZones({silent:false, reason:'manual'});
 q('resetAuto').onclick=()=>{ if(confirm('Restore bundled sample zones and remove local overlay edits?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
 q('resetLocalBase').onclick=()=>{
-  if(!confirm('Réinitialiser la préparation ? Les zones locales, les données importées et le visuel courant seront effacés pour ce navigateur.')) return;
+  if(!confirm('Reset preparation? Local zones, imported data and the current visual will be cleared for this browser.')) return;
   zones=[];
   selectedId=null;
   startupRecords=[];
@@ -2670,16 +2670,16 @@ q('resetLocalBase').onclick=()=>{
   localStorage.removeItem('radarOverlayZones');
   localStorage.removeItem('radarStartupRecords');
   refreshStartupSuggestions();
-  updateStartupImportStatus('Aucun fichier de structures importé.');
+  updateStartupImportStatus('No structure file imported.');
   q('radarUpload').value='';
   q('startupDataFile').value='';
   q('importFile').value='';
   q('analysisLog').value='';
   clearLlmInAppTrace();
-  setLlmInAppStatus('Statut LLM : non connecté.');
-  setLlmInAppHint('en attente');
+  setLlmInAppStatus('LLM status: not connected.');
+  setLlmInAppHint('idle');
   render();
-  setInitStatus('Préparation réinitialisée : visuel, zones et données importées effacés.','success');
+  setInitStatus('Preparation reset: visual, zones and imported data cleared.','success');
 };
 q('exportJson').onclick=()=>download('radar_overlay_zones.json', JSON.stringify(buildProjectJson('edition'),null,2), 'application/json');
 q('importBtn').onclick=()=>q('importFile').click();
@@ -2699,7 +2699,7 @@ q('importFile').onchange=async e=>{
 window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
   const z=zoneById(selectedId); if(!z) return;
-  // Left/right quand le popup est ouvert → naviguer entre les zones filtrées
+  // Left/right when popup is open → navigate between filtered zones
   if(!q('editZonePopup').hidden && (e.key==='ArrowLeft' || e.key==='ArrowRight')){
     if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA'||document.activeElement.tagName==='SELECT') return;
     e.preventDefault();
@@ -2741,10 +2741,10 @@ function safeUrl(url){
 function zoneCadran(z){
   const cx=(Number(z.x)||0)+(Number(z.w)||0)/2;
   const cy=(Number(z.y)||0)+(Number(z.h)||0)/2;
-  if(cx < IMG_W/2 && cy < IMG_H/2) return 'Haut gauche';
-  if(cx >= IMG_W/2 && cy < IMG_H/2) return 'Haut droit';
-  if(cx < IMG_W/2 && cy >= IMG_H/2) return 'Bas gauche';
-  return 'Bas droit';
+  if(cx < IMG_W/2 && cy < IMG_H/2) return 'Top left';
+  if(cx >= IMG_W/2 && cy < IMG_H/2) return 'Top right';
+  if(cx < IMG_W/2 && cy >= IMG_H/2) return 'Bottom left';
+  return 'Bottom right';
 }
 function zoneSearchText(z){
   return [z.id,z.name,z.url,z.description,z.category,zoneCadran(z),z.searchKeywords,startupKeywords(z)].filter(Boolean).join(' ');
@@ -2802,7 +2802,7 @@ function exportInterfaceScript(rootSelector, hotspotSelector='.rm-hotspot'){
       if(ok) visible++;
     });
     root.classList.toggle('rm-filtering', active);
-    if(count) count.textContent=(active ? visible : hotspots.length)+' zone(s)';
+    if(count) count.textContent=(active ? visible : hotspots.length)+' zone(s) visible';
   };
   if(search) search.addEventListener('input',apply);
   if(cadran) cadran.addEventListener('change',apply);
@@ -2826,7 +2826,7 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
   const show=(hotspot,event)=>{
     const url=hotspot.dataset.url||'';
     if(!popup) return;
-    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'" onerror="this.hidden=true">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink ? (url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Ouvrir le site')+'</a>' : '<br><span>URL non renseignée</span>') : '');
+    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'" onerror="this.hidden=true">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink ? (url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Visit website')+'</a>' : '<br><span>URL not set</span>') : '');
     popup.hidden=false;
     const rect=root.getBoundingClientRect();
     if(cfg.popupPosition==='center'){
@@ -2865,11 +2865,11 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
 <\/script>`;
 }
 function buildStandaloneHtml(){
-  const title=escapeHtml(q('cfgExportTitle').value || 'Radar cliquable');
+  const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
   const body=getExportExperience()==='interface'
     ? buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true)
     : buildCmsSnippet('radar', 'layer', true);
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
 }
 function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true){
   const popupId=`rm-popup-${Date.now().toString(36)}`;
@@ -2882,7 +2882,7 @@ function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClas
   const responsiveCss=`.${containerClass}{width:100%;box-sizing:border-box;overflow-x:hidden}.${containerClass} .rm-canvas{width:100%;max-width:100%;overflow:hidden;touch-action:manipulation}@media(max-width:720px){.${containerClass}{margin:0 auto;padding:0 8px}.${containerClass} .rm-controls{border-radius:8px}.${containerClass} .rm-popup{left:8px!important;right:8px!important;width:auto;max-width:none!important;font-size:${Math.max(11,cfg.popupFontSize-1)}px}}`;
   const rootSelector=`.${containerClass}`;
   const canvasSelector=`.${containerClass} .rm-canvas`;
-  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface><div class="rm-controls" aria-label="Filtres du radar"><label class="rm-control">Recherche<input type="search" data-rm-search placeholder="Startup, cadran, URL..."></label><label class="rm-control">Cadran<select data-rm-cadran><option value="">Tous les cadrans</option>${cadranOptions}</select></label><button type="button" data-rm-reset>Réinitialiser</button><span class="rm-count" data-rm-count></span></div><div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot') : ''}`;
+  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface><div class="rm-controls" aria-label="Radar filters"><label class="rm-control">Search<input type="search" data-rm-search placeholder="Startup, quadrant, URL..."></label><label class="rm-control">Quadrant<select data-rm-cadran><option value="">All quadrants</option>${cadranOptions}</select></label><button type="button" data-rm-reset>Reset</button><span class="rm-count" data-rm-count></span></div><div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot') : ''}`;
 }
 function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', includeScript=true){
   const isStandaloneClass=containerClass==='radar';
@@ -2903,7 +2903,7 @@ function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', inclu
   const svg = isStandaloneClass ? svgMarkupForExport() : svgMarkupForCms(prefix);
   const popupClass = isStandaloneClass ? '' : ' class="rm-popup"';
   const popupSelector = isStandaloneClass ? '#popup' : `#${popupId}`;
-  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svg}</svg><div id="${popupId}"${popupClass} hidden></div></div>${includeScript ? exportPopupScript(containerSelector, popupSelector, hotspotSelector, cfg) : ''}`;
+  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svg}</svg><div id="${popupId}"${popupClass} hidden></div></div>${includeScript ? exportPopupScript(containerSelector, popupSelector, hotspotSelector, cfg) : ''}`;
 }
 function imageMapArea(z){
   const name=escapeHtml(z.name||z.id);
@@ -2918,11 +2918,11 @@ function imageMapArea(z){
 }
 function buildImageMapSnippet(){
   const mapName=`radarmapper-map-${Date.now().toString(36)}`;
-  return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.map(imageMapArea).join('\n')}\n</map></div>`;
+  return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.map(imageMapArea).join('\n')}\n</map></div>`;
 }
 function buildIframeSnippet(){
-  const src=escapeHtml(q('cfgHostedUrl').value.trim() || 'REMPLACER_PAR_URL_DU_HTML_EXPORTE');
-  return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Radar cliquable')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  const src=escapeHtml(q('cfgHostedUrl').value.trim() || 'REPLACE_WITH_EXPORTED_HTML_URL');
+  return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 function buildExportHtml(mode=getExportMode()){
   if(mode==='snippet') return getExportExperience()==='interface' ? buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true) : buildCmsSnippet('radarmapper-embed', 'rm-layer', true);
@@ -2930,13 +2930,13 @@ function buildExportHtml(mode=getExportMode()){
   if(mode==='imagemap') return buildImageMapSnippet();
   return buildStandaloneHtml();
 }
-q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildExportHtml(), 'text/html');
-q('downloadStandaloneHtml').onclick=()=>download(q('cfgHtmlName').value || 'radar_cliquable.html', buildStandaloneHtml(), 'text/html');
+q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
+q('downloadStandaloneHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildStandaloneHtml(), 'text/html');
 q('copyEmbedSnippet').onclick=async()=>{
   const text=buildExportHtml(getExportMode());
   try{
     await navigator.clipboard.writeText(text);
-    alert('Snippet copié dans le presse-papiers.');
+    alert('Snippet copied to clipboard.');
   }catch{
     const area=document.createElement('textarea');
     area.value=text;
@@ -2944,7 +2944,7 @@ q('copyEmbedSnippet').onclick=async()=>{
     area.select();
     document.execCommand('copy');
     area.remove();
-    alert('Snippet copié dans le presse-papiers.');
+    alert('Snippet copied to clipboard.');
   }
 };
 function download(filename, text, type){ const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
@@ -2969,7 +2969,7 @@ q('autosaveToggle').checked=autosaveStored===null ? true : autosaveStored==='1';
 if(autosaveStored===null) localStorage.setItem(autosaveKey,'1');
 q('autosaveToggle').addEventListener('change',()=>{
   localStorage.setItem(autosaveKey, q('autosaveToggle').checked ? '1' : '0');
-  updateSaveStatus(q('autosaveToggle').checked ? 'Auto-save activé' : 'Auto-save désactivé');
+  updateSaveStatus(q('autosaveToggle').checked ? 'Auto-save enabled' : 'Auto-save disabled');
 });
 setInterval(()=>{
   if(!q('autosaveToggle').checked) return;
