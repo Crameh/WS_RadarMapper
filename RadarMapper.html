@@ -120,12 +120,12 @@
     display:flex;
     flex-direction:column;
     align-items:stretch;
-    gap:12px;
+    gap:6px;
     margin-bottom:12px;
-    padding:10px 12px;
-    border:1px solid #d7e7ef;
-    border-radius:12px;
-    background:rgba(255,255,255,.92);
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
   }
   .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -219,6 +219,13 @@
   .pendingCsvList { margin-top:10px; max-height:180px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .pendingCsvItem { padding:7px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
   .pendingCsvItem:last-child { border-bottom:0; }
+  .duplicateAssocList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
+  .duplicateAssocItem { padding:9px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
+  .duplicateAssocItem:last-child { border-bottom:0; }
+  .duplicateAssocTitle { display:block; margin-bottom:6px; color:#12314a; font-weight:850; }
+  .duplicateAssocZones { display:flex; flex-wrap:wrap; gap:6px; }
+  .duplicateAssocZones button { min-height:28px; padding:5px 8px; border-radius:9px; font-size:11px; color:#0d6f86; border-color:#b9dce4; background:#f3fbfb; }
+  .duplicateAssocZones button.active { color:#fff; border-color:#0f8794; background:#0f8794; }
   .initStatus { margin:8px 0 0; padding:9px 10px; border-radius:10px; border:1px solid #dfeaf0; font-size:12px; color:#35526a; background:#f7fbfd; }
   .initStatus.success { border-color:#bcead7; color:#126a49; background:#ecfaf4; }
   .initStatus.error { border-color:#f1c0c0; color:#8f1f1f; background:#fff2f2; }
@@ -616,6 +623,9 @@
               <p class="groupLabel" style="margin-top:10px">Données CSV restantes</p>
               <p id="pendingCsvCount" class="small">0 structure(s) non associée(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
+              <p class="groupLabel" style="margin-top:10px">Associations en doublon</p>
+              <p id="duplicateAssocCount" class="small">0 structure associée à plusieurs zones.</p>
+              <div id="duplicateAssocList" class="duplicateAssocList"></div>
             </div>
           </div>
         </div>
@@ -893,6 +903,7 @@
   <datalist id="startupSuggestions"></datalist>
 </main>
 <script src="assets/example-radar.js"></script>
+<script src="assets/example-startups.js"></script>
 <script>
 let IMG_W = 1280, IMG_H = 720;
 let IMAGE_DATA = window.RADAR_MAPPER_EXAMPLE_IMAGE || "";
@@ -905,11 +916,17 @@ function storedZones(){
 }
 function storedStartupRecords(){
   try{
-    const saved=JSON.parse(localStorage.getItem('radarStartupRecords') || '[]');
-    return Array.isArray(saved) ? saved : [];
+    const saved=localStorage.getItem('radarStartupRecords');
+    if(saved){
+      const parsed=JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    }
   } catch(_err){
     return [];
   }
+  return Array.isArray(window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS)
+    ? structuredClone(window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS)
+    : [];
 }
 let zones = storedZones();
 let startupRecords = storedStartupRecords();
@@ -1173,6 +1190,7 @@ function renderList(){
     q('zoneList').appendChild(d);
   });
   renderPendingCsvList();
+  renderDuplicateAssociations();
 }
 function associatedStartupNames(){
   return new Set(
@@ -1199,6 +1217,61 @@ function renderPendingCsvList(){
     row.className='pendingCsvItem';
     row.textContent=record.name;
     container.appendChild(row);
+  });
+}
+function duplicateAssociations(){
+  const groups=new Map();
+  zones.forEach(z=>{
+    const record=findStartupRecord(z.name);
+    if(!record) return;
+    const key=normalizeName(record.name);
+    if(!key) return;
+    if(!groups.has(key)) groups.set(key,{record,zones:[]});
+    groups.get(key).zones.push(z);
+  });
+  return [...groups.values()]
+    .filter(group=>group.zones.length>1)
+    .sort((a,b)=>a.record.name.localeCompare(b.record.name));
+}
+function renderDuplicateAssociations(){
+  const container=q('duplicateAssocList');
+  const count=q('duplicateAssocCount');
+  if(!container || !count) return;
+  const duplicates=duplicateAssociations();
+  const zoneTotal=duplicates.reduce((sum,group)=>sum+group.zones.length,0);
+  count.textContent=duplicates.length
+    ? `${duplicates.length} structure(s) associée(s) à ${zoneTotal} zones.`
+    : '0 structure associée à plusieurs zones.';
+  container.innerHTML='';
+  if(!duplicates.length){
+    const done=document.createElement('div');
+    done.className='duplicateAssocItem';
+    done.textContent='Aucun doublon détecté.';
+    container.appendChild(done);
+    return;
+  }
+  duplicates.forEach(group=>{
+    const item=document.createElement('div');
+    item.className='duplicateAssocItem';
+    const title=document.createElement('strong');
+    title.className='duplicateAssocTitle';
+    title.textContent=group.record.name;
+    item.appendChild(title);
+    const zoneWrap=document.createElement('div');
+    zoneWrap.className='duplicateAssocZones';
+    group.zones.forEach(z=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className=z.id===selectedId ? 'active' : '';
+      btn.textContent=`${z.id} - ${z.name || 'sans nom'}`;
+      btn.onclick=()=>{
+        selectedId=z.id;
+        render();
+      };
+      zoneWrap.appendChild(btn);
+    });
+    item.appendChild(zoneWrap);
+    container.appendChild(item);
   });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -1241,10 +1314,10 @@ function startupRecordFromObject(row){
   if(!name) return null;
   return {
     name,
-    url:pickField(row,['url','website','site','site web','lien','link']),
+    url:pickField(row,['url','website','website link','site','site web','lien','link']),
     logo:pickField(row,['logo','logo url','logo_url','logourl','image','image url']),
     description:pickField(row,['description','descriptif','desc','pitch','short description','resume','résumé']),
-    category:pickField(row,['category','categorie','catégorie','secteur','cadran','quadrant']),
+    category:pickField(row,['category','product category','categorie','catégorie','secteur','cadran','quadrant']),
     raw:row
   };
 }
@@ -1364,11 +1437,27 @@ function chooseEditPopupSuggestion(index=editPopupSuggestIndex){
 }
 function validateEditPopup({preferSuggestion=false} = {}){
   if(preferSuggestion && chooseEditPopupSuggestion()){
+    const updated=zoneById(selectedId);
+    if(updated){
+      updated.dataConfirmed=true;
+      updated.associationConfirmed=true;
+      updated.llmPrevalidated=false;
+      updated.confirmedAt=new Date().toISOString();
+      render();
+    }
     hideEditZonePopup();
     return;
   }
   applyStartupRecordToInputs('editPopup');
   applyEditPopup();
+  const updated=zoneById(selectedId);
+  if(updated){
+    updated.dataConfirmed=true;
+    updated.associationConfirmed=true;
+    updated.llmPrevalidated=false;
+    updated.confirmedAt=new Date().toISOString();
+    render();
+  }
   hideEditZonePopup();
 }
 function startupKeywords(value){
