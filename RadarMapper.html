@@ -146,11 +146,13 @@
   .zone { fill:rgba(234,126,38,.20); stroke:rgba(184,89,20,.78); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
+  .zone.unmatched { fill:rgba(210,165,0,.18); stroke:rgba(160,120,0,.72); stroke-dasharray:4 3; }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
   .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
   .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
   .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
+  .zone.selected.unmatched { fill:rgba(210,165,0,.28); stroke:#c89a00; }
   .zone.hiddenFill { fill:transparent; }
   .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
@@ -363,8 +365,15 @@
   .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
   .zoneFilterBtn.zoneFilterPreval { color:#1a58b0; }
   .zoneFilterBtn.zoneFilterPreval.active { background:#e8f0fb; border-color:#5b8de6; }
+  .zoneFilterBtn.zoneFilterUnmatched { color:#7a6000; }
+  .zoneFilterBtn.zoneFilterUnmatched.active { background:#fffbe8; border-color:#c8a800; }
   .zoneFilterBtn.zoneFilterDone { color:#0d7452; }
   .zoneFilterBtn.zoneFilterDone.active { background:#eafaf4; border-color:#23aa7a; }
+  .structureFilter { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
+  .structFilterBtn { min-width:auto; padding:2px 9px; border:1px solid #cbdde6; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; background:white; cursor:pointer; line-height:1.5; }
+  .structFilterBtn.active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
+  .structFilterBtn.sfNoStructure.active { background:#fff3e8; border-color:#e8924a; color:#b05a10; }
+  .structFilterBtn.sfDuplicate.active { background:#f0eeff; border-color:#b07ae8; color:#6b28c7; }
   body[data-mode="exportPanel"] #overlay .zone,
   body[data-mode="exportPanel"] #overlay .zone.selected,
   body[data-mode="exportPanel"] #overlay .zone.noUrl { fill:transparent; stroke:transparent; cursor:pointer; stroke-dasharray:none; pointer-events:all; }
@@ -435,6 +444,7 @@
             <button type="button" class="zoneFilterBtn active" data-filter="all">Toutes</button>
             <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="À faire (rouge/orange)">●</button>
             <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="À vérifier (bleu)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterUnmatched" data-filter="unmatched" title="Analysées par le LLM sans correspondance trouvée (jaune)">●</button>
             <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Validées (vert)">●</button>
           </div>
           <input id="showFill" type="checkbox" checked hidden>
@@ -625,7 +635,6 @@
           </div>
           <span class="sectionKicker">Étape 2</span>
         </div>
-        <p class="prepIntro">Sélectionnez une zone sur le radar ou dans la liste, corrigez son contenu, puis utilisez les actions de gestion si nécessaire.</p>
       </div>
 
       <div class="prepSteps">
@@ -634,11 +643,15 @@
           <div>
             <div class="prepStepHeader">
               <h3>Sélectionner une zone</h3>
-              <p>Filtrez les zones et repérez les structures encore non associées.</p>
             </div>
             <div class="prepStepBody">
-              <label>Recherche dans les zones</label>
+              <label>Recherche</label>
               <input id="search" placeholder="nom, id ou URL">
+              <div class="structureFilter" id="structureFilter">
+                <button type="button" class="structFilterBtn active" data-sf="all">Toutes</button>
+                <button type="button" class="structFilterBtn sfNoStructure" data-sf="nostructure" title="Zones sans structure associée dans le CSV">Sans structure</button>
+                <button type="button" class="structFilterBtn sfDuplicate" data-sf="duplicate" title="Zones dont la structure est associée à plusieurs blocs">Doublons</button>
+              </div>
               <div id="zoneList"></div>
               <p class="groupLabel" style="margin-top:10px">Données CSV restantes</p>
               <p id="pendingCsvCount" class="small">0 structure(s) non associée(s).</p>
@@ -654,8 +667,7 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Renseigner la zone sélectionnée</h3>
-              <p>Le nom, le lien et le descriptif alimentent la popup publiée.</p>
+              <h3>Éditer la zone</h3>
             </div>
             <div class="prepStepBody">
               <label>Zone sélectionnée</label>
@@ -697,32 +709,17 @@
           <div>
             <div class="prepStepHeader">
               <h3>Actions</h3>
-              <p>Manipulez la zone courante ou gérez la session de travail.</p>
             </div>
             <div class="prepStepBody">
-              <div class="prepChoice">
-                <h4>Zone</h4>
-                <div class="secondaryActions compact">
-                  <button id="duplicate">Dupliquer</button>
-                  <button id="clearUrl">Vider URL</button>
-                  <button id="delete" class="danger">Supprimer</button>
-                </div>
+              <div class="secondaryActions compact">
+                <button id="duplicate">Dupliquer</button>
+                <button id="clearUrl">Vider URL</button>
+                <button id="delete" class="danger">Supprimer</button>
               </div>
-              <div class="prepChoice" style="margin-top:10px">
-                <h4>Ordre d'affichage</h4>
-                <div class="secondaryActions">
-                  <button id="sendBack">Envoyer derrière</button>
-                  <button id="bringFront">Mettre devant</button>
-                </div>
+              <div class="secondaryActions" style="margin-top:8px">
+                <button id="saveLocal">Sauver localement</button>
+                <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple</button>
               </div>
-              <div class="prepChoice" style="margin-top:10px">
-                <h4>Fichier et session</h4>
-                <div class="secondaryActions compact">
-                  <button id="saveLocal">Sauver localement</button>
-                  <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple initial</button>
-                </div>
-              </div>
-              <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Entrée pour ouvrir l'édition, Suppr pour supprimer.</p>
             </div>
           </div>
         </div>
@@ -957,6 +954,7 @@ const MODE_COPY = {
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
 let zoneStatusFilter = 'all';
+let zoneStructureFilter = 'all';
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function zoneById(id){ return zones.find(z => z.id === id); }
@@ -1011,7 +1009,8 @@ function shapeEl(z){
   }
   el.classList.add('zone');
   el.classList.add(z.dataConfirmed || z.associationConfirmed ? 'confirmed' : 'pending');
-  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated) el.classList.add('prevalidated');
+  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound!==false) el.classList.add('prevalidated');
+  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound===false) el.classList.add('unmatched');
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
@@ -1093,6 +1092,7 @@ function fillForm(z){
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
   if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Association validée';
+  else if(z.llmPrevalidated && z.llmFound===false) q('associationStatus').textContent='Non identifiée par le LLM (aucune correspondance)';
   else if(z.llmPrevalidated) q('associationStatus').textContent='Pré-validée par le LLM (à confirmer)';
   else q('associationStatus').textContent='Association à valider';
 }
@@ -1110,6 +1110,7 @@ function fillEditPopup(z){
   q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('editPopupPoints').disabled = z.shape !== 'poly';
   if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association validée';
+  else if(z.llmPrevalidated && z.llmFound===false) q('editPopupAssociationStatus').textContent='Non identifiée par le LLM (aucune correspondance)';
   else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pré-validée par le LLM (à confirmer)';
   else q('editPopupAssociationStatus').textContent='Association à valider';
 }
@@ -1141,7 +1142,8 @@ function updateEditLogoZoom(){
 function zoneMatchesFilter(z){
   if(zoneStatusFilter==='all') return true;
   if(zoneStatusFilter==='confirmed') return !!(z.dataConfirmed || z.associationConfirmed);
-  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && z.llmFound!==false && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='unmatched') return !!(z.llmPrevalidated && z.llmFound===false && !(z.dataConfirmed||z.associationConfirmed));
   if(zoneStatusFilter==='todo') return !(z.dataConfirmed||z.associationConfirmed||z.llmPrevalidated);
   return true;
 }
@@ -1232,12 +1234,24 @@ function confirmAssociation(prefix=''){
   else fillForm(updated);
   if(prefix === 'editPopup') hideEditZonePopup();
 }
+function zoneMatchesStructureFilter(z, dupeIds){
+  if(zoneStructureFilter==='all') return true;
+  if(zoneStructureFilter==='nostructure') return !findStartupRecord(z.name);
+  if(zoneStructureFilter==='duplicate') return dupeIds.has(z.id);
+  return true;
+}
 function renderList(){
   const s=q('search').value.toLowerCase();
   q('zoneList').innerHTML = '';
-  zones.filter(z => (!s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)) && zoneMatchesFilter(z)).forEach(z=>{
+  const dupeIds=new Set(duplicateAssociations().flatMap(g=>g.zones.map(z=>z.id)));
+  zones.filter(z =>
+    (!s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)) &&
+    zoneMatchesFilter(z) &&
+    zoneMatchesStructureFilter(z, dupeIds)
+  ).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.dataConfirmed || z.associationConfirmed ? 'validé' : (z.llmPrevalidated ? 'pré-validé LLM' : 'à valider')}</span>`;
+    const pill = z.dataConfirmed || z.associationConfirmed ? 'validé' : z.llmPrevalidated ? (z.llmFound===false ? 'non identifié' : 'pré-validé LLM') : 'à valider';
+    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${pill}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
     q('zoneList').appendChild(d);
   });
@@ -1780,6 +1794,13 @@ document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
     renderList(); render();
   });
 });
+document.querySelectorAll('#structureFilter .structFilterBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    zoneStructureFilter=btn.dataset.sf;
+    document.querySelectorAll('#structureFilter .structFilterBtn').forEach(b=>b.classList.toggle('active', b===btn));
+    renderList();
+  });
+});
 q('confirmAssociation').onclick=()=>confirmAssociation('');
 q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
 q('name').addEventListener('change',()=>{ if(applyStartupRecordToInputs('')) applyForm(); });
@@ -2033,7 +2054,8 @@ function buildProjectJson(source){
         'shape vaut rect, diamond, circle ou poly.',
         'x, y, w, h décrivent la boîte englobante.',
         'points est vide sauf pour shape=poly, où il contient des objets {x,y}.',
-        'name est le nom public reconnu, url son site officiel si connu, logo une URL ou data URI optionnelle, description une phrase courte.'
+        'name est le nom public reconnu, url son site officiel si connu, logo une URL ou data URI optionnelle, description une phrase courte.',
+        'llmFound vaut true si tu as identifié un nom fiable (confidence >= 0.55 et name != zone_XXX), false sinon.'
       ]
     },
     examples:{
@@ -2050,11 +2072,12 @@ function buildProjectJson(source){
         h:42,
         points:[],
         ocrCandidate:'Example Security',
-        confidence:0.82
+        confidence:0.82,
+        llmFound:true
       },
       polyZone:{
         id:'z002',
-        name:'Example Polygon',
+        name:'zone_042',
         url:'',
         logo:'',
         description:'',
@@ -2065,7 +2088,8 @@ function buildProjectJson(source){
         h:60,
         points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}],
         ocrCandidate:'',
-        confidence:0
+        confidence:0.1,
+        llmFound:false
       }
     },
     exportRender:getExportRenderConfig(),
@@ -2240,7 +2264,8 @@ Contraintes strictes:
 - conserve les id existants autant que possible, surtout ceux des zones candidates;
 - n'invente pas une URL si elle est incertaine;
 - ne marque jamais dataConfirmed ou associationConfirmed à true: la validation humaine se fait ensuite dans l'onglet Éditer;
-- si une zone reste incertaine, garde un nom zone_XXX et baisse confidence;
+- si une zone reste incertaine, garde un nom zone_XXX, baisse confidence sous 0.55 et mets llmFound à false;
+- si tu identifies un nom avec confidence >= 0.55, mets llmFound à true;
 - les coordonnées x, y, w, h restent dans le repère ${IMG_W} x ${IMG_H};
 - points est vide sauf pour shape=poly.
 
@@ -2426,7 +2451,10 @@ q('runAiMapping').onclick=async()=>{
     setLlmInAppHint('parsing LLM JSON response');
     const data=parseJsonFromText(text);
     if(!Array.isArray(data?.zones) || !data.zones.length) throw new Error('Réponse LLM sans zones exploitables.');
-    data.zones.forEach(z=>{ z.llmPrevalidated=true; z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt; });
+    data.zones.forEach(z=>{
+      z.llmPrevalidated=true; z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt;
+      if(z.llmFound===undefined) z.llmFound=!!(z.name && !/^zone_\d+$/i.test(z.name) && (z.confidence??0)>=0.55);
+    });
     await importProjectJson(JSON.stringify(data));
     setLlmInAppHint('completed successfully');
     setLlmInAppStatus(`LLM status: completed successfully. ${importSummaryLine()}`,'success');
@@ -2631,8 +2659,6 @@ q('addZoneBtn').onclick=()=>makeZone(q('shape')?.value || 'rect');
 q('delete').onclick=()=>{ if(!isEditMode() || !selectedId) return; zones=zones.filter(z=>z.id!==selectedId); selectedId=zones[0]?.id||null; render(); };
 q('duplicate').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(!z) return; const nz=structuredClone(z); nz.id='z'+String(Date.now()).slice(-8); nz.name=(z.name||z.id)+' copy'; nz.x+=12; nz.y+=12; nz.dataConfirmed=false; nz.associationConfirmed=false; delete nz.confirmedAt; if(nz.points) nz.points=nz.points.map(p=>({x:p.x+12,y:p.y+12})); zones.push(nz); selectedId=nz.id; render(); };
 q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(z){z.url=''; render();} };
-q('bringFront').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.push(zones.splice(i,1)[0]); render(); } };
-q('sendBack').onclick=()=>{ if(!isEditMode()) return; const i=zones.findIndex(z=>z.id===selectedId); if(i>=0){ zones.unshift(zones.splice(i,1)[0]); render(); } };
 q('saveLocal').onclick=()=>persistZones({silent:false, reason:'manual'});
 q('resetAuto').onclick=()=>{ if(confirm('Restore bundled sample zones and remove local overlay edits?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
 q('resetLocalBase').onclick=()=>{
