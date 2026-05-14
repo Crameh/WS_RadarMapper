@@ -353,8 +353,8 @@
   .editZoneClose { width:30px; height:30px; padding:0; border-radius:10px; }
   .editZonePopup .row { margin-top:0; }
   .editZonePopup textarea { resize:vertical; }
-  .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:10px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
-  .editLogoZoom img { max-width:110px; max-height:80px; object-fit:contain; display:block; }
+  .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
+  .editLogoZoom canvas { display:block; border-radius:6px; image-rendering:pixelated; }
   .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .zoneStatusFilter { display:flex; gap:2px; align-items:center; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
   .zoneFilterBtn { min-width:auto; padding:2px 8px; border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; color:#65788a; line-height:1.5; }
@@ -448,7 +448,7 @@
       <svg id="overlay" viewBox="0 0 1280 720"></svg>
       </div>
       <div id="exportLivePopup" class="exportLivePopup" hidden></div>
-      <div id="editLogoZoom" class="editLogoZoom" hidden><img id="editLogoZoomImg" alt="" onerror="this.hidden=true"></div>
+      <div id="editLogoZoom" class="editLogoZoom" hidden><canvas id="editLogoZoomCanvas"></canvas></div>
       <div id="editZonePopup" class="editZonePopup" hidden>
         <div class="editZoneHeader">
           <h3>Éditer la zone</h3>
@@ -1128,15 +1128,27 @@ function fillEditPopup(z){
 }
 function updateEditLogoZoom(){
   const zoom=q('editLogoZoom');
-  const img=q('editLogoZoomImg');
-  const logo=q('editPopupLogo').value.trim();
-  if(q('editZonePopup').hidden || !logo){ zoom.hidden=true; return; }
-  img.hidden=false; img.src=logo;
+  const canvas=q('editLogoZoomCanvas');
+  if(q('editZonePopup').hidden){ zoom.hidden=true; return; }
+  const z=zoneById(selectedId);
+  const img=q('radarImg');
+  if(!z || !img.naturalWidth){ zoom.hidden=true; return; }
+  const pad=Math.round(Math.max(z.w,z.h)*0.15);
+  const sx=Math.max(0, z.x-pad), sy=Math.max(0, z.y-pad);
+  const sw=Math.min(img.naturalWidth-sx, z.w+pad*2);
+  const sh=Math.min(img.naturalHeight-sy, z.h+pad*2);
+  const maxW=200, maxH=160;
+  const scale=Math.min(maxW/sw, maxH/sh, 4);
+  canvas.width=Math.round(sw*scale);
+  canvas.height=Math.round(sh*scale);
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   zoom.hidden=false;
   const popLeft=parseInt(q('editZonePopup').style.left)||16;
   const popTop=parseInt(q('editZonePopup').style.top)||16;
   zoom.style.top=popTop+'px';
-  const zoomW=zoom.offsetWidth||136;
+  const zoomW=zoom.offsetWidth||canvas.width+16;
   zoom.style.left=Math.max(8, popLeft-zoomW-10)+'px';
 }
 function zoneMatchesFilter(z){
@@ -1750,7 +1762,6 @@ q('editZonePopup').addEventListener('keydown',e=>{
   validateEditPopup();
 });
 q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
-q('editPopupLogo').addEventListener('input', updateEditLogoZoom);
 document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     zoneStatusFilter=btn.dataset.filter;
