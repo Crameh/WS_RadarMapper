@@ -2671,6 +2671,22 @@ q('importFile').onchange=async e=>{
 window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
   const z=zoneById(selectedId); if(!z) return;
+  // Left/right quand le popup est ouvert → naviguer entre les zones filtrées
+  if(!q('editZonePopup').hidden && (e.key==='ArrowLeft' || e.key==='ArrowRight')){
+    if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA'||document.activeElement.tagName==='SELECT') return;
+    e.preventDefault();
+    applyEditPopup();
+    persistZones({silent:true, reason:'auto'});
+    const filtered=zones.filter(zoneMatchesFilter);
+    if(filtered.length<2) return;
+    const idx=filtered.findIndex(fz=>fz.id===selectedId);
+    const next=e.key==='ArrowRight' ? (idx+1)%filtered.length : (idx-1+filtered.length)%filtered.length;
+    selectedId=filtered[next].id;
+    fillEditPopup(zoneById(selectedId));
+    setTimeout(updateEditLogoZoom,0);
+    renderList(); render();
+    return;
+  }
   const step=e.shiftKey?10:1; let dx=0,dy=0;
   if(e.key==='ArrowLeft') dx=-step; else if(e.key==='ArrowRight') dx=step; else if(e.key==='ArrowUp') dy=-step; else if(e.key==='ArrowDown') dy=step;
   else if(e.key==='Enter'){
