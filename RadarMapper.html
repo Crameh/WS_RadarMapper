@@ -127,8 +127,9 @@
     border-radius:0;
     background:transparent;
   }
-  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; min-height:38px; }
   .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; }
   .zoneTools label { margin:0; color:#12314a; font-weight:800; }
   .zoneTools input[type="range"] { width:210px; accent-color:#1699a8; }
   .zoneTools input[type="checkbox"] { width:auto; accent-color:#1699a8; }
@@ -147,12 +148,14 @@
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
   .zone.unmatched { fill:rgba(210,165,0,.18); stroke:rgba(160,120,0,.72); stroke-dasharray:4 3; }
+  .zone.multiassigned { fill:rgba(122,78,201,.18); stroke:rgba(98,58,172,.82); }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
   .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
   .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
   .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
   .zone.selected.unmatched { fill:rgba(210,165,0,.28); stroke:#c89a00; }
+  .zone.selected.multiassigned { fill:rgba(122,78,201,.26); stroke:#7a4ec9; }
   .zone.hiddenFill { fill:transparent; }
   .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
@@ -174,9 +177,12 @@
   button:disabled { opacity:.45; cursor:not-allowed; }
   .small { font-size:12px; opacity:.75; line-height:1.35; }
   #zoneList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
-  .item { padding:8px 10px; border-bottom:1px solid #eef3f6; cursor:pointer; display:flex; justify-content:space-between; gap:8px; font-size:12px; }
+  .item { padding:8px 10px; border-bottom:1px solid #eef3f6; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; }
   .item:last-child { border-bottom:0; }
   .item.sel { background:#e5f8f5; font-weight:800; color:#0b7582; }
+  .itemMain { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .itemRight { display:flex; align-items:center; gap:8px; }
+  .itemEditBtn { min-width:auto; min-height:24px; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:800; border-color:#b9dce4; color:#0d6f86; background:#f3fbfb; }
   .pill { opacity:.65; }
   .shapeIcons { display:flex; gap:4px; align-items:center; padding:3px 5px; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .shapeIcons button { min-width:30px; padding:5px 7px; font-size:15px; line-height:1; }
@@ -358,6 +364,8 @@
   .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
   .editLogoZoom canvas { display:block; border-radius:6px; image-rendering:pixelated; }
   .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; min-height:30px; }
+  .zoneToolsRight .zoomControl { min-height:34px; }
   .zoneStatusFilter { display:flex; gap:2px; align-items:center; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
   .zoneFilterBtn { min-width:auto; padding:2px 8px; border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; color:#65788a; line-height:1.5; }
   .zoneFilterBtn[data-filter="all"].active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
@@ -365,15 +373,26 @@
   .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
   .zoneFilterBtn.zoneFilterPreval { color:#1a58b0; }
   .zoneFilterBtn.zoneFilterPreval.active { background:#e8f0fb; border-color:#5b8de6; }
-  .zoneFilterBtn.zoneFilterUnmatched { color:#7a6000; }
-  .zoneFilterBtn.zoneFilterUnmatched.active { background:#fffbe8; border-color:#c8a800; }
+  .zoneFilterBtn.zoneFilterMulti { color:#7a4ec9; }
+  .zoneFilterBtn.zoneFilterMulti.active { background:#f0e9ff; border-color:#9b72e6; }
   .zoneFilterBtn.zoneFilterDone { color:#0d7452; }
   .zoneFilterBtn.zoneFilterDone.active { background:#eafaf4; border-color:#23aa7a; }
+  .zoneFilterLegend { display:flex; align-items:center; gap:10px; font-size:10px; color:#4b647a; font-weight:700; margin-left:2px; }
+  .zoneLegendItem { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .zoneLegendDot { font-size:13px; line-height:1; }
+  .zoneLegendDot.todo { color:#b05a10; }
+  .zoneLegendDot.llm { color:#1a58b0; }
+  .zoneLegendDot.multi { color:#7a4ec9; }
+  .zoneLegendDot.done { color:#0d7452; }
+  body[data-mode="initPanel"] .zoneStatusFilter { display:none; }
+  body[data-mode="initPanel"] .zoneFilterLegend { display:none; }
   .structureFilter { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
   .structFilterBtn { min-width:auto; padding:2px 9px; border:1px solid #cbdde6; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; background:white; cursor:pointer; line-height:1.5; }
   .structFilterBtn.active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
   .structFilterBtn.sfNoStructure.active { background:#fff3e8; border-color:#e8924a; color:#b05a10; }
   .structFilterBtn.sfDuplicate.active { background:#f0eeff; border-color:#b07ae8; color:#6b28c7; }
+  .importActionBtn { border-color:#7eb0c3; background:#f4fbff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.75), 0 1px 2px rgba(15,70,90,.12); }
+  .importActionBtn:hover { border-color:#4e98b1; background:#edf8ff; }
   body[data-mode="exportPanel"] #overlay .zone,
   body[data-mode="exportPanel"] #overlay .zone.selected,
   body[data-mode="exportPanel"] #overlay .zone.noUrl { fill:transparent; stroke:transparent; cursor:pointer; stroke-dasharray:none; pointer-events:all; }
@@ -426,9 +445,9 @@
 </header>
 <main>
   <section id="stageWrap">
-    <div class="zoneTools" aria-label="Zone creation and editing">
+    <div class="zoneTools">
       <div class="zoneToolsRow">
-        <span class="zoneToolsTitle">Radar and Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
+        <span id="zoneToolsTitle" class="zoneToolsTitle">Radar and Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
         <div class="zoneToolsEdit" aria-label="Zone creation and shape">
           <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Add a zone" title="Add a zone">+</button>
           <span class="shapeIcons zoneToolsShapes" title="Create or modify a zone shape">
@@ -439,18 +458,24 @@
           </span>
         </div>
         <div class="zoneToolsRight">
-          <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
+          <label class="zoomControl">Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
           <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filter zones by status">
             <button type="button" class="zoneFilterBtn active" data-filter="all">All</button>
-            <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="To do (red/orange)">●</button>
-            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="To review (blue)">●</button>
-            <button type="button" class="zoneFilterBtn zoneFilterUnmatched" data-filter="unmatched" title="Analyzed by LLM with no match found (yellow)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="Unassigned (orange)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="LLM guess (blue)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterMulti" data-filter="multiassigned" title="Multi-assigned (purple)">●</button>
             <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Confirmed (green)">●</button>
+          </div>
+          <div class="zoneFilterLegend" aria-label="Zone status legend">
+            <span class="zoneLegendItem"><span class="zoneLegendDot todo">●</span>Unassigned</span>
+            <span class="zoneLegendItem"><span class="zoneLegendDot llm">●</span>LLM guess</span>
+            <span class="zoneLegendItem"><span class="zoneLegendDot multi">●</span>Multi-assigned</span>
+            <span class="zoneLegendItem"><span class="zoneLegendDot done">●</span>Confirmed</span>
           </div>
           <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
-      <div class="modeHintLine" id="modeHint">Prepare: import your radar visual and data, then build your first mapping draft.</div>
+      <div class="modeHintLine" id="modeHint">Import radar visual and data and generate the clickable zones.</div>
     </div>
     <div id="stage">
       <div id="stageScaler">
@@ -506,11 +531,11 @@
         <div class="sectionHeader">
           <div>
             <h2>Prepare a new radar</h2>
-            <p>Import the files, generate the zones, then proceed to validation.</p>
+            <p>Import radar visual and data and generate the clickable zones.</p>
           </div>
           <span class="sectionKicker">Step 1</span>
         </div>
-        <p class="prepIntro">Preparation is only used to create an initial set of zones. Fine adjustments, URLs and text are done afterwards in the Edit tab.</p>
+        <p class="prepIntro">Preparation is only used to create an initial set of zones. Fine adjustments, URLs and text are done after using the Edit tab.</p>
       </div>
 
       <div class="prepSteps">
@@ -519,16 +544,18 @@
           <div>
             <div class="prepStepHeader">
               <h3>Import sources</h3>
-              <p>Add the radar image, then the structure file to associate.</p>
+              <p>Add the radar visual, then the structure file to associate.</p>
             </div>
             <div class="prepStepBody">
               <div class="secondaryActions">
-                <button id="uploadRadarVisual" type="button">Radar image</button>
-                <button id="uploadStructureData" type="button">Structure data</button>
+                <button id="uploadRadarVisual" class="importActionBtn" type="button">Radar visual (jpg, png, webp...)</button>
+                <button id="uploadRadarPptx" class="importActionBtn" type="button">Radar slide (PPTX)</button>
+                <button id="uploadStructureData" class="importActionBtn" type="button">Structure Data (CSV / XLS)</button>
               </div>
               <input id="radarUpload" type="file" accept="image/*" style="display:none">
+              <input id="radarPptxUpload" type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" style="display:none">
               <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,application/json,text/csv,text/tab-separated-values" style="display:none">
-              <p class="actionNote">Required field: <code>name</code> or <code>startup</code>. Useful fields: <code>url</code>, <code>description</code>, <code>logo</code>, tags.</p>
+              <p class="actionNote">Accepted files: PPTX (slide import), CSV, TSV, TXT, XLS, JSON. Required field: <code>name</code> or <code>startup</code>. Useful fields: <code>url</code>, <code>description</code>, <code>logo</code>, tags.</p>
               <p id="startupImportStatus" class="startupImportStatus">No structure file imported.</p>
               <div id="initStatusLine" class="initStatus">Waiting for imports.</div>
             </div>
@@ -540,20 +567,18 @@
           <div>
             <div class="prepStepHeader">
               <h3>Generate a first mapping</h3>
-              <p>Choose between manual external processing or the LLM built into RadarMapper.</p>
+              <p>Choose between manual external LLM analysis or built-in LLM API access.</p>
             </div>
             <div class="prepStepBody">
               <div class="prepChoiceGrid">
                 <div class="prepChoice">
                   <h4>Using an external LLM</h4>
-                  <p>Build a local base, copy the prompt, attach the radar image and JSON, then re-import the completed JSON.</p>
-                  <div class="primaryAction">
-                    <button id="detectZones" class="primary" type="button">Create base via local detection</button>
-                  </div>
+                  <p>Copy the prompt, attach the radar image and the empty database (JSON), then re-import the completed database (JSON).</p>
                   <div class="secondaryActions">
-                    <button id="copyExternalPrompt" type="button">Copy prompt</button>
-                    <button id="exportInitJson" type="button">Download JSON</button>
+                    <button id="copyExternalPrompt" type="button">Copy LLM prompt to use</button>
+                    <button id="exportInitJson" type="button">Download Empty Database (JSON)</button>
                   </div>
+                  <p class="actionNote">Connect to your preferred LLM, copy the prompt, add the 3 files, and run the analysis. Download the resulting database, then import it.</p>
                   <div class="secondaryActions">
                     <button id="importBtn" type="button">Import completed JSON</button>
                   </div>
@@ -562,7 +587,7 @@
                   <details class="advancedGroup">
                     <summary>Manual import control</summary>
                     <div class="advancedBody">
-                      <p class="small">Track local detection, prompt copying and completed JSON import here.</p>
+                      <p class="small">Track prompt copying and completed JSON import here.</p>
                       <textarea id="analysisLog" rows="6" class="mono" readonly></textarea>
                     </div>
                   </details>
@@ -579,25 +604,14 @@
                   <div id="llmInAppStatus" class="initStatus">LLM status: not connected.</div>
                   <p id="llmInAppHint" class="actionNote">Activity: idle.</p>
                   <hr class="prepChoiceDivider">
-                  <label>LLM response trace</label>
-                  <textarea id="llmInAppTrace" rows="6" class="mono" readonly></textarea>
+                  <details class="advancedGroup">
+                    <summary>LLM response trace</summary>
+                    <div class="advancedBody">
+                      <textarea id="llmInAppTrace" rows="6" class="mono" readonly></textarea>
+                    </div>
+                  </details>
                 </div>
               </div>
-              <details class="advancedGroup">
-                <summary>Local detection settings</summary>
-                <div class="advancedBody">
-                  <label>Contrast threshold (0-255)</label>
-                  <input id="cfgContrast" type="number" min="1" max="255" value="58">
-                  <div class="row">
-                    <div><label>Min. area (px)</label><input id="cfgMinArea" type="number" min="1" value="35"></div>
-                    <div><label>Max. area (px)</label><input id="cfgMaxArea" type="number" min="1" value="18000"></div>
-                    <div><label>Margin (px)</label><input id="cfgPadding" type="number" min="0" value="6"></div>
-                    <div><label>Merge gap (px)</label><input id="cfgMergeGap" type="number" min="0" value="18"></div>
-                  </div>
-                  <label>Max width/height ratio</label>
-                  <input id="cfgMaxRatio" type="number" min="1" step="0.5" value="14">
-                </div>
-              </details>
             </div>
           </div>
         </div>
@@ -607,17 +621,11 @@
           <div>
             <div class="prepStepHeader">
               <h3>Reset</h3>
-              <p>Clear the current preparation to start from a blank slate.</p>
             </div>
             <div class="prepStepBody">
-              <div class="sectionHeader">
-                <div>
-                  <h3>Start from scratch</h3>
-                  <p>Clears local zones, imported data and empties the radar visual.</p>
-                </div>
-              </div>
+              <p>Clears local zones, imported data and empties the radar visual.</p>
               <div class="secondaryActions">
-                <button id="resetLocalBase" class="danger" type="button">Reset preparation</button>
+                <button id="resetLocalBase" class="danger" type="button">Erase all data</button>
               </div>
               <p class="actionNote dangerNote">This action does not affect source files on your machine.</p>
             </div>
@@ -663,66 +671,6 @@
           </div>
         </div>
 
-        <div class="prepStep">
-          <div class="prepStepNumber">2</div>
-          <div>
-            <div class="prepStepHeader">
-              <h3>Edit zone</h3>
-            </div>
-            <div class="prepStepBody">
-              <label>Selected zone</label>
-              <input id="id" disabled class="mono">
-              <label>Display name / structure</label>
-              <input id="name" list="startupSuggestions" placeholder="Structure name">
-              <button id="confirmAssociation" class="confirmAssociationBtn" type="button">Confirm association</button>
-              <p id="associationStatus" class="associationStatus">Association to confirm</p>
-              <label>URL</label>
-              <input id="url" placeholder="https://...">
-              <label>Logo (URL or data URI)</label>
-              <input id="logo" placeholder="https://.../logo.png or data:image/...">
-              <label>Short description</label>
-              <textarea id="description" rows="3" placeholder="Description shown in popup"></textarea>
-              <label>Shape</label>
-              <select id="shape">
-                <option value="rect">Rectangle</option>
-                <option value="diamond">Diamond</option>
-                <option value="circle">Circle</option>
-                <option value="poly">Polygon</option>
-              </select>
-              <div class="row">
-                <div><label>X</label><input id="x" type="number" step="1"></div>
-                <div><label>Y</label><input id="y" type="number" step="1"></div>
-                <div><label>Width</label><input id="w" type="number" step="1"></div>
-                <div><label>Height</label><input id="h" type="number" step="1"></div>
-              </div>
-              <label>Polygon points, format x,y x,y ...</label>
-              <textarea id="points" rows="4" class="mono"></textarea>
-              <div class="primaryAction">
-                <button id="apply" class="primary">Save zone</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="prepStep">
-          <div class="prepStepNumber">3</div>
-          <div>
-            <div class="prepStepHeader">
-              <h3>Actions</h3>
-            </div>
-            <div class="prepStepBody">
-              <div class="secondaryActions compact">
-                <button id="duplicate">Duplicate</button>
-                <button id="clearUrl">Clear URL</button>
-                <button id="delete" class="danger">Delete</button>
-              </div>
-              <div class="secondaryActions" style="margin-top:8px">
-                <button id="saveLocal">Save locally</button>
-                <button id="resetAuto" class="danger" title="Restores the bundled sample zones and removes local edits.">Restore example</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -754,8 +702,9 @@
               </select>
               <label>Exported experience</label>
               <select id="cfgExportExperience">
-                <option value="visual">Simple: radar + popups on click</option>
-                <option value="interface">Interface: radar + search and filters</option>
+                <option value="basic">Basic: radar + popups</option>
+                <option value="simple">Simple: radar + popups + search (startup name or description)</option>
+                <option value="advanced">Advanced: radar + popups + search and filtering</option>
               </select>
               <label>HTML export filename</label>
               <input id="cfgHtmlName" value="clickable_radar.html">
@@ -763,32 +712,18 @@
               <input id="cfgExportTitle" value="Clickable radar">
               <label>Hosted HTML URL, for iframe snippet</label>
               <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
-            </div>
-          </div>
-        </div>
-
-        <div class="prepStep">
-          <div class="prepStepNumber">2</div>
-          <div>
-            <div class="prepStepHeader">
-              <h3>Summary</h3>
-            </div>
-            <div class="prepStepBody">
-              <div class="exportPreview publishSummary">
-                <div id="previewTitle" class="previewTitle">Clickable radar</div>
-                <div class="previewRow"><span>Format</span><span id="previewExportMode" class="previewValue">Standalone page</span></div>
-                <div class="previewRow"><span>Experience</span><span id="previewExportExperience" class="previewValue">Visual only</span></div>
-                <div class="previewRow"><span>File</span><span id="previewHtmlName" class="previewValue">clickable_radar.html</span></div>
-                <div class="previewRow"><span>Image</span><span id="previewImageSize" class="previewValue">1280 x 720</span></div>
-                <div class="previewRow"><span>Zones</span><span id="previewZoneCount" class="previewValue">0</span></div>
-                <div class="previewRow"><span>Zones with URL</span><span id="previewUrlCount" class="previewValue">0</span></div>
+              <div class="primaryAction">
+                <button id="exportHtml" class="primary" type="button">Export Clickable Radar</button>
+              </div>
+              <div class="secondaryActions">
+                <button id="exportJson" type="button">Export database for backup</button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="prepStep">
-          <div class="prepStepNumber">3</div>
+          <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
               <h3>Appearance</h3>
@@ -833,24 +768,6 @@
           </div>
         </div>
 
-        <div class="prepStep">
-          <div class="prepStepNumber">4</div>
-          <div>
-            <div class="prepStepHeader">
-              <h3>Generate</h3>
-            </div>
-            <div class="prepStepBody">
-              <div class="primaryAction">
-                <button id="exportHtml" class="primary" type="button">Export in chosen format</button>
-              </div>
-              <div class="secondaryActions compact">
-                <button id="copyEmbedSnippet" type="button">Copy snippet</button>
-                <button id="downloadStandaloneHtml" type="button">Download standalone page</button>
-                <button id="exportJson" type="button">Export JSON</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -948,14 +865,15 @@ const q = id => document.getElementById(id);
 radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
-  initPanel:{label:'Prepare', hint:'Prepare: import radar visual + structure data, then run local or LLM detection.'},
-  editPanel:{label:'Edit', hint:'Edit: adjust zone geometry, assign structure data, and validate associations.'},
-  exportPanel:{label:'Export', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
+  initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import radar visual and data and generate the clickable zones.'},
+  editPanel:{label:'Edit', title:'Zones edition', hint:'Adjust zone geometry, add or remove zones. Edit zone content by double-clicking.'},
+  exportPanel:{label:'Export', title:'Export the clickable radar', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
 let zoneStatusFilter = 'all';
 let zoneStructureFilter = 'all';
+let duplicateZoneIdsCache = new Set();
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function zoneById(id){ return zones.find(z => z.id === id); }
@@ -1013,10 +931,11 @@ function shapeEl(z){
   el.classList.add(z.dataConfirmed || z.associationConfirmed ? 'confirmed' : 'pending');
   if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound!==false) el.classList.add('prevalidated');
   if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound===false) el.classList.add('unmatched');
+  if(duplicateZoneIdsCache.has(z.id) && !(z.dataConfirmed || z.associationConfirmed)) el.classList.add('multiassigned');
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
-  if(isEditMode() && !zoneMatchesFilter(z)) el.classList.add('zone-filtered-out');
+  if((isEditMode() || isExportMode()) && !zoneMatchesFilter(z)) el.classList.add('zone-filtered-out');
   el.dataset.id = z.id;
   el.addEventListener('pointerdown', startMove);
   el.addEventListener('click', showExportLivePopup);
@@ -1054,6 +973,7 @@ function shapeEl(z){
 }
 function render(){
   applyExportRenderConfig();
+  duplicateZoneIdsCache=duplicateZoneIdSet();
   svg.innerHTML = '';
   zones.forEach(z => svg.appendChild(shapeEl(z)));
   const z = zoneById(selectedId);
@@ -1089,6 +1009,7 @@ function renderHandles(z){
   }
 }
 function fillForm(z){
+  if(!q('id')) return;
   q('id').value=z.id; q('name').value=z.name||''; q('url').value=z.url||''; q('logo').value=z.logo||''; q('description').value=z.description||''; q('shape').value=z.shape||'rect';
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
@@ -1141,11 +1062,14 @@ function updateEditLogoZoom(){
   const zoomW=zoom.offsetWidth||canvas.width+16;
   zoom.style.left=Math.max(8, popLeft-zoomW-10)+'px';
 }
+function duplicateZoneIdSet(){
+  return new Set(duplicateAssociations().flatMap(group=>group.zones.map(zone=>zone.id)));
+}
 function zoneMatchesFilter(z){
   if(zoneStatusFilter==='all') return true;
   if(zoneStatusFilter==='confirmed') return !!(z.dataConfirmed || z.associationConfirmed);
-  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && z.llmFound!==false && !(z.dataConfirmed||z.associationConfirmed));
-  if(zoneStatusFilter==='unmatched') return !!(z.llmPrevalidated && z.llmFound===false && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='multiassigned') return duplicateZoneIdsCache.has(z.id);
   if(zoneStatusFilter==='todo') return !(z.dataConfirmed||z.associationConfirmed||z.llmPrevalidated);
   return true;
 }
@@ -1221,8 +1145,7 @@ function confirmAssociation(prefix=''){
   const z=zoneById(selectedId);
   if(!z) return;
   applyStartupRecordToInputs(prefix);
-  if(prefix === 'editPopup') applyEditPopup();
-  else applyForm();
+  applyEditPopup();
   const updated=zoneById(selectedId);
   if(!updated) return;
   const matchedRecord=findStartupRecord(updated.name);
@@ -1232,8 +1155,7 @@ function confirmAssociation(prefix=''){
   updated.llmPrevalidated=false;
   updated.confirmedAt=new Date().toISOString();
   render();
-  if(prefix === 'editPopup') fillEditPopup(updated);
-  else fillForm(updated);
+  fillEditPopup(updated);
   if(prefix === 'editPopup') hideEditZonePopup();
 }
 function zoneMatchesStructureFilter(z, dupeIds){
@@ -1252,9 +1174,36 @@ function renderList(){
     zoneMatchesStructureFilter(z, dupeIds)
   ).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    const pill = z.dataConfirmed || z.associationConfirmed ? 'confirmed' : z.llmPrevalidated ? (z.llmFound===false ? 'unmatched' : 'pre-validated LLM') : 'to confirm';
-    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${pill}</span>`;
+    const pill = z.dataConfirmed || z.associationConfirmed ? 'confirmed' : dupeIds.has(z.id) ? 'multi-assigned' : z.llmPrevalidated ? 'LLM guess' : 'unassigned';
+    d.innerHTML = `<span class="itemMain">${escapeHtml(z.name || z.id)}</span><span class="itemRight"><span class="pill">${pill}</span><button type="button" class="itemEditBtn">Edit</button></span>`;
     d.onclick=()=>{selectedId=z.id; render();};
+    const zoneElement=()=>Array.from(svg.querySelectorAll('.zone')).find(el=>el.dataset.id===z.id) || null;
+    d.ondblclick=e=>{
+      e.preventDefault();
+      selectedId=z.id;
+      render();
+      showEditZonePopup({
+        currentTarget: zoneElement(),
+        preventDefault:()=>{},
+        stopPropagation:()=>{},
+        clientX:stage.getBoundingClientRect().left + 24,
+        clientY:stage.getBoundingClientRect().top + 24,
+        target:e.target
+      });
+    };
+    d.querySelector('.itemEditBtn').onclick=e=>{
+      e.stopPropagation();
+      selectedId=z.id;
+      render();
+      showEditZonePopup({
+        currentTarget: zoneElement(),
+        preventDefault:()=>{},
+        stopPropagation:()=>{},
+        clientX:stage.getBoundingClientRect().left + 24,
+        clientY:stage.getBoundingClientRect().top + 24,
+        target:e.target
+      });
+    };
     q('zoneList').appendChild(d);
   });
   renderPendingCsvList();
@@ -1721,7 +1670,6 @@ function startMove(e){
   drag={type:'move', id:selectedId, sx:p.x, sy:p.y, ox:z.x, oy:z.y, pts:(z.points||[]).map(p=>({...p}))};
   svg.setPointerCapture(e.pointerId);
   refreshZoneSelectionStyles();
-  fillForm(z);
   renderList();
   updateShapeButtons();
 }
@@ -1766,22 +1714,6 @@ stage.addEventListener('click', e=>{
   if(e.target.closest?.('.zone') || e.target.closest?.('#exportLivePopup')) return;
   hideExportLivePopup();
 });
-function applyForm(){
-  if(!isEditMode()) return;
-  let z=zoneById(selectedId); if(!z) return;
-  z.name=q('name').value.trim() || z.id; z.url=q('url').value.trim(); z.logo=q('logo').value.trim(); z.description=q('description').value.trim();
-  const old=z.shape; z.shape=q('shape').value;
-  z.x=clamp(Number(q('x').value)||0,0,IMG_W); z.y=clamp(Number(q('y').value)||0,0,IMG_H);
-  z.w=clamp(Number(q('w').value)||20,4,IMG_W-z.x); z.h=clamp(Number(q('h').value)||20,4,IMG_H-z.y);
-  if(z.shape==='poly'){
-    const pts = q('points').value.trim().split(/\s+/).map(s=>s.split(',').map(Number)).filter(a=>a.length===2 && a.every(Number.isFinite)).map(([x,y])=>({x:clamp(x,0,IMG_W),y:clamp(y,0,IMG_H)}));
-    if(pts.length>=3) z.points=pts; else if(old!=='poly') z.points=[];
-    ensurePoly(z); Object.assign(z,boundsFromPoints(z.points));
-  } else { z.points=[]; }
-  render();
-}
-q('apply').onclick=applyForm;
-['name','url','logo','description','shape','x','y','w','h','points'].forEach(id=>q(id).addEventListener('change',applyForm));
 q('editPopupApply').onclick=()=>validateEditPopup();
 q('editPopupClose').onclick=hideEditZonePopup;
 q('editZonePopup').addEventListener('keydown',e=>{
@@ -1806,14 +1738,7 @@ document.querySelectorAll('#structureFilter .structFilterBtn').forEach(btn=>{
     renderList();
   });
 });
-q('confirmAssociation').onclick=()=>confirmAssociation('');
 q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
-q('name').addEventListener('change',()=>{ if(applyStartupRecordToInputs('')) applyForm(); });
-q('name').addEventListener('keydown',e=>{
-  if(e.key !== 'Enter') return;
-  e.preventDefault();
-  confirmAssociation('');
-});
 q('editPopupName').setAttribute('role','combobox');
 q('editPopupName').setAttribute('aria-autocomplete','list');
 q('editPopupName').setAttribute('aria-expanded','false');
@@ -1851,13 +1776,15 @@ q('editPopupName').addEventListener('keydown',e=>{
   validateAndAdvance({preferSuggestion:true});
 });
 q('uploadRadarVisual').onclick=()=>q('radarUpload').click();
+q('uploadRadarPptx').onclick=()=>q('radarPptxUpload').click();
 q('uploadStructureData').onclick=()=>q('startupDataFile').click();
 q('startupDataFile').onchange=async e=>{
   const file=e.target.files[0];
   if(!file) return;
   try{
-    if(/\.xlsx?$/.test(file.name.toLowerCase())){
-      throw new Error('XLS/XLSX parsing is not built in yet. Please export this sheet to CSV and import again.');
+    const lowerName=file.name.toLowerCase();
+    if(/\.xlsx$/.test(lowerName)){
+      throw new Error('XLSX parsing is not built in yet. Please export this sheet to CSV or XLS and import again.');
     }
     startupRecords=parseStartupRecords(await file.text(), file.name);
     if(!startupRecords.length) throw new Error('No usable row found. Add at least one name/startup column.');
@@ -1929,6 +1856,8 @@ function selectWorkflowTab(tabId){
   document.querySelectorAll('.tabPanel').forEach(panel=>panel.classList.toggle('active', panel.id === tabId));
   const hint=q('modeHint');
   if(hint) hint.textContent = MODE_COPY[tabId]?.hint || '';
+  const title=q('zoneToolsTitle');
+  if(title) title.childNodes[0].textContent = `${MODE_COPY[tabId]?.title || 'Radar and Zones'} `;
   const badge=q('modeBadge');
   if(badge) badge.textContent = MODE_COPY[tabId]?.label || '';
   render();
@@ -2022,34 +1951,52 @@ function updateExportPreview(){
     imagemap:'Image map without script'
   };
   const experienceLabels = {
-    visual:'Visual only',
-    interface:'Visual and interface'
+    basic:'Basic',
+    simple:'Simple',
+    advanced:'Advanced'
   };
   q('previewTitle').textContent = q('cfgExportTitle').value || 'Clickable radar';
   q('previewExportMode').textContent = modeLabels[mode] || modeLabels.standalone;
-  q('previewExportExperience').textContent = experienceLabels[getExportExperience()] || experienceLabels.visual;
+  q('previewExportExperience').textContent = experienceLabels[getExportExperience()] || experienceLabels.basic;
   q('previewHtmlName').textContent = q('cfgHtmlName').value || 'clickable_radar.html';
   q('previewImageSize').textContent = `${IMG_W} x ${IMG_H}`;
   q('previewZoneCount').textContent = String(zones.length);
   q('previewUrlCount').textContent = String(zones.filter(z=>z.url).length);
 }
 function getExportMode(){ return q('cfgExportMode')?.value || 'standalone'; }
-function getExportExperience(){ return q('cfgExportExperience')?.value || 'visual'; }
+function normalizeExportExperience(value){
+  const raw=String(value||'').trim().toLowerCase();
+  if(raw==='visual') return 'basic';
+  if(raw==='interface') return 'advanced';
+  if(raw==='basic' || raw==='simple' || raw==='advanced') return raw;
+  return 'basic';
+}
+function getExportExperience(){ return normalizeExportExperience(q('cfgExportExperience')?.value); }
 function getDetectionConfig(){
   return {
-    contrast:Number(q('cfgContrast').value)||34,
-    minArea:Number(q('cfgMinArea').value)||45,
-    maxArea:Number(q('cfgMaxArea').value)||15000,
-    padding:Number(q('cfgPadding').value)||0,
-    mergeGap:Number(q('cfgMergeGap').value)||0,
-    maxRatio:Number(q('cfgMaxRatio').value)||12
+    contrast:58,
+    minArea:35,
+    maxArea:18000,
+    padding:6,
+    mergeGap:18,
+    maxRatio:14
   };
 }
-function buildProjectJson(source){
+function buildProjectJson(source, options={}){
+  const includeImageData = options.includeImageData !== false;
   return {
     schema:'wavestone-radar-mapper-v1',
     source,
-    image:{ width:IMG_W, height:IMG_H, dataUrl:IMAGE_DATA },
+    image:{
+      width:IMG_W,
+      height:IMG_H,
+      dataUrl: includeImageData ? IMAGE_DATA : '[image attached separately]'
+    },
+    imageAttachment:{
+      required:true,
+      expectedContent:'The same radar visual used to generate this JSON',
+      coordinateSystem:'Pixel coordinates in the image space, origin at top-left (0,0)'
+    },
     config:getDetectionConfig(),
     llmInstructions:{
       goal:'Identify organizations/logos visible in the radar, match each zone to the correct name, and complete the fields without changing the schema.',
@@ -2110,11 +2057,10 @@ async function importProjectJson(text){
   } else {
     if(data.image?.dataUrl && /^data:image\//.test(data.image.dataUrl)){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
     zones=data.zones || [];
-    if(data.config){
-      Object.entries({cfgContrast:'contrast',cfgMinArea:'minArea',cfgMaxArea:'maxArea',cfgPadding:'padding',cfgMergeGap:'mergeGap',cfgMaxRatio:'maxRatio'}).forEach(([id,key])=>{ if(data.config[key] !== undefined) q(id).value=data.config[key]; });
-    }
+    // Legacy project files may include local-detection config values.
+    // They are ignored because local detection is no longer used.
     if(data.exportRender) setExportRenderConfig(data.exportRender);
-    if(data.exportExperience && q('cfgExportExperience')) q('cfgExportExperience').value=data.exportExperience;
+    if(data.exportExperience && q('cfgExportExperience')) q('cfgExportExperience').value=normalizeExportExperience(data.exportExperience);
     if(Array.isArray(data.startupRecords)){
       startupRecords=data.startupRecords.map(row=>startupRecordFromObject(row) || row).filter(row=>row?.name);
       persistStartupRecords();
@@ -2247,24 +2193,18 @@ function imagePayload(){
   const mediaType=(header.match(/data:([^;]+)/)||[])[1] || 'image/png';
   return {mediaType,data};
 }
-function llmPrompt(candidateZones=[], textCandidates=[]){
-  const skeleton=buildProjectJson('llm_detourage_request');
+function llmPrompt(candidateZones=[]){
+  const skeleton=buildProjectJson('llm_detourage_request',{includeImageData:false});
   const extraInstructions=(q('llmExtraInstructions')?.value || '').trim();
-  skeleton.image.dataUrl='[image attached separately]';
   skeleton.zones=candidateZones;
-  skeleton.localDetection={
-    note:'These zones come from local canvas detection. Use them as the primary geometric base.',
-    candidateCount:candidateZones.length,
-    browserTextCandidates:textCandidates
-  };
-  return `You are a mapping assistant for RadarMapper.
-Analyze the radar image and the JSON below. The goal is to detect logos/startups in the radar and perform OCR/mapping via LLM.
+  return `Analyze the radar image and the JSON below, then return an updated JSON.
 Expected language: ${{fr:'French',de:'German'}[getAiConfig().language] || 'English'}.
 
 Expected method:
-- start from the candidate zones provided in zones: they contain pixel coordinates calculated locally;
-- only correct obvious shape, merge or split errors;
-- recognize the names visible in each zone from the image;
+- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
+- create new zones only when a visible company/product logo is missing from the candidate set;
+- update geometry when needed so zones closely fit logo boundaries;
+- recognize names visible in the image and map them to structure data when possible;
 - use startupRecords as the CSV structure reference when provided;
 - complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords;
 - keep a candidate zone even if its name remains uncertain.
@@ -2288,7 +2228,6 @@ ${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : 
 }
 function externalLlmInstructions(){
   return [
-    'You are assisting with RadarMapper mapping.',
     'Task: detect logos, run OCR, adjust zones, and map each zone to the correct structure record when possible.',
     'Output: return only valid JSON matching the provided schema.',
     '',
@@ -2429,34 +2368,28 @@ q('runAiMapping').onclick=async()=>{
   if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Azure OpenAI endpoint and deployment required.'); return; }
   q('analysisLog').value='';
   clearLlmInAppTrace();
-  setLlmInAppHint('preparing local candidates');
+  setLlmInAppHint('preparing candidate zones');
   appendLlmInAppTrace('LLM run started.');
   appendLlmInAppTrace(`Provider=${cfg.provider} | Model=${cfg.model}`);
-  logAnalysis(`Local pre-detection started.`);
   try{
     q('runAiMapping').disabled=true;
     q('runAiMapping').textContent='Running LLM...';
     setLlmInAppStatus('LLM status: running analysis...','success');
-    const local=await createDetectedZones();
-    setLlmInAppHint('local candidate detection completed');
-    appendLlmInAppTrace(`Local components: ${local.components.length}`);
-    appendLlmInAppTrace(`Local candidate zones: ${local.zones.length}`);
-    const candidateZones=local.zones.length ? local.zones : structuredClone(zones);
+    const candidateZones=zones.length ? structuredClone(zones) : [];
     if(!candidateZones.length){
-      setLlmInAppHint('failed: no candidate zone detected');
-      appendLlmInAppTrace('No candidate zone detected. Stopping.');
-      logAnalysis('No candidate zone detected: LLM detection stopped.');
-      alert('No candidate zone detected locally. Adjust detection settings or load a clearer image.');
+      setLlmInAppHint('failed: no candidate zone available');
+      appendLlmInAppTrace('No candidate zone available. Stopping.');
+      logAnalysis('No candidate zone available: LLM detection stopped.');
+      alert('No candidate zone available. Import a zone JSON or create zones in Edit mode before running LLM detection.');
       return;
     }
-    if(!local.zones.length) logAnalysis('No new local zones: using existing zones as LLM candidates.');
     zones=candidateZones;
     selectedId=zones[0]?.id||null;
     render();
-    logAnalysis(`${local.components.length} visual component(s), ${candidateZones.length} candidate zone(s) sent to LLM.`);
+    logAnalysis(`${candidateZones.length} candidate zone(s) sent to LLM.`);
     logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
-    const prompt=llmPrompt(candidateZones, local.textCandidates);
+    const prompt=llmPrompt(candidateZones);
     appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
     appendLlmInAppTrace('Raw LLM response received.');
@@ -2495,6 +2428,170 @@ function setRadarImage(dataUrl,width,height){
 function fileToDataUrl(file){
   return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); });
 }
+let jsZipLoaderPromise = null;
+function loadScriptOnce(src){
+  return new Promise((resolve,reject)=>{
+    const existing=document.querySelector(`script[data-src="${src}"]`);
+    if(existing){
+      if(existing.dataset.loaded==='1'){ resolve(); return; }
+      existing.addEventListener('load',()=>resolve(),{once:true});
+      existing.addEventListener('error',()=>reject(new Error(`Failed to load ${src}`)),{once:true});
+      return;
+    }
+    const script=document.createElement('script');
+    script.src=src;
+    script.async=true;
+    script.dataset.src=src;
+    script.onload=()=>{ script.dataset.loaded='1'; resolve(); };
+    script.onerror=()=>reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+  });
+}
+async function ensureJsZip(){
+  if(window.JSZip) return window.JSZip;
+  if(!jsZipLoaderPromise){
+    jsZipLoaderPromise = loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+  await jsZipLoaderPromise;
+  if(!window.JSZip) throw new Error('JSZip unavailable after loading.');
+  return window.JSZip;
+}
+function guessMimeType(path){
+  const p=String(path || '').toLowerCase();
+  if(p.endsWith('.png')) return 'image/png';
+  if(p.endsWith('.jpg') || p.endsWith('.jpeg')) return 'image/jpeg';
+  if(p.endsWith('.webp')) return 'image/webp';
+  if(p.endsWith('.gif')) return 'image/gif';
+  if(p.endsWith('.bmp')) return 'image/bmp';
+  if(p.endsWith('.svg')) return 'image/svg+xml';
+  return 'application/octet-stream';
+}
+async function pickLargestImage(files){
+  let best = null;
+  for(const entry of files){
+    const mime=guessMimeType(entry.name);
+    if(!mime.startsWith('image/')) continue;
+    try{
+      const blob=await entry.async('blob');
+      const dataUrl=await new Promise((resolve,reject)=>{
+        const r=new FileReader();
+        r.onload=()=>resolve(r.result);
+        r.onerror=reject;
+        r.readAsDataURL(blob);
+      });
+      const img=await loadImage(dataUrl);
+      const area=(img.naturalWidth||0)*(img.naturalHeight||0);
+      if(!area) continue;
+      if(!best || area>best.area){
+        best={dataUrl,width:img.naturalWidth,height:img.naturalHeight,area,source:entry.name};
+      }
+    } catch(_err){
+      continue;
+    }
+  }
+  return best;
+}
+async function extractRadarFromPptx(file){
+  const JSZip=await ensureJsZip();
+  const zip=await JSZip.loadAsync(file);
+  const vectorImport=await extractZonesFromPptx(zip).catch(()=>({zones:[],source:'none'}));
+  const thumb=zip.file('docProps/thumbnail.jpeg') || zip.file('docProps/thumbnail.jpg') || zip.file('docProps/thumbnail.png');
+  if(thumb){
+    const mime=guessMimeType(thumb.name);
+    const base64=await thumb.async('base64');
+    const dataUrl=`data:${mime};base64,${base64}`;
+    const img=await loadImage(dataUrl);
+    return {dataUrl,width:img.naturalWidth,height:img.naturalHeight,source:thumb.name,zones:vectorImport.zones,zoneSource:vectorImport.source};
+  }
+  const mediaFiles=Object.values(zip.files).filter(f=>!f.dir && /^ppt\/media\/.+/i.test(f.name));
+  if(!mediaFiles.length) throw new Error('No renderable image found in PPTX (thumbnail or media assets).');
+  const largest=await pickLargestImage(mediaFiles);
+  if(!largest) throw new Error('No usable image found in PPTX media assets.');
+  return {...largest,zones:vectorImport.zones,zoneSource:vectorImport.source};
+}
+function parseXml(xmlText){
+  const doc=new DOMParser().parseFromString(xmlText,'application/xml');
+  if(doc.querySelector('parsererror')) throw new Error('Invalid XML in PPTX.');
+  return doc;
+}
+function resolveZipPath(basePath,target){
+  if(!target) return null;
+  const cleanBase=String(basePath||'').replace(/\\/g,'/');
+  const cleanTarget=String(target).replace(/\\/g,'/');
+  if(cleanTarget.startsWith('/')) return cleanTarget.replace(/^\//,'');
+  const baseParts=cleanBase.split('/');
+  baseParts.pop();
+  for(const part of cleanTarget.split('/')){
+    if(!part || part==='.'){ continue; }
+    if(part==='..') baseParts.pop();
+    else baseParts.push(part);
+  }
+  return baseParts.join('/');
+}
+function emuToPx(value,scale){
+  const n=Number(value||0);
+  if(!Number.isFinite(n)) return 0;
+  return Math.round(n*scale*10)/10;
+}
+function makePptZoneId(index){ return `z${String(Date.now()+index).slice(-8)}${(index%10)}`; }
+async function extractZonesFromPptx(zip){
+  const presentationFile=zip.file('ppt/presentation.xml');
+  const presentationRelsFile=zip.file('ppt/_rels/presentation.xml.rels');
+  if(!presentationFile || !presentationRelsFile) return {zones:[],source:'none'};
+  const presentationDoc=parseXml(await presentationFile.async('text'));
+  const presentationRelsDoc=parseXml(await presentationRelsFile.async('text'));
+  const relById=new Map(Array.from(presentationRelsDoc.querySelectorAll('Relationship')).map(rel=>[rel.getAttribute('Id'), rel.getAttribute('Target')]));
+  const slideRelIds=Array.from(presentationDoc.querySelectorAll('p\\:sldIdLst > p\\:sldId, sldIdLst > sldId')).map(n=>n.getAttribute('r:id')).filter(Boolean);
+  if(!slideRelIds.length) return {zones:[],source:'none'};
+  let slidePath=null;
+  for(const rid of slideRelIds){
+    const target=relById.get(rid);
+    const candidate=resolveZipPath('ppt/presentation.xml', target);
+    if(candidate && zip.file(candidate)){ slidePath=candidate; break; }
+  }
+  if(!slidePath) return {zones:[],source:'none'};
+  const slideDoc=parseXml(await zip.file(slidePath).async('text'));
+  const slideSizeNode=presentationDoc.querySelector('p\\:sldSz, sldSz');
+  const slideCx=Number(slideSizeNode?.getAttribute('cx')) || 9144000;
+  const slideCy=Number(slideSizeNode?.getAttribute('cy')) || 5143500;
+  const nodes=Array.from(slideDoc.querySelectorAll('p\\:sp, p\\:pic, sp, pic'));
+  if(!nodes.length) return {zones:[],source:slidePath};
+  const pxPerEmuX=1280/slideCx;
+  const pxPerEmuY=720/slideCy;
+  const zones=[];
+  for(const node of nodes){
+    const xfrm=node.querySelector('a\\:xfrm, xfrm');
+    const off=xfrm?.querySelector('a\\:off, off');
+    const ext=xfrm?.querySelector('a\\:ext, ext');
+    if(!off || !ext) continue;
+    const x=emuToPx(off.getAttribute('x'), pxPerEmuX);
+    const y=emuToPx(off.getAttribute('y'), pxPerEmuY);
+    const w=emuToPx(ext.getAttribute('cx'), pxPerEmuX);
+    const h=emuToPx(ext.getAttribute('cy'), pxPerEmuY);
+    if(w<8 || h<8) continue;
+    if((w*h) > (1280*720*0.92)) continue;
+    const cNvPr=node.querySelector('p\\:cNvPr, cNvPr');
+    const candidateName=(cNvPr?.getAttribute('name') || '').trim();
+    const isGenericName=/^(shape|rectangle|oval|rounded rectangle|textbox|freeform)\s*\d*$/i.test(candidateName);
+    const zoneName=(!candidateName || isGenericName) ? `zone_${String(zones.length+1).padStart(3,'0')}` : candidateName;
+    const prst=node.querySelector('a\\:prstGeom, prstGeom')?.getAttribute('prst') || '';
+    const isCircle=/ellipse|circle|round/i.test(prst);
+    zones.push({
+      id:makePptZoneId(zones.length+1),
+      name:zoneName,
+      url:'',
+      logo:'',
+      description:'',
+      shape:isCircle?'circle':'rect',
+      x:Math.max(0,Math.round(x)),
+      y:Math.max(0,Math.round(y)),
+      w:Math.round(w),
+      h:Math.round(h),
+      points:[]
+    });
+  }
+  return {zones,source:slidePath};
+}
 function loadImage(dataUrl){
   return new Promise((resolve,reject)=>{ const img=new Image(); img.onload=()=>resolve(img); img.onerror=reject; img.src=dataUrl; });
 }
@@ -2515,147 +2612,33 @@ q('radarUpload').onchange=async e=>{
     e.target.value='';
   }
 };
-function paddedBox(box,pad){
-  const x=clamp(box.x-pad,0,IMG_W), y=clamp(box.y-pad,0,IMG_H);
-  const x2=clamp(box.x+box.w+pad,0,IMG_W), y2=clamp(box.y+box.h+pad,0,IMG_H);
-  return {x,y,w:x2-x,h:y2-y};
-}
-function boxesNear(a,b,gap){
-  return a.x <= b.x+b.w+gap && a.x+a.w+gap >= b.x && a.y <= b.y+b.h+gap && a.y+a.h+gap >= b.y;
-}
-function mergeBoxes(boxes,gap){
-  let changed=true;
-  while(changed){
-    changed=false;
-    outer: for(let i=0;i<boxes.length;i++){
-      for(let j=i+1;j<boxes.length;j++){
-        if(boxesNear(boxes[i],boxes[j],gap)){
-          const x=Math.min(boxes[i].x,boxes[j].x), y=Math.min(boxes[i].y,boxes[j].y);
-          const x2=Math.max(boxes[i].x+boxes[i].w,boxes[j].x+boxes[j].w), y2=Math.max(boxes[i].y+boxes[i].h,boxes[j].y+boxes[j].h);
-          boxes[i]={x,y,w:x2-x,h:y2-y,area:(boxes[i].area||0)+(boxes[j].area||0)};
-          boxes.splice(j,1); changed=true; break outer;
-        }
-      }
-    }
-  }
-  return boxes;
-}
-function boxDensity(box){ return (box.area || (box.w*box.h)) / Math.max(1, box.w*box.h); }
-function normalizeDetectedBoxes(boxes,cfg){
-  const padded = boxes
-    .filter(b=>boxDensity(b) > 0.015)
-    .map(b=>paddedBox(b,cfg.padding));
-  const firstPass = mergeBoxes(padded,cfg.mergeGap);
-  const secondPass = mergeBoxes(firstPass.map(b=>({...b})),Math.max(2,Math.round(cfg.mergeGap/2)));
-  return secondPass
-    .filter(b=>b.w*b.h>=cfg.minArea)
-    .filter(b=>b.w*b.h<=cfg.maxArea*10)
-    .filter(b=>b.w<IMG_W*.65 && b.h<IMG_H*.45)
-    .sort((a,b)=>a.y-b.y || a.x-b.x);
-}
-function inferInitialShape(box){
-  const ratio = box.w / Math.max(1, box.h);
-  if(ratio > .82 && ratio < 1.22 && box.w > 18 && box.h > 18) return 'circle';
-  return 'rect';
-}
-function detectConnectedComponents(imageData,cfg){
-  const {width,height,data}=imageData;
-  const total=width*height, mask=new Uint8Array(total), seen=new Uint8Array(total);
-  for(let i=0,p=0;i<total;i++,p+=4){
-    const r=data[p],g=data[p+1],b=data[p+2],a=data[p+3];
-    const lightness=(r+g+b)/3;
-    const colorSpread=Math.max(r,g,b)-Math.min(r,g,b);
-    const contrast=Math.max(255-r,255-g,255-b,colorSpread);
-    if(a>20 && lightness<248 && (contrast>=cfg.contrast || colorSpread>22)) mask[i]=1;
-  }
-  const boxes=[];
-  const stack=[];
-  for(let i=0;i<total;i++){
-    if(!mask[i] || seen[i]) continue;
-    let minX=width, minY=height, maxX=0, maxY=0, area=0;
-    seen[i]=1; stack.push(i);
-    while(stack.length){
-      const idx=stack.pop(), x=idx%width, y=(idx/width)|0;
-      area++; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y;
-      const neighbors=[idx-1,idx+1,idx-width,idx+width];
-      for(const n of neighbors){
-        if(n<0||n>=total||seen[n]||!mask[n]) continue;
-        if((n===idx-1 && x===0)||(n===idx+1 && x===width-1)) continue;
-        seen[n]=1; stack.push(n);
-      }
-    }
-    const w=maxX-minX+1, h=maxY-minY+1, ratio=Math.max(w/h,h/w);
-    if(area>=cfg.minArea && area<=cfg.maxArea && w>2 && h>2 && ratio<=cfg.maxRatio){ boxes.push({x:minX,y:minY,w,h,area}); }
-  }
-  return boxes;
-}
-async function detectTextWithBrowserApi(){
-  if(!('TextDetector' in window)) return [];
+q('radarPptxUpload').onchange=async e=>{
+  const file=e.target.files[0]; if(!file) return;
   try{
-    const detector=new TextDetector();
-    const results=await detector.detect(radarImg);
-    return results.map(r=>({text:r.rawValue||'', box:{x:r.boundingBox.x,y:r.boundingBox.y,w:r.boundingBox.width,h:r.boundingBox.height}}));
+    const extracted=await extractRadarFromPptx(file);
+    setRadarImage(extracted.dataUrl, extracted.width, extracted.height);
+    zones=Array.isArray(extracted.zones) ? extracted.zones : [];
+    selectedId=zones[0]?.id || null;
+    render();
+    q('analysisLog').value='';
+    setInitStatus(`PPTX imported successfully: ${file.name} (${IMG_W}x${IMG_H}, image: ${extracted.source}, zones: ${zones.length}). ${importSummaryLine()}`,'success');
+    logAnalysis(`Radar image extracted from PPTX: ${file.name} -> ${extracted.source} (${IMG_W}x${IMG_H}).`);
+    if(extracted.zoneSource && extracted.zoneSource!=='none') logAnalysis(`Vector zones imported from ${extracted.zoneSource}: ${zones.length} zone(s).`);
   } catch(err){
-    logAnalysis(`Browser OCR unavailable: ${err.message}`);
-    return [];
+    setInitStatus(`PPTX import failed: ${err.message}`,'error');
+    alert(`PPTX import failed: ${err.message}`);
+  } finally {
+    e.target.value='';
   }
-}
-async function createDetectedZones(){
-  const cfg=getDetectionConfig();
-  const canvas=document.createElement('canvas'); canvas.width=IMG_W; canvas.height=IMG_H;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});
-  ctx.drawImage(radarImg,0,0,IMG_W,IMG_H);
-  const components=detectConnectedComponents(ctx.getImageData(0,0,IMG_W,IMG_H),cfg);
-  const boxes=normalizeDetectedBoxes(components,cfg);
-  const textCandidates=await detectTextWithBrowserApi();
-  const detectedZones=boxes.map((b,i)=>{
-    const text=textCandidates.find(t=>boxesNear(b,t.box,8))?.text || '';
-    const shape=inferInitialShape(b);
-    return {
-      id:`z${String(i+1).padStart(3,'0')}`,
-      name:text||`zone_${String(i+1).padStart(3,'0')}`,
-      url:'',
-      logo:'',
-      description:'',
-      shape,
-      x:fmt(b.x),
-      y:fmt(b.y),
-      w:fmt(b.w),
-      h:fmt(b.h),
-      points:[],
-      ocrCandidate:text,
-      confidence:text?0.35:0,
-      llmPrevalidated:false,
-      dataConfirmed:false,
-      associationConfirmed:false
-    };
-  });
-  return {cfg, components, boxes, textCandidates, zones:detectedZones};
-}
-q('detectZones').onclick=async()=>{
-  q('analysisLog').value='';
-  logAnalysis('Local analysis started.');
-  const result=await createDetectedZones();
-  logAnalysis(`${result.components.length} visual component(s) detected before merging.`);
-  if(!result.zones.length){
-    logAnalysis('No zone detected: existing zones are kept.');
-    return;
-  }
-  zones=result.zones;
-  const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
-  selectedId=zones[0]?.id||null; render();
-  logAnalysis(`${zones.length} initial zone(s) created.`);
-  if(linked) logAnalysis(`${linked} zone(s) enriched from imported startup data.`);
-  logAnalysis(result.textCandidates.length ? `${result.textCandidates.length} text candidate(s) detected by experimental browser API.` : 'Native OCR unavailable: generic names to be completed via LLM.');
 };
-q('exportInitJson').onclick=()=>download('radar_initialization.json', JSON.stringify(buildProjectJson('initialisation'),null,2), 'application/json');
+q('exportInitJson').onclick=()=>download('radar_initialization.json', JSON.stringify(buildProjectJson('initialisation',{includeImageData:false}),null,2), 'application/json');
 q('copyExternalPrompt').onclick=async()=>{
   const instructions=externalLlmInstructions();
-  const promptPayload=llmPrompt(zones.length ? zones : [], []);
+  const promptPayload=llmPrompt(zones.length ? zones : []);
   const text=`${instructions}\n\n--- PROMPT ---\n${promptPayload}`;
   try{
     await navigator.clipboard.writeText(text);
-    setInitStatus('External LLM prompt copied to clipboard.','success');
+    setInitStatus('LLM prompt copied to clipboard.','success');
   } catch(err){
     setInitStatus(`Failed to copy prompt: ${err.message}`,'error');
     alert(`Failed to copy prompt: ${err.message}`);
@@ -2669,13 +2652,8 @@ function makeZone(shape){
   zones.push(z); selectedId=id; render();
 }
 q('addZoneBtn').onclick=()=>makeZone(q('shape')?.value || 'rect');
-q('delete').onclick=()=>{ if(!isEditMode() || !selectedId) return; zones=zones.filter(z=>z.id!==selectedId); selectedId=zones[0]?.id||null; render(); };
-q('duplicate').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(!z) return; const nz=structuredClone(z); nz.id='z'+String(Date.now()).slice(-8); nz.name=(z.name||z.id)+' copy'; nz.x+=12; nz.y+=12; nz.dataConfirmed=false; nz.associationConfirmed=false; delete nz.confirmedAt; if(nz.points) nz.points=nz.points.map(p=>({x:p.x+12,y:p.y+12})); zones.push(nz); selectedId=nz.id; render(); };
-q('clearUrl').onclick=()=>{ if(!isEditMode()) return; const z=zoneById(selectedId); if(z){z.url=''; render();} };
-q('saveLocal').onclick=()=>persistZones({silent:false, reason:'manual'});
-q('resetAuto').onclick=()=>{ if(confirm('Restore bundled sample zones and remove local overlay edits?')){ zones=structuredClone(INITIAL_ZONES); selectedId=zones[0]?.id||null; localStorage.removeItem('radarOverlayZones'); render(); } };
 q('resetLocalBase').onclick=()=>{
-  if(!confirm('Reset preparation? Local zones, imported data and the current visual will be cleared for this browser.')) return;
+  if(!confirm('Erase all data? This will clear local zones, imported data, and the current radar visual in this browser.')) return;
   zones=[];
   selectedId=null;
   startupRecords=[];
@@ -2685,6 +2663,7 @@ q('resetLocalBase').onclick=()=>{
   refreshStartupSuggestions();
   updateStartupImportStatus('No structure file imported.');
   q('radarUpload').value='';
+  q('radarPptxUpload').value='';
   q('startupDataFile').value='';
   q('importFile').value='';
   q('analysisLog').value='';
@@ -2739,7 +2718,14 @@ window.addEventListener('keydown', e=>{
     renderList();
     return;
   }
-  else if(e.key==='Delete' || e.key==='Backspace'){ if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return; q('delete').click(); return; } else return;
+  else if(e.key==='Delete' || e.key==='Backspace'){
+    if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
+    e.preventDefault();
+    zones=zones.filter(item=>item.id!==selectedId);
+    selectedId=zones[0]?.id||null;
+    render();
+    return;
+  } else return;
   if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
   e.preventDefault(); z.x=clamp(z.x+dx,0,IMG_W-z.w); z.y=clamp(z.y+dy,0,IMG_H-z.h); if(z.points) z.points=z.points.map(p=>({x:clamp(p.x+dx,0,IMG_W),y:clamp(p.y+dy,0,IMG_H)})); render();
 });
@@ -2759,6 +2745,9 @@ function zoneCadran(z){
   if(cx < IMG_W/2 && cy >= IMG_H/2) return 'Bottom left';
   return 'Bottom right';
 }
+function zoneSector(z){
+  return String(z?.category || z?.sector || zoneCadran(z) || 'Other').trim();
+}
 function zoneSearchText(z){
   return [z.id,z.name,z.url,z.description,z.category,zoneCadran(z),z.searchKeywords,startupKeywords(z)].filter(Boolean).join(' ');
 }
@@ -2775,13 +2764,13 @@ function zoneShapeMarkup(z, cls='click-zone'){
 function svgMarkupForExport(){
   return zones.filter(zoneHasData).map(z=>{
     const dataName=escapeHtml(z.name||z.id); const dataUrl=escapeHtml(safeUrl(z.url));
-    const dataLogo=escapeHtml(z.logo||''); const dataDescription=escapeHtml(z.description||'');
+    const dataLogo=escapeHtml(z.logo||''); const dataDescription=escapeHtml(z.description||''); const dataSector=escapeHtml(zoneSector(z));
     const dataCadran=escapeHtml(zoneCadran(z)); const dataSearch=escapeHtml(zoneSearchText(z));
-    return `<g class="hotspot" data-name="${dataName}" data-url="${dataUrl}" data-logo="${dataLogo}" data-description="${dataDescription}" data-cadran="${dataCadran}" data-search="${dataSearch}" tabindex="0" role="button" aria-label="${dataName}">${zoneShapeMarkup(z)}</g>`;
+    return `<g class="hotspot" data-name="${dataName}" data-url="${dataUrl}" data-logo="${dataLogo}" data-description="${dataDescription}" data-sector="${dataSector}" data-cadran="${dataCadran}" data-search="${dataSearch}" tabindex="0" role="button" aria-label="${dataName}">${zoneShapeMarkup(z)}</g>`;
   }).join('\n');
 }
 function zoneDataAttributes(z){
-  return `data-name="${escapeHtml(z.name||z.id)}" data-url="${escapeHtml(safeUrl(z.url))}" data-logo="${escapeHtml(z.logo||'')}" data-description="${escapeHtml(z.description||'')}" data-cadran="${escapeHtml(zoneCadran(z))}" data-search="${escapeHtml(zoneSearchText(z))}"`;
+  return `data-name="${escapeHtml(z.name||z.id)}" data-url="${escapeHtml(safeUrl(z.url))}" data-logo="${escapeHtml(z.logo||'')}" data-description="${escapeHtml(z.description||'')}" data-sector="${escapeHtml(zoneSector(z))}" data-cadran="${escapeHtml(zoneCadran(z))}" data-search="${escapeHtml(zoneSearchText(z))}"`;
 }
 function svgMarkupForCms(prefix='rm'){
   return zones.filter(zoneHasData).map(z=>{
@@ -2793,26 +2782,29 @@ function svgMarkupForCms(prefix='rm'){
   }).join('\n');
 }
 function safeScriptJson(value){ return JSON.stringify(value).replace(/<\//g,'<\\/'); }
-function exportInterfaceScript(rootSelector, hotspotSelector='.rm-hotspot'){
+function exportInterfaceScript(rootSelector, hotspotSelector='.rm-hotspot', experience='advanced'){
   return `<script>
 (function(){
   const root=document.querySelector('${rootSelector}');
   if(!root) return;
+  const mode='${experience}';
   const search=root.querySelector('[data-rm-search]');
-  const cadran=root.querySelector('[data-rm-cadran]');
+  const sectorButtons=Array.from(root.querySelectorAll('[data-rm-sector]'));
   const reset=root.querySelector('[data-rm-reset]');
   const count=root.querySelector('[data-rm-count]');
   const hotspots=Array.from(root.querySelectorAll('${hotspotSelector}'));
+  let activeSector='';
   const apply=()=>{
     const term=(search && search.value ? search.value : '').trim().toLowerCase();
-    const selected=cadran ? cadran.value : '';
-    const active=!!(term || selected);
+    const active=!!(term || activeSector);
     let visible=0;
     hotspots.forEach(hotspot=>{
-      const text=(hotspot.dataset.search || '').toLowerCase();
-      const matchesTerm=!term || text.includes(term);
-      const matchesCadran=!selected || hotspot.dataset.cadran === selected;
-      const ok=matchesTerm && matchesCadran;
+      const name=(hotspot.dataset.name || '').toLowerCase();
+      const description=(hotspot.dataset.description || '').toLowerCase();
+      const sector=(hotspot.dataset.sector || '').toLowerCase();
+      const matchesTerm=!term || name.includes(term) || description.includes(term);
+      const matchesSector=(mode!=='advanced') || !activeSector || sector===activeSector;
+      const ok=matchesTerm && matchesSector;
       hotspot.classList.toggle('rm-match', active && ok);
       hotspot.classList.toggle('rm-dim', active && !ok);
       if(ok) visible++;
@@ -2821,10 +2813,20 @@ function exportInterfaceScript(rootSelector, hotspotSelector='.rm-hotspot'){
     if(count) count.textContent=(active ? visible : hotspots.length)+' zone(s) visible';
   };
   if(search) search.addEventListener('input',apply);
-  if(cadran) cadran.addEventListener('change',apply);
+  if(mode==='advanced' && sectorButtons.length){
+    sectorButtons.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const next=(btn.dataset.rmSector || '').toLowerCase();
+        activeSector = activeSector===next ? '' : next;
+        sectorButtons.forEach(other=>other.classList.toggle('active', (other.dataset.rmSector || '').toLowerCase()===activeSector));
+        apply();
+      });
+    });
+  }
   if(reset) reset.addEventListener('click',()=>{
     if(search) search.value='';
-    if(cadran) cadran.value='';
+    activeSector='';
+    sectorButtons.forEach(btn=>btn.classList.remove('active'));
     apply();
   });
   apply();
@@ -2882,23 +2884,29 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
 }
 function buildStandaloneHtml(){
   const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
-  const body=getExportExperience()==='interface'
-    ? buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true)
-    : buildCmsSnippet('radar', 'layer', true);
+  const experience=getExportExperience();
+  const body=experience==='basic'
+    ? buildCmsSnippet('radar', 'layer', true)
+    : buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true, experience);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
 }
-function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true){
+function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true, experience='advanced'){
   const popupId=`rm-popup-${Date.now().toString(36)}`;
   const cfg=getExportRenderConfig();
   const hoverFill=hexToRgba(cfg.hoverFill,cfg.hoverOpacity);
   const hoverStroke=hexToRgba(cfg.hoverStroke,.85);
-  const cadrans=[...new Set(zones.map(zoneCadran))].sort();
-  const cadranOptions=cadrans.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
-  const css=`.${containerClass}{max-width:${IMG_W}px;margin:24px auto;font-family:Arial,Helvetica,sans-serif;line-height:1.35;color:#12314a}.${containerClass} *{box-sizing:border-box}.${containerClass} .rm-controls{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto auto;gap:10px;align-items:end;margin:0 0 12px;padding:12px;border:1px solid #d7e7ef;border-radius:10px;background:#f7fbfb}.${containerClass} .rm-control{display:grid;gap:4px;font-size:12px;font-weight:700;color:#314b61}.${containerClass} input,.${containerClass} select{width:100%;min-height:38px;padding:8px 10px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font:inherit}.${containerClass} button{min-height:38px;padding:8px 12px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font-weight:700;cursor:pointer}.${containerClass} .rm-count{font-size:12px;font-weight:800;color:#0b7582;white-space:nowrap;padding:10px 0}.${containerClass} .rm-canvas{position:relative;isolation:isolate}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.${containerClass} .rm-hotspot{cursor:pointer;outline:none}.${containerClass} .rm-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all;transition:fill .15s ease,stroke .15s ease,opacity .15s ease}.${containerClass} .rm-hotspot:hover .rm-zone,.${containerClass} .rm-hotspot:focus .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass}.rm-filtering .rm-hotspot.rm-match .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${Math.max(cfg.hoverStrokeWidth,2)}}.${containerClass}.rm-filtering .rm-hotspot.rm-dim .rm-zone{fill:rgba(108,122,137,.18);stroke:rgba(108,122,137,.58);stroke-width:1.5}.${containerClass} .rm-popup{position:absolute;z-index:4;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:${cfg.popupFontSize}px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}@media(max-width:720px){.${containerClass}{margin:16px auto}.${containerClass} .rm-controls{grid-template-columns:1fr}.${containerClass} .rm-count{padding:0}}`;
+  const sectors=[...new Set(zones.filter(zoneHasData).map(zoneSector))].sort((a,b)=>a.localeCompare(b));
+  const sectorCounts=Object.fromEntries(sectors.map(sector=>[sector, zones.filter(z=>zoneHasData(z) && zoneSector(z)===sector).length]));
+  const sectorButtons=sectors.map(sector=>`<button type="button" class="rm-sector-btn" data-rm-sector="${escapeHtml(sector)}">${escapeHtml(sector)} <span class="rm-sector-count">${sectorCounts[sector]}</span></button>`).join('');
+  const controlsClass=experience==='advanced' ? 'rm-controls rm-controls-advanced' : 'rm-controls';
+  const controlsHtml=experience==='advanced'
+    ? `<div class="${controlsClass}" aria-label="Radar controls"><label class="rm-control">Search<input type="search" data-rm-search placeholder="Search by startup name or description"></label><button type="button" data-rm-reset>Reset</button><span class="rm-count" data-rm-count></span><div class="rm-sector-filters">${sectorButtons}</div></div>`
+    : `<div class="${controlsClass}" aria-label="Radar controls"><label class="rm-control">Search<input type="search" data-rm-search placeholder="Search by startup name or description"></label><button type="button" data-rm-reset>Reset</button><span class="rm-count" data-rm-count></span></div>`;
+  const css=`.${containerClass}{max-width:${IMG_W}px;margin:24px auto;font-family:Arial,Helvetica,sans-serif;line-height:1.35;color:#12314a}.${containerClass} *{box-sizing:border-box}.${containerClass} .rm-controls{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:10px;align-items:end;margin:0 0 12px;padding:12px;border:1px solid #d7e7ef;border-radius:10px;background:#f7fbfb}.${containerClass} .rm-controls-advanced{grid-template-columns:minmax(180px,1fr) auto auto;align-items:center}.${containerClass} .rm-control{display:grid;gap:4px;font-size:12px;font-weight:700;color:#314b61}.${containerClass} input,.${containerClass} select{width:100%;min-height:38px;padding:8px 10px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font:inherit}.${containerClass} button{min-height:38px;padding:8px 12px;border:1px solid #cbdde6;border-radius:8px;background:#fff;color:#12314a;font-weight:700;cursor:pointer}.${containerClass} .rm-count{font-size:12px;font-weight:800;color:#0b7582;white-space:nowrap;padding:10px 0}.${containerClass} .rm-sector-filters{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}.${containerClass} .rm-sector-btn{min-height:28px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;color:#4b647a;background:#fff;border:1px solid #cbdde6}.${containerClass} .rm-sector-btn.active{background:#e5f8f5;border-color:#54cdb2;color:#0b7582}.${containerClass} .rm-sector-count{font-size:10px;font-weight:700;opacity:.7}.${containerClass} .rm-canvas{position:relative;isolation:isolate}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.${containerClass} .rm-hotspot{cursor:pointer;outline:none}.${containerClass} .rm-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all;transition:fill .15s ease,stroke .15s ease,opacity .15s ease}.${containerClass} .rm-hotspot:hover .rm-zone,.${containerClass} .rm-hotspot:focus .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass}.rm-filtering .rm-hotspot.rm-match .rm-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${Math.max(cfg.hoverStrokeWidth,2)}}.${containerClass}.rm-filtering .rm-hotspot.rm-dim .rm-zone{fill:rgba(108,122,137,.18);stroke:rgba(108,122,137,.58);stroke-width:1.5}.${containerClass} .rm-popup{position:absolute;z-index:4;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:${cfg.popupFontSize}px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}@media(max-width:720px){.${containerClass}{margin:16px auto}.${containerClass} .rm-controls{grid-template-columns:1fr}.${containerClass} .rm-count{padding:0}}`;
   const responsiveCss=`.${containerClass}{width:100%;box-sizing:border-box;overflow-x:hidden}.${containerClass} .rm-canvas{width:100%;max-width:100%;overflow:hidden;touch-action:manipulation}@media(max-width:720px){.${containerClass}{margin:0 auto;padding:0 8px}.${containerClass} .rm-controls{border-radius:8px}.${containerClass} .rm-popup{left:8px!important;right:8px!important;width:auto;max-width:none!important;font-size:${Math.max(11,cfg.popupFontSize-1)}px}}`;
   const rootSelector=`.${containerClass}`;
   const canvasSelector=`.${containerClass} .rm-canvas`;
-  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface><div class="rm-controls" aria-label="Radar filters"><label class="rm-control">Search<input type="search" data-rm-search placeholder="Startup, quadrant, URL..."></label><label class="rm-control">Quadrant<select data-rm-cadran><option value="">All quadrants</option>${cadranOptions}</select></label><button type="button" data-rm-reset>Reset</button><span class="rm-count" data-rm-count></span></div><div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot') : ''}`;
+  return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface>${controlsHtml}<div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot', experience) : ''}`;
 }
 function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', includeScript=true){
   const isStandaloneClass=containerClass==='radar';
@@ -2941,28 +2949,13 @@ function buildIframeSnippet(){
   return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 function buildExportHtml(mode=getExportMode()){
-  if(mode==='snippet') return getExportExperience()==='interface' ? buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true) : buildCmsSnippet('radarmapper-embed', 'rm-layer', true);
+  const experience=getExportExperience();
+  if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
   if(mode==='iframe') return buildIframeSnippet();
   if(mode==='imagemap') return buildImageMapSnippet();
   return buildStandaloneHtml();
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
-q('downloadStandaloneHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildStandaloneHtml(), 'text/html');
-q('copyEmbedSnippet').onclick=async()=>{
-  const text=buildExportHtml(getExportMode());
-  try{
-    await navigator.clipboard.writeText(text);
-    alert('Snippet copied to clipboard.');
-  }catch{
-    const area=document.createElement('textarea');
-    area.value=text;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    area.remove();
-    alert('Snippet copied to clipboard.');
-  }
-};
 function download(filename, text, type){ const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 function refreshExportRenderPreview(){
   applyExportRenderConfig();

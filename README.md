@@ -5,7 +5,8 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour créer des radars Wave
 ## Workflow
 
 1. **Initialisation**
-   - Charger une image de radar.
+   - Charger une image de radar **ou importer un slide PPTX**.
+   - En mode PPTX, RadarMapper extrait l'aperçu du slide (thumbnail/média) et tente d'importer les formes/images du slide en zones éditables.
    - Lancer une détection locale par `canvas` pour générer des zones candidates.
    - Utiliser, si autorisé, le bouton **OCR + mapping LLM** pour compléter automatiquement les noms et métadonnées.
    - Exporter un JSON d'initialisation contenant l'image, les paramètres de détection, les zones, des exemples et des consignes de format pour LLM.
