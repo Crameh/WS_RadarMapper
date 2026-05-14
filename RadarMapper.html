@@ -896,6 +896,7 @@
       <select id="aiLanguage">
         <option value="fr">Français</option>
         <option value="en">English</option>
+        <option value="de">Deutsch</option>
       </select>
       <div class="actions">
         <button id="saveAiConfig" class="primary">Save configuration</button>
@@ -961,6 +962,7 @@ function zoneById(id){ return zones.find(z => z.id === id); }
 function fmt(n){ return Math.round(n*10)/10; }
 function normalizeName(value){
   return String(value || '')
+    .replace(/\u00df/g,'ss')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase()
     .replace(/&/g,' and ')
@@ -1376,14 +1378,17 @@ function pickField(row, aliases){
   return '';
 }
 function startupRecordFromObject(row){
-  const name=pickField(row,['name','nom','startup','start-up','company','entreprise','societe','société','structure']);
+  const name=pickField(row,['name','nom','startup','start-up','company','entreprise','societe','société','structure',
+    'unternehmen','firma','organisation','struktur']);
   if(!name) return null;
   return {
     name,
-    url:pickField(row,['url','website','website link','site','site web','lien','link']),
-    logo:pickField(row,['logo','logo url','logo_url','logourl','image','image url']),
-    description:pickField(row,['description','descriptif','desc','pitch','short description','resume','résumé']),
-    category:pickField(row,['category','product category','categorie','catégorie','secteur','cadran','quadrant']),
+    url:pickField(row,['url','website','website link','site','site web','lien','link','webseite']),
+    logo:pickField(row,['logo','logo url','logo_url','logourl','image','image url','logobild','bild']),
+    description:pickField(row,['description','descriptif','desc','pitch','short description','resume','résumé',
+      'beschreibung','kurzbeschreibung','zusammenfassung']),
+    category:pickField(row,['category','product category','categorie','catégorie','secteur','cadran','quadrant',
+      'kategorie','bereich','sektor','branche']),
     raw:row
   };
 }
@@ -1392,7 +1397,7 @@ function parseStartupRecords(text, fileName=''){
   if(!trimmed) return [];
   if(/\.json$/i.test(fileName) || trimmed.startsWith('{') || trimmed.startsWith('[')){
     const data=JSON.parse(trimmed);
-    const rows=Array.isArray(data) ? data : (data.startups || data.companies || data.organizations || data.records || []);
+    const rows=Array.isArray(data) ? data : (data.startups || data.companies || data.organizations || data.records || data.unternehmen || data.firmen || []);
     return rows.map(row=>startupRecordFromObject(row)).filter(Boolean);
   }
   const rows=parseDelimitedRows(text);
@@ -2248,7 +2253,7 @@ function llmPrompt(candidateZones=[], textCandidates=[]){
   };
   return `You are a mapping assistant for RadarMapper.
 Analyze the radar image and the JSON below. The goal is to detect logos/startups in the radar and perform OCR/mapping via LLM.
-Expected language: ${getAiConfig().language === 'fr' ? 'French' : 'English'}.
+Expected language: ${{fr:'French',de:'German'}[getAiConfig().language] || 'English'}.
 
 Expected method:
 - start from the candidate zones provided in zones: they contain pixel coordinates calculated locally;
