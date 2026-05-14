@@ -374,6 +374,9 @@
   .structFilterBtn.active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
   .structFilterBtn.sfNoStructure.active { background:#fff3e8; border-color:#e8924a; color:#b05a10; }
   .structFilterBtn.sfDuplicate.active { background:#f0eeff; border-color:#b07ae8; color:#6b28c7; }
+  .categoryLegend { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .catLegendItem { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#243d55; background:#f4f8fb; border:1px solid #dfeaf0; border-radius:8px; padding:2px 7px 2px 5px; }
+  .catDot { width:8px; height:8px; border-radius:50%; flex-shrink:0; display:inline-block; }
   body[data-mode="exportPanel"] #overlay .zone,
   body[data-mode="exportPanel"] #overlay .zone.selected,
   body[data-mode="exportPanel"] #overlay .zone.noUrl { fill:transparent; stroke:transparent; cursor:pointer; stroke-dasharray:none; pointer-events:all; }
@@ -653,6 +656,7 @@
                 <button type="button" class="structFilterBtn sfDuplicate" data-sf="duplicate" title="Zones whose structure is associated with multiple blocks">Duplicates</button>
               </div>
               <div id="zoneList"></div>
+              <div id="categoryLegend" class="categoryLegend"></div>
               <p class="groupLabel" style="margin-top:10px">Remaining CSV data</p>
               <p id="pendingCsvCount" class="small">0 unassociated structure(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
@@ -1242,6 +1246,23 @@ function zoneMatchesStructureFilter(z, dupeIds){
   if(zoneStructureFilter==='duplicate') return dupeIds.has(z.id);
   return true;
 }
+function getCategoryColor(cat){
+  if(!cat) return null;
+  let hash=0;
+  for(let i=0;i<cat.length;i++) hash=(hash*31+cat.charCodeAt(i))&0xffffffff;
+  const h=Math.abs(hash)%360;
+  return `hsl(${h},60%,44%)`;
+}
+function renderCategoryLegend(){
+  const container=q('categoryLegend');
+  if(!container) return;
+  const cats=[...new Set(zones.map(z=>z.category).filter(Boolean))].sort();
+  if(!cats.length){ container.innerHTML=''; return; }
+  container.innerHTML=cats.map(cat=>{
+    const color=getCategoryColor(cat);
+    return `<span class="catLegendItem"><span class="catDot" style="background:${color}"></span>${escapeHtml(cat)}</span>`;
+  }).join('');
+}
 function renderList(){
   const s=q('search').value.toLowerCase();
   q('zoneList').innerHTML = '';
@@ -1253,10 +1274,13 @@ function renderList(){
   ).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
     const pill = z.dataConfirmed || z.associationConfirmed ? 'confirmed' : z.llmPrevalidated ? (z.llmFound===false ? 'unmatched' : 'pre-validated LLM') : 'to confirm';
-    d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${pill}</span>`;
+    const catColor=getCategoryColor(z.category);
+    const dotHtml=catColor?`<span class="catDot" style="background:${catColor};margin-right:4px"></span>`:'';
+    d.innerHTML = `<span style="display:flex;align-items:center">${dotHtml}${escapeHtml(z.name || z.id)}</span><span class="pill">${pill}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
     q('zoneList').appendChild(d);
   });
+  renderCategoryLegend();
   renderPendingCsvList();
   renderDuplicateAssociations();
 }
