@@ -152,6 +152,7 @@
   .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
   .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
   .zone.hiddenFill { fill:transparent; }
+  .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
   .vertex { fill:#fff; stroke:#1699a8; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
   aside { border:1px solid #e6f0f4; border-radius:14px; background:rgba(255,255,255,.92); overflow:auto; padding:20px; box-shadow:var(--shadow); }
@@ -352,8 +353,8 @@
   .editZoneClose { width:30px; height:30px; padding:0; border-radius:10px; }
   .editZonePopup .row { margin-top:0; }
   .editZonePopup textarea { resize:vertical; }
-  .editPopupLogoPreview { max-width:80px; max-height:48px; object-fit:contain; display:block; margin:4px 0 2px; border-radius:6px; border:1px solid #e6f0f4; background:#f7fbfd; padding:4px; cursor:zoom-in; transition:transform .18s ease; position:relative; z-index:1; }
-  .editPopupLogoPreview:hover { transform:scale(3); transform-origin:left center; z-index:20; }
+  .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:10px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
+  .editLogoZoom img { max-width:110px; max-height:80px; object-fit:contain; display:block; }
   .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .zoneStatusFilter { display:flex; gap:2px; align-items:center; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
   .zoneFilterBtn { min-width:auto; padding:2px 8px; border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; color:#65788a; line-height:1.5; }
@@ -447,6 +448,7 @@
       <svg id="overlay" viewBox="0 0 1280 720"></svg>
       </div>
       <div id="exportLivePopup" class="exportLivePopup" hidden></div>
+      <div id="editLogoZoom" class="editLogoZoom" hidden><img id="editLogoZoomImg" alt="" onerror="this.hidden=true"></div>
       <div id="editZonePopup" class="editZonePopup" hidden>
         <div class="editZoneHeader">
           <h3>Éditer la zone</h3>
@@ -465,7 +467,6 @@
         <input id="editPopupUrl" placeholder="https://...">
         <label>Logo (URL ou data URI)</label>
         <input id="editPopupLogo" placeholder="https://.../logo.png ou data:image/...">
-        <img id="editPopupLogoPreview" class="editPopupLogoPreview" src="" alt="Aperçu logo" hidden onerror="this.hidden=true">
         <label>Descriptif court</label>
         <textarea id="editPopupDescription" rows="3" placeholder="Description affichée dans le popup"></textarea>
         <label>Forme</label>
@@ -1027,6 +1028,7 @@ function shapeEl(z){
   if(!z.url) el.classList.add('noUrl');
   if(z.id === selectedId) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
+  if(isEditMode() && !zoneMatchesFilter(z)) el.classList.add('zone-filtered-out');
   el.dataset.id = z.id;
   el.addEventListener('pointerdown', startMove);
   el.addEventListener('click', showExportLivePopup);
@@ -1044,6 +1046,14 @@ function shapeEl(z){
   el.addEventListener('keydown', e=>{
     if(isExportMode() && (e.key==='Enter' || e.key===' ')){
       showExportLivePopup({currentTarget:e.currentTarget, preventDefault:()=>e.preventDefault(), stopPropagation:()=>e.stopPropagation(), clientX:window.innerWidth/2, clientY:window.innerHeight/2});
+    }
+    if(isEditMode() && e.key==='Tab'){
+      const tabZones=Array.from(svg.querySelectorAll('.zone[tabindex="0"]'));
+      if(!tabZones.length) return;
+      e.preventDefault();
+      const cur=tabZones.indexOf(e.currentTarget);
+      const next=e.shiftKey?(cur<=0?tabZones.length-1:cur-1):(cur>=tabZones.length-1?0:cur+1);
+      tabZones[next].focus();
     }
   });
   el.setAttribute('aria-label', z.name || z.id);
@@ -1115,8 +1125,19 @@ function fillEditPopup(z){
   if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association validée';
   else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pré-validée par le LLM (à confirmer)';
   else q('editPopupAssociationStatus').textContent='Association à valider';
-  const prev=q('editPopupLogoPreview');
-  if(z.logo){ prev.src=z.logo; prev.hidden=false; } else { prev.src=''; prev.hidden=true; }
+}
+function updateEditLogoZoom(){
+  const zoom=q('editLogoZoom');
+  const img=q('editLogoZoomImg');
+  const logo=q('editPopupLogo').value.trim();
+  if(q('editZonePopup').hidden || !logo){ zoom.hidden=true; return; }
+  img.hidden=false; img.src=logo;
+  zoom.hidden=false;
+  const popLeft=parseInt(q('editZonePopup').style.left)||16;
+  const popTop=parseInt(q('editZonePopup').style.top)||16;
+  zoom.style.top=popTop+'px';
+  const zoomW=zoom.offsetWidth||136;
+  zoom.style.left=Math.max(8, popLeft-zoomW-10)+'px';
 }
 function zoneMatchesFilter(z){
   if(zoneStatusFilter==='all') return true;
@@ -1133,6 +1154,7 @@ function placeEditPopup(event){
   const top=event ? event.clientY-rect.top+12 : 16;
   popup.style.left=Math.min(Math.max(left,8), Math.max(stage.clientWidth-popup.offsetWidth-8,8))+'px';
   popup.style.top=Math.min(Math.max(top,8), Math.max(stage.clientHeight-popup.offsetHeight-8,8))+'px';
+  setTimeout(updateEditLogoZoom,0);
 }
 function showEditZonePopup(event){
   if(!isEditMode()) return;
@@ -1150,6 +1172,7 @@ function showEditZonePopup(event){
 }
 function hideEditZonePopup(){
   q('editZonePopup').hidden=true;
+  q('editLogoZoom').hidden=true;
   hideEditPopupSuggestions();
 }
 function handleZoneDoublePointer(e){
@@ -1727,11 +1750,7 @@ q('editZonePopup').addEventListener('keydown',e=>{
   validateEditPopup();
 });
 q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
-q('editPopupLogo').addEventListener('input',()=>{
-  const v=q('editPopupLogo').value.trim();
-  const prev=q('editPopupLogoPreview');
-  if(v){ prev.src=v; prev.hidden=false; } else { prev.src=''; prev.hidden=true; }
-});
+q('editPopupLogo').addEventListener('input', updateEditLogoZoom);
 document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     zoneStatusFilter=btn.dataset.filter;
