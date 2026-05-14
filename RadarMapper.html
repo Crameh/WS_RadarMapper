@@ -352,6 +352,18 @@
   .editZoneClose { width:30px; height:30px; padding:0; border-radius:10px; }
   .editZonePopup .row { margin-top:0; }
   .editZonePopup textarea { resize:vertical; }
+  .editPopupLogoPreview { max-width:80px; max-height:48px; object-fit:contain; display:block; margin:4px 0 2px; border-radius:6px; border:1px solid #e6f0f4; background:#f7fbfd; padding:4px; cursor:zoom-in; transition:transform .18s ease; position:relative; z-index:1; }
+  .editPopupLogoPreview:hover { transform:scale(3); transform-origin:left center; z-index:20; }
+  .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .zoneStatusFilter { display:flex; gap:2px; align-items:center; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
+  .zoneFilterBtn { min-width:auto; padding:2px 8px; border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; color:#65788a; line-height:1.5; }
+  .zoneFilterBtn[data-filter="all"].active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
+  .zoneFilterBtn.zoneFilterTodo { color:#b05a10; }
+  .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
+  .zoneFilterBtn.zoneFilterPreval { color:#1a58b0; }
+  .zoneFilterBtn.zoneFilterPreval.active { background:#e8f0fb; border-color:#5b8de6; }
+  .zoneFilterBtn.zoneFilterDone { color:#0d7452; }
+  .zoneFilterBtn.zoneFilterDone.active { background:#eafaf4; border-color:#23aa7a; }
   body[data-mode="exportPanel"] #overlay .zone,
   body[data-mode="exportPanel"] #overlay .zone.selected,
   body[data-mode="exportPanel"] #overlay .zone.noUrl { fill:transparent; stroke:transparent; cursor:pointer; stroke-dasharray:none; pointer-events:all; }
@@ -418,6 +430,12 @@
         </div>
         <div class="zoneToolsRight">
           <label>Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
+          <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filtrer les zones par statut">
+            <button type="button" class="zoneFilterBtn active" data-filter="all">Toutes</button>
+            <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="À faire (rouge/orange)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="À vérifier (bleu)">●</button>
+            <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Validées (vert)">●</button>
+          </div>
           <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
@@ -447,6 +465,7 @@
         <input id="editPopupUrl" placeholder="https://...">
         <label>Logo (URL ou data URI)</label>
         <input id="editPopupLogo" placeholder="https://.../logo.png ou data:image/...">
+        <img id="editPopupLogoPreview" class="editPopupLogoPreview" src="" alt="Aperçu logo" hidden onerror="this.hidden=true">
         <label>Descriptif court</label>
         <textarea id="editPopupDescription" rows="3" placeholder="Description affichée dans le popup"></textarea>
         <label>Forme</label>
@@ -702,7 +721,7 @@
                   <button id="resetAuto" class="danger" title="Restaure les zones d'exemple embarquées et efface les corrections locales.">Restaurer l'exemple initial</button>
                 </div>
               </div>
-              <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Suppr pour supprimer.</p>
+              <p class="small">Raccourcis : flèches pour déplacer, Maj+flèches pour 10 px, Entrée pour ouvrir l'édition, Suppr pour supprimer.</p>
             </div>
           </div>
         </div>
@@ -949,6 +968,7 @@ const MODE_COPY = {
 };
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
+let zoneStatusFilter = 'all';
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function zoneById(id){ return zones.find(z => z.id === id); }
@@ -1028,7 +1048,8 @@ function shapeEl(z){
   });
   el.setAttribute('aria-label', z.name || z.id);
   if(isExportMode() || isEditMode()){
-    el.setAttribute('tabindex','0');
+    const tIdx = isEditMode() && !zoneMatchesFilter(z) ? '-1' : '0';
+    el.setAttribute('tabindex', tIdx);
     if(isExportMode()) el.setAttribute('role','button');
   }
   return el;
@@ -1094,6 +1115,15 @@ function fillEditPopup(z){
   if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Association validée';
   else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pré-validée par le LLM (à confirmer)';
   else q('editPopupAssociationStatus').textContent='Association à valider';
+  const prev=q('editPopupLogoPreview');
+  if(z.logo){ prev.src=z.logo; prev.hidden=false; } else { prev.src=''; prev.hidden=true; }
+}
+function zoneMatchesFilter(z){
+  if(zoneStatusFilter==='all') return true;
+  if(zoneStatusFilter==='confirmed') return !!(z.dataConfirmed || z.associationConfirmed);
+  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='todo') return !(z.dataConfirmed||z.associationConfirmed||z.llmPrevalidated);
+  return true;
 }
 function placeEditPopup(event){
   const popup=q('editZonePopup');
@@ -1183,7 +1213,7 @@ function confirmAssociation(prefix=''){
 function renderList(){
   const s=q('search').value.toLowerCase();
   q('zoneList').innerHTML = '';
-  zones.filter(z => !s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)).forEach(z=>{
+  zones.filter(z => (!s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)) && zoneMatchesFilter(z)).forEach(z=>{
     const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
     d.innerHTML = `<span>${escapeHtml(z.name || z.id)}</span><span class="pill">${z.dataConfirmed || z.associationConfirmed ? 'validé' : (z.llmPrevalidated ? 'pré-validé LLM' : 'à valider')}</span>`;
     d.onclick=()=>{selectedId=z.id; render();};
@@ -1697,6 +1727,18 @@ q('editZonePopup').addEventListener('keydown',e=>{
   validateEditPopup();
 });
 q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
+q('editPopupLogo').addEventListener('input',()=>{
+  const v=q('editPopupLogo').value.trim();
+  const prev=q('editPopupLogoPreview');
+  if(v){ prev.src=v; prev.hidden=false; } else { prev.src=''; prev.hidden=true; }
+});
+document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    zoneStatusFilter=btn.dataset.filter;
+    document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(b=>b.classList.toggle('active', b===btn));
+    renderList(); render();
+  });
+});
 q('confirmAssociation').onclick=()=>confirmAssociation('');
 q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
 q('name').addEventListener('change',()=>{ if(applyStartupRecordToInputs('')) applyForm(); });
@@ -2600,7 +2642,17 @@ window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
   const z=zoneById(selectedId); if(!z) return;
   const step=e.shiftKey?10:1; let dx=0,dy=0;
-  if(e.key==='ArrowLeft') dx=-step; else if(e.key==='ArrowRight') dx=step; else if(e.key==='ArrowUp') dy=-step; else if(e.key==='ArrowDown') dy=step; else if(e.key==='Delete' || e.key==='Backspace'){ if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return; q('delete').click(); return; } else return;
+  if(e.key==='ArrowLeft') dx=-step; else if(e.key==='ArrowRight') dx=step; else if(e.key==='ArrowUp') dy=-step; else if(e.key==='ArrowDown') dy=step;
+  else if(e.key==='Enter'){
+    if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA'||document.activeElement.tagName==='SELECT') return;
+    if(!q('editZonePopup').hidden) return;
+    e.preventDefault();
+    fillEditPopup(z); placeEditPopup(null);
+    setTimeout(()=>{ q('editPopupName').focus(); q('editPopupName').select(); },0);
+    renderList();
+    return;
+  }
+  else if(e.key==='Delete' || e.key==='Backspace'){ if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return; q('delete').click(); return; } else return;
   if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
   e.preventDefault(); z.x=clamp(z.x+dx,0,IMG_W-z.w); z.y=clamp(z.y+dy,0,IMG_H-z.h); if(z.points) z.points=z.points.map(p=>({x:clamp(p.x+dx,0,IMG_W),y:clamp(p.y+dy,0,IMG_H)})); render();
 });
