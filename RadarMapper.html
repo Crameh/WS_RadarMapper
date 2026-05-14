@@ -1525,6 +1525,30 @@ function validateEditPopup({preferSuggestion=false} = {}){
   }
   hideEditZonePopup();
 }
+function validateAndAdvance({preferSuggestion=false}={}){
+  if(!isEditMode()) return;
+  const filtered=zones.filter(zoneMatchesFilter);
+  const idx=filtered.findIndex(fz=>fz.id===selectedId);
+  const nextId=filtered.length>1 ? filtered[(idx+1)%filtered.length].id : null;
+  const willAdvance=nextId && nextId!==selectedId;
+  if(preferSuggestion && chooseEditPopupSuggestion()){
+    const updated=zoneById(selectedId);
+    if(updated){ updated.dataConfirmed=true; updated.associationConfirmed=true; updated.llmPrevalidated=false; updated.confirmedAt=new Date().toISOString(); }
+  } else {
+    applyStartupRecordToInputs('editPopup');
+    applyEditPopup();
+    const updated=zoneById(selectedId);
+    if(updated){ updated.dataConfirmed=true; updated.associationConfirmed=true; updated.llmPrevalidated=false; updated.confirmedAt=new Date().toISOString(); }
+  }
+  persistZones({silent:true, reason:'auto'});
+  if(willAdvance){
+    selectedId=nextId;
+    render(); fillEditPopup(zoneById(selectedId)); renderList();
+    setTimeout(()=>{ updateEditLogoZoom(); q('editPopupName').focus(); q('editPopupName').select(); },0);
+  } else {
+    render(); hideEditZonePopup(); renderList();
+  }
+}
 function startupKeywords(value){
   const source=value?.startupData || value?.raw || value || {};
   if(!source || typeof source !== 'object') return '';
@@ -1759,7 +1783,7 @@ q('editZonePopup').addEventListener('keydown',e=>{
   if(e.target.tagName === 'TEXTAREA') return;
   if(e.target.id === 'editPopupName') return;
   e.preventDefault();
-  validateEditPopup();
+  validateAndAdvance();
 });
 q('editPopupShape').addEventListener('change',()=>{ q('editPopupPoints').disabled = q('editPopupShape').value !== 'poly'; });
 document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
@@ -1811,7 +1835,7 @@ q('editPopupName').addEventListener('keydown',e=>{
   if(e.key !== 'Enter') return;
   e.preventDefault();
   e.stopPropagation();
-  validateEditPopup({preferSuggestion:true});
+  validateAndAdvance({preferSuggestion:true});
 });
 q('uploadRadarVisual').onclick=()=>q('radarUpload').click();
 q('uploadStructureData').onclick=()=>q('startupDataFile').click();
