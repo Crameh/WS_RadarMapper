@@ -2052,15 +2052,15 @@ function buildProjectJson(source){
     image:{ width:IMG_W, height:IMG_H, dataUrl:IMAGE_DATA },
     config:getDetectionConfig(),
     llmInstructions:{
-      goal:’Identify organizations/logos visible in the radar, match each zone to the correct name, and complete the fields without changing the schema.’,
-      output:’Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.’,
+      goal:'Identify organizations/logos visible in the radar, match each zone to the correct name, and complete the fields without changing the schema.',
+      output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
       zoneRules:[
-        ‘id must remain stable if a zone already exists.’,
-        ‘shape is rect, diamond, circle or poly.’,
-        ‘x, y, w, h describe the bounding box.’,
-        ‘points is empty except for shape=poly, where it contains {x,y} objects.’,
-        ‘name is the recognized public name, url its official website if known, logo an optional URL or data URI, description a short sentence.’,
-        ‘llmFound is true if you identified a reliable name (confidence >= 0.55 and name != zone_XXX), false otherwise.’
+        'id must remain stable if a zone already exists.',
+        'shape is rect, diamond, circle or poly.',
+        'x, y, w, h describe the bounding box.',
+        'points is empty except for shape=poly, where it contains {x,y} objects.',
+        'name is the recognized public name, url its official website if known, logo an optional URL or data URI, description a short sentence.',
+        'llmFound is true if you identified a reliable name (confidence >= 0.55 and name != zone_XXX), false otherwise.'
       ]
     },
     examples:{
