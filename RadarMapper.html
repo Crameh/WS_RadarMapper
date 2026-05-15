@@ -549,7 +549,7 @@
             <div class="prepStepBody">
               <div class="secondaryActions">
                 <button id="uploadRadarVisual" class="importActionBtn" type="button">Radar visual (jpg, png, webp...)</button>
-                <button id="uploadRadarPptx" class="importActionBtn" type="button">Radar slide (PPTX)</button>
+                <button id="uploadRadarPptx" class="importActionBtn" type="button" hidden>Radar slide (PPTX Alpha)</button>
                 <button id="uploadStructureData" class="importActionBtn" type="button">Structure Data (CSV / XLS)</button>
               </div>
               <input id="radarUpload" type="file" accept="image/*" style="display:none">
@@ -791,6 +791,10 @@
         <p>For privacy reasons, the use of an AI provider must be explicitly approved by the relevant organization.</p>
         <label class="inlineCheck"><input id="aiApproved" type="checkbox"> I have written approval</label>
       </div>
+      <div class="warningBox">
+        <strong>Experimental</strong>
+        <label class="inlineCheck"><input id="enablePptxAlpha" type="checkbox"> Enable PPTX import (Alpha)</label>
+      </div>
       <label>LLM Provider</label>
       <select id="aiProvider">
         <option value="anthropic">Anthropic</option>
@@ -814,6 +818,13 @@
         <option value="fr">Français</option>
         <option value="en">English</option>
         <option value="de">Deutsch</option>
+      </select>
+      <label>Prompt profile</label>
+      <select id="aiPromptProfile">
+        <option value="simple">Default (new)</option>
+        <option value="legacy_simple">Simple (archived)</option>
+        <option value="standard">Standard</option>
+        <option value="strict">Strict (advanced)</option>
       </select>
       <div class="actions">
         <button id="saveAiConfig" class="primary">Save configuration</button>
@@ -1782,11 +1793,7 @@ q('startupDataFile').onchange=async e=>{
   const file=e.target.files[0];
   if(!file) return;
   try{
-    const lowerName=file.name.toLowerCase();
-    if(/\.xlsx$/.test(lowerName)){
-      throw new Error('XLSX parsing is not built in yet. Please export this sheet to CSV or XLS and import again.');
-    }
-    startupRecords=parseStartupRecords(await file.text(), file.name);
+    startupRecords=await parseStartupRecordsFromFile(file);
     if(!startupRecords.length) throw new Error('No usable row found. Add at least one name/startup column.');
     persistStartupRecords();
     refreshStartupSuggestions();
@@ -2083,13 +2090,15 @@ async function importProjectJson(text){
 function getAiConfig(){
   return {
     approved:q('aiApproved').checked,
+    pptxAlphaEnabled:!!q('enablePptxAlpha')?.checked,
     provider:q('aiProvider').value,
     model:q('aiModel').value.trim(),
     apiKey:q('aiApiKey').value.trim(),
     azureEndpoint:q('aiAzureEndpoint').value.trim().replace(/\/$/,''),
     azureDeployment:q('aiAzureDeployment').value.trim(),
     azureVersion:q('aiAzureVersion').value.trim() || '2024-12-01-preview',
-    language:q('aiLanguage').value
+    language:q('aiLanguage').value,
+    promptProfile:q('aiPromptProfile')?.value || 'simple'
   };
 }
 const AI_MODEL_CATALOG = {
@@ -2149,10 +2158,15 @@ function refreshProviderFields(){
   setDefaultModel();
   updateAiStatus();
 }
+function updatePptxImportVisibility(enabled){
+  const isEnabled=!!enabled;
+  if(q('uploadRadarPptx')) q('uploadRadarPptx').hidden=!isEnabled;
+}
 function saveAiConfig(){
   const cfg=getAiConfig();
   const {apiKey, ...safeCfg}=cfg;
   localStorage.setItem('radarMapperAiConfig', JSON.stringify(safeCfg));
+  updatePptxImportVisibility(cfg.pptxAlphaEnabled);
   updateAiStatus();
   alert('LLM configuration saved without the API key. The key is only kept in this session memory.');
 }
@@ -2163,6 +2177,7 @@ function loadAiConfig(){
     localStorage.setItem('radarMapperAiConfig', JSON.stringify(safeCfg));
   }
   q('aiApproved').checked=!!cfg.approved;
+  q('enablePptxAlpha').checked=!!cfg.pptxAlphaEnabled;
   q('aiProvider').value=cfg.provider||'anthropic';
   q('aiModel').value=cfg.model||'';
   q('aiApiKey').value='';
@@ -2170,14 +2185,17 @@ function loadAiConfig(){
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
   q('aiLanguage').value=cfg.language||'en';
+  q('aiPromptProfile').value=cfg.promptProfile||'simple';
   refreshModelOptions({preserve:true});
   refreshProviderFields();
+  updatePptxImportVisibility(!!cfg.pptxAlphaEnabled);
   updateAiStatus();
   setLlmInAppHint('idle');
 }
 function clearAiConfig(){
   localStorage.removeItem('radarMapperAiConfig');
   q('aiApproved').checked=false;
+  q('enablePptxAlpha').checked=false;
   q('aiProvider').value='anthropic';
   q('aiModel').value='';
   q('aiApiKey').value='';
@@ -2185,7 +2203,9 @@ function clearAiConfig(){
   q('aiAzureDeployment').value='';
   q('aiAzureVersion').value='2024-12-01-preview';
   q('aiLanguage').value='en';
+  q('aiPromptProfile').value='simple';
   refreshProviderFields();
+  updatePptxImportVisibility(false);
   updateAiStatus();
 }
 function imagePayload(){
@@ -2197,8 +2217,212 @@ function llmPrompt(candidateZones=[]){
   const skeleton=buildProjectJson('llm_detourage_request',{includeImageData:false});
   const extraInstructions=(q('llmExtraInstructions')?.value || '').trim();
   skeleton.zones=candidateZones;
-  return `Analyze the radar image and the JSON below, then return an updated JSON.
-Expected language: ${{fr:'French',de:'German'}[getAiConfig().language] || 'English'}.
+  const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
+  const profile=getAiConfig().promptProfile || 'simple';
+  const outputContract=`FINAL OUTPUT CONTRACT (must be respected):
+- Return exactly one JSON object, and nothing else.
+- Do not wrap JSON in markdown fences.
+- Do not add any text before or after JSON.
+- Keep schema "wavestone-radar-mapper-v1".
+- Ensure root fields remain compatible with the input schema.
+- Ensure "zones" is an array of valid zone objects.
+- Ensure output is strictly parseable with JSON.parse (double quotes, no trailing commas, no comments).`;
+  const sharedHeader=`Analyze the radar image and the JSON below, then return an updated JSON.
+Expected language: ${language}.`;
+  const sharedFooter=`JSON:
+${JSON.stringify(skeleton,null,2)}
+${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : ''}
+
+${outputContract}`;
+  if(profile==='simple'){
+    return `Task: detect all visible company/product logos in a radar image, create clickable zones from scratch, run OCR/name recognition, and map each zone to the correct structure record when possible.
+
+Output requirement:
+Return only valid JSON.
+No markdown, no explanation, no comments outside JSON.
+
+Inputs:
+1) A JSON initialization file following the schema wavestone-radar-mapper-v1.
+2) The radar image.
+3) A CSV or JSON dataset containing structure/startup records.
+
+Goal:
+Create the complete zones array from scratch.
+Each zone must correspond to one visible logo or organization/product name on the radar.
+For every zone, infer the best organization/product name and, when possible, map it to the matching record in startupRecords or in the attached CSV/JSON dataset.
+
+Important:
+- The input JSON may contain no zones at all.
+- You must create all zones yourself.
+- Keep the original JSON schema unchanged.
+- Preserve image.width, image.height, image.dataUrl placeholder, imageAttachment, config, llmInstructions, examples, exportRender and exportExperience unless explicitly instructed otherwise.
+- Add or replace the zones array.
+- Preserve startupRecords if present, unless the user asks to remove it.
+
+Coordinate system:
+- Use the image coordinate system exactly.
+- Origin is top-left: x=0, y=0.
+- Units are pixels.
+- x and y are the top-left corner of the zone bounding box.
+- w and h are the width and height of the bounding box.
+- Never apply a global offset, scaling, rotation, or translation.
+- Do not infer coordinates from the displayed size in the browser or chat UI. Use the actual pixel dimensions from image.width and image.height.
+- If the image is ${IMG_W}x${IMG_H}, all coordinates must fit inside that space.
+
+Detection method:
+1) Visually scan the full radar image from top-left to bottom-right.
+2) Detect every logo, wordmark, startup name, or product mark that appears as an individual organization entry.
+3) Include logos in the main radar and in lower bands such as scale-ups, unicorns, or other side sections.
+4) Ignore decorative category labels, axis labels, titles, legends, background shapes, arrows, sector names and publisher branding unless they are actual startup/company entries.
+5) Avoid duplicate zones for the same visible logo unless the logo appears as a separate repeated entry in the radar.
+6) If a logo is unreadable but clearly present, still create a zone with a generated placeholder name.
+
+Geometry rules:
+- Fit each zone closely to the visible logo/name boundaries.
+- Include the full clickable visual mark, including icon and wordmark when both belong to the same company.
+- Do not make overly large horizontal rows.
+- Do not merge neighboring logos.
+- Do not overlap zones unless visual logos genuinely overlap.
+- Prefer simple shapes:
+  - "rect" for most wordmarks and horizontal logos.
+  - "circle" for circular logos or compact round marks.
+  - "diamond" for diamond-shaped marks.
+  - "poly" only when a tighter custom polygon is materially better.
+- For shape="rect", "circle", or "diamond", points must be [].
+- For shape="poly", points must contain absolute image coordinates as { "x": number, "y": number }.
+- For shape="poly", x, y, w, h must still describe the polygon bounding box.
+
+Zone ID rules:
+- Since zones are created from scratch, assign sequential IDs:
+  z001, z002, z003, ...
+- IDs must be unique.
+- Sort zones primarily from top to bottom, then left to right.
+- Do not skip IDs.
+
+Name recognition and mapping:
+For each zone:
+1) Read visible text using OCR and visual recognition.
+2) Compare the OCR result to startupRecords and to the attached dataset.
+3) Use fuzzy matching to account for logo stylization, capitalization, punctuation, accents, hyphens, spaces, OCR errors, and product-vs-company naming.
+4) When a reliable match exists, fill:
+   - name with the canonical record name
+   - url with the record website
+   - logo with the record logo if present, otherwise ""
+   - description with the record description if present
+5) When no reliable record match exists but the visible name is clear:
+   - name with the visible public name
+   - ocrCandidate with the OCR result
+   - confidence based on recognition quality
+   - url, logo and description as "" unless reliably known from the provided data
+6) When the logo is visible but not readable:
+   - name as "zone_XXX", matching the numeric ID, for example zone_042
+   - ocrCandidate as ""
+   - confidence between 0.05 and 0.25
+   - llmFound as false
+
+Confidence rules:
+- confidence must be a number between 0 and 1.
+- Use confidence >= 0.85 when the visible text is clear and the record match is strong.
+- Use 0.65 to 0.84 when the text is readable but there is some ambiguity.
+- Use 0.55 to 0.64 when the match is plausible but weak.
+- Use < 0.55 when the name is uncertain.
+- llmFound must be true only if confidence >= 0.55 and name is not a placeholder such as zone_042.
+- llmFound must be false otherwise.
+
+Required zone object format:
+Each zone must have exactly these fields, compatible with the provided schema:
+
+{
+  "id": "z001",
+  "name": "Canonical or visible name",
+  "url": "https://example.com/",
+  "logo": "",
+  "description": "Short description from the matching record, if available.",
+  "shape": "rect",
+  "x": 120,
+  "y": 80,
+  "w": 96,
+  "h": 42,
+  "points": [],
+  "ocrCandidate": "Visible OCR text",
+  "confidence": 0.82,
+  "llmFound": true
+}
+
+Output JSON construction:
+- Start from the provided initialization JSON.
+- Add a top-level "zones" array if absent.
+- Replace any empty zones array with the newly detected zones.
+- Keep all other top-level fields intact.
+- Do not invent additional top-level fields unless already present in the schema.
+- Do not include comments.
+- Do not include trailing commas.
+- Return strictly parseable JSON.
+
+Quality checks before final output:
+- Validate that every zone has id, name, url, logo, description, shape, x, y, w, h, points, ocrCandidate, confidence and llmFound.
+- Validate that all coordinates are inside the image boundaries.
+- Validate that w > 0 and h > 0.
+- Validate that every id is unique and sequential.
+- Validate that points is [] except for shape="poly".
+- Validate that llmFound agrees with confidence and name.
+- Validate that the output is valid JSON.
+- Validate that no markdown has been returned.
+
+Expected output:
+Return the full updated JSON only.
+
+${sharedFooter}`;
+  }
+  if(profile==='strict'){
+    return `${sharedHeader}
+
+Expected method:
+- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
+- create new zones only when a visible company/product logo is missing from the candidate set;
+- update geometry when needed so zones closely fit logo boundaries;
+- recognize names visible in the image and map them to structure data when possible;
+- use startupRecords as the CSV structure reference when provided;
+- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords;
+- keep a candidate zone even if its name remains uncertain.
+
+MANDATORY MEASUREMENT PROTOCOL (coordinate accuracy):
+- Before placing ANY zone, programmatically open the image and read its real pixel dimensions. Do not trust the dimensions declared in the JSON without verification.
+- Coordinate estimation by visual inspection alone is FORBIDDEN. Visual rendering at viewer-scale introduces systematic offsets of 5-15% that compound across the radar.
+- Use one of the following measurement methods, in order of preference:
+  a) Automated logo detection: apply contour detection (e.g. OpenCV findContours on a thresholded or edge-detected version of the image) to extract bounding boxes around logo regions, then assign names to detected boxes.
+  b) Gridded inspection: crop the image into sections at native resolution (no downscaling), overlay a pixel grid (every 10 px, with major labels every 50 px), and read coordinates directly from the grid. Each section must be processed at scale 2x or higher with the grid using the ORIGINAL image coordinates (not crop-local coordinates).
+  c) Reference anchoring: identify at least 3 visually unambiguous anchor points and verify their measured coordinates match the expected layout before placing surrounding zones.
+- For each detected zone, the bounding box (x, y, w, h) must enclose the visible logo (image mark + text label if both belong to the same brand block) with a tight fit. Padding above 4 px on any side is a defect.
+- After placing zones, perform a sanity check pass: render the proposed zones as semi-transparent overlays on the image and verify visually that each rectangle covers its target logo without significant offset, overlap with neighbours, or coverage of empty space.
+- If the radar contains more than 50 logos, do NOT attempt to place all zones by visual estimation in a single pass. Use method (a) or (b) above.
+
+Strict constraints:
+- return only valid JSON, without markdown;
+- keep the wavestone-radar-mapper-v1 schema;
+- keep existing ids as much as possible, especially those of candidate zones;
+- do not invent a URL if uncertain;
+- never set dataConfirmed or associationConfirmed to true: human validation is done afterwards in the Edit tab;
+- if a zone remains uncertain, keep a zone_XXX name, lower confidence below 0.55 and set llmFound to false;
+- if you identify a name with confidence >= 0.55, set llmFound to true;
+- x, y, w, h coordinates stay in the ${IMG_W} x ${IMG_H} coordinate system (verify against real image dimensions before starting);
+- points is empty except for shape=poly;
+- do not create zones for radar category labels, section headers, quadrant titles, ring labels, or any decorative text element. Only create zones for individual company or product logos;
+- fit each zone as tightly as possible around the logo boundaries. Choose the most appropriate shape (rect, circle, diamond, or poly) to closely follow the logo outline and avoid covering neighbouring logos.
+- for rotated/diagonal logos, the bounding box must enclose the rotated visible glyphs; dimensions must match observed orientation.
+
+OUTPUT VERIFICATION (run before returning the JSON):
+- assert every zone has x in [0, image.width], y in [0, image.height], x+w <= image.width, y+h <= image.height;
+- assert every zone has w >= 20 and h >= 20;
+- assert no two zones with llmFound=true overlap by more than 50% of the smaller box;
+- assert the total number of zones is consistent with the visible logo count;
+- assert no zone is assigned to a category header, sector title, or central wheel decoration;
+- if any assertion fails, fix the offending zones before returning.
+
+${sharedFooter}`;
+  }
+  if(profile==='standard'){
+    return `${sharedHeader}
 
 Expected method:
 - use the zones array as editable candidates (it may contain full, partial, or empty coverage);
@@ -2222,9 +2446,34 @@ Strict constraints:
 - do not create zones for radar category labels, section headers, quadrant titles, ring labels, or any decorative text element — only create zones for individual company or product logos;
 - fit each zone as tightly as possible around the logo boundaries; choose the most appropriate shape (rect, circle, diamond, or poly) to closely follow the logo outline and avoid covering neighbouring logos.
 
-JSON:
-${JSON.stringify(skeleton,null,2)}
-${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : ''}`;
+${sharedFooter}`;
+  }
+  return `${sharedHeader}
+
+Expected method:
+- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
+- create new zones only when a visible company/product logo is missing from the candidate set;
+- update geometry when needed so zones closely fit logo boundaries;
+- recognize names visible in the image and map them to structure data when possible;
+- use startupRecords as the CSV structure reference when provided;
+- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords.
+
+Placement rules (anti-offset):
+- Use the JSON image coordinate system exactly: origin at top-left, units in pixels.
+- Never apply a global shift/translation to all zones.
+- For each zone, adjust only from the visible logo in its local area.
+- Keep boxes tight around logo marks/text (no large padding).
+- Before returning, verify: 0 <= x,y and x+w <= image.width, y+h <= image.height.
+
+Strict constraints:
+- return only valid JSON, without markdown;
+- keep the wavestone-radar-mapper-v1 schema;
+- keep existing ids as much as possible, especially those of candidate zones;
+- never set dataConfirmed or associationConfirmed to true;
+- do not create zones for category labels, ring labels, titles, or decorative elements;
+- if uncertain on a zone name: keep zone_XXX, set confidence < 0.55 and llmFound=false.
+
+${sharedFooter}`;
 }
 function externalLlmInstructions(){
   return [
@@ -2334,10 +2583,11 @@ function parseJsonFromText(text){
   throw new Error('LLM response contains no usable JSON.');
 }
 q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
-['aiApproved','aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
+['aiApproved','aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage','aiPromptProfile'].forEach(id=>{
   q(id).addEventListener('input',updateAiStatus);
   q(id).addEventListener('change',updateAiStatus);
 });
+q('enablePptxAlpha').addEventListener('change',()=>updatePptxImportVisibility(q('enablePptxAlpha').checked));
 q('saveAiConfig').onclick=saveAiConfig;
 q('testAiConfig').onclick=async()=>{
   const cfg=getAiConfig();
@@ -2429,6 +2679,7 @@ function fileToDataUrl(file){
   return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); });
 }
 let jsZipLoaderPromise = null;
+let sheetJsLoaderPromise = null;
 function loadScriptOnce(src){
   return new Promise((resolve,reject)=>{
     const existing=document.querySelector(`script[data-src="${src}"]`);
@@ -2455,6 +2706,34 @@ async function ensureJsZip(){
   await jsZipLoaderPromise;
   if(!window.JSZip) throw new Error('JSZip unavailable after loading.');
   return window.JSZip;
+}
+async function ensureSheetJs(){
+  if(window.XLSX) return window.XLSX;
+  if(!sheetJsLoaderPromise){
+    sheetJsLoaderPromise = loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+  }
+  await sheetJsLoaderPromise;
+  if(!window.XLSX) throw new Error('SheetJS unavailable after loading.');
+  return window.XLSX;
+}
+async function parseSpreadsheetStartupRecords(file){
+  const XLSX=await ensureSheetJs();
+  const buffer=await file.arrayBuffer();
+  const workbook=XLSX.read(buffer,{type:'array'});
+  const firstSheetName=workbook.SheetNames?.[0];
+  if(!firstSheetName) return [];
+  const firstSheet=workbook.Sheets[firstSheetName];
+  if(!firstSheet) return [];
+  const rows=XLSX.utils.sheet_to_json(firstSheet,{defval:'',raw:false});
+  if(!Array.isArray(rows) || !rows.length) return [];
+  return rows.map(row=>startupRecordFromObject(row)).filter(Boolean);
+}
+async function parseStartupRecordsFromFile(file){
+  const lowerName=String(file?.name || '').toLowerCase();
+  if(/\.xlsx$|\.xls$/i.test(lowerName)){
+    return parseSpreadsheetStartupRecords(file);
+  }
+  return parseStartupRecords(await file.text(), file.name);
 }
 function guessMimeType(path){
   const p=String(path || '').toLowerCase();
