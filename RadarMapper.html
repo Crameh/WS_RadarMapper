@@ -416,13 +416,29 @@
     .statusArea { align-items:flex-start; flex-wrap:wrap; white-space:normal; }
     #stageWrap, aside { padding:14px; border-radius:10px; }
     main { margin:14px; gap:12px; }
-    .zoneTools input[type="range"] { width:150px; }
+    .zoneTools input[type="range"] { width:120px; }
     .secondaryActions, .secondaryActions.compact, .actions, .row { grid-template-columns:1fr; }
     .primaryAction.split { grid-template-columns:1fr; }
     .sectionHeader { flex-direction:column; gap:4px; }
     .sectionKicker { white-space:normal; }
     .prepStep { grid-template-columns:1fr; }
     .prepChoice { padding:10px; }
+    input, select, textarea { font-size:16px; }
+    .zoneFilterLegend { display:none; }
+    .configMenu { top:auto; bottom:8px; max-height:min(85vh,600px); }
+  }
+  @media (max-width: 480px) {
+    .phaseBtn { min-width:88px; font-size:11px; padding:5px 8px 4px; }
+    main { margin:8px; gap:8px; }
+    #stageWrap, aside { padding:8px; border-radius:8px; }
+    .zoneToolsRow { flex-direction:column; align-items:flex-start; gap:6px; }
+    .zoneToolsRight { flex-wrap:wrap; gap:6px; }
+    .zoneTools input[type="range"] { flex:1; min-width:80px; max-width:140px; width:auto; }
+    .editZonePopup { position:fixed !important; left:4px !important; right:4px !important; bottom:4px !important; top:auto !important; width:auto !important; max-width:none !important; max-height:72vh; border-radius:10px; }
+    .brandBlock { padding:6px 10px 5px; }
+    header h1 { font-size:12px; }
+    .eyebrow { font-size:9px; }
+    .iconBtn { width:34px; height:34px; font-size:18px; }
   }
 </style>
 </head>
@@ -458,7 +474,7 @@
           </span>
         </div>
         <div class="zoneToolsRight">
-          <label class="zoomControl">Zoom <input id="zoom" type="range" min="35" max="140" value="80"></label>
+          <label class="zoomControl">Zoom <input id="zoom" type="range" min="10" max="140" value="80"></label>
           <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filter zones by status">
             <button type="button" class="zoneFilterBtn active" data-filter="all">All</button>
             <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="Unassigned (orange)">●</button>
@@ -499,9 +515,9 @@
         <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Confirm association</button>
         <p id="editPopupAssociationStatus" class="associationStatus">Association to confirm</p>
         <label>URL</label>
-        <input id="editPopupUrl" placeholder="https://...">
+        <input id="editPopupUrl" placeholder="https://..." inputmode="url">
         <label>Logo (URL or data URI)</label>
-        <input id="editPopupLogo" placeholder="https://.../logo.png or data:image/...">
+        <input id="editPopupLogo" placeholder="https://.../logo.png or data:image/..." inputmode="url">
         <label>Short description</label>
         <textarea id="editPopupDescription" rows="3" placeholder="Description shown in popup"></textarea>
         <label>Shape</label>
@@ -512,10 +528,10 @@
           <option value="poly">Polygon</option>
         </select>
         <div class="row">
-          <div><label>X</label><input id="editPopupX" type="number" step="1"></div>
-          <div><label>Y</label><input id="editPopupY" type="number" step="1"></div>
-          <div><label>Width</label><input id="editPopupW" type="number" step="1"></div>
-          <div><label>Height</label><input id="editPopupH" type="number" step="1"></div>
+          <div><label>X</label><input id="editPopupX" type="number" inputmode="numeric" step="1"></div>
+          <div><label>Y</label><input id="editPopupY" type="number" inputmode="numeric" step="1"></div>
+          <div><label>Width</label><input id="editPopupW" type="number" inputmode="numeric" step="1"></div>
+          <div><label>Height</label><input id="editPopupH" type="number" inputmode="numeric" step="1"></div>
         </div>
         <label>Polygon points</label>
         <textarea id="editPopupPoints" rows="3" class="mono"></textarea>
@@ -2012,15 +2028,26 @@ if(q('clearStartupData')) q('clearStartupData').onclick=()=>{
   setInitStatus('Structure dataset cleared from local workspace.','success');
 };
 q('search').oninput=renderList; q('showFill').onchange=render;
+function autoFitZoom(){
+  if(!IMG_W) return;
+  const wrap=document.getElementById('stageWrap');
+  if(!wrap) return;
+  const pad=window.innerWidth<=480?16:28;
+  const avail=Math.max(200,wrap.clientWidth-pad);
+  const fit=Math.max(10,Math.min(140,Math.floor(avail/IMG_W*100)));
+  q('zoom').value=fit;
+  q('zoom').dispatchEvent(new Event('input'));
+}
 function refreshStageGeometry(){
   stageScaler.style.width=IMG_W+'px'; stageScaler.style.height=IMG_H+'px';
   radarImg.style.width=IMG_W+'px'; radarImg.style.height=IMG_H+'px';
   svg.setAttribute('viewBox', `0 0 ${IMG_W} ${IMG_H}`);
   svg.style.width=IMG_W+'px'; svg.style.height=IMG_H+'px';
-  q('zoom').dispatchEvent(new Event('input'));
+  if(window.innerWidth<=900){ autoFitZoom(); } else { q('zoom').dispatchEvent(new Event('input')); }
 }
 q('zoom').oninput=()=>{ const sc=q('zoom').value/100; stage.style.width=(IMG_W*sc)+'px'; stage.style.height=(IMG_H*sc)+'px'; stageScaler.style.transform=`scale(${sc})`; };
 refreshStageGeometry();
+let _rszTimer; window.addEventListener('resize',()=>{ clearTimeout(_rszTimer); _rszTimer=setTimeout(autoFitZoom,200); });
 
 function updateShapeButtons(){
   const z=zoneById(selectedId);
