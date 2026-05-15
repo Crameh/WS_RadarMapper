@@ -190,8 +190,8 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0101",
       "Name": "Datadome",
       "Product Category": "Application Security",
-      "Description": "DataDome est une plateforme de protection contre la cyberfraude, alimentée par l'IA, qui analyse en temps réel tout le trafic, humain, bot ou agent IA, et bloque les attaques en moins de 2 millisecondes. La plateforme protège les sites web, applications mobiles, APIs et serveurs MCP contre le scraping, le credential stuffing, le scalping, les DDoS, et bien d'autres menaces.",
-      "Website link": "https://datadome.co"
+      "Description": "DataDome est une plateforme de protection contre la cyberfraude, alimentée par l'IA, qui analyse en temps réel tout le trafic, humain, bot ou agent IA, et bloque les attaques en moins de 2 millisecondes. La plateforme protège les sites web, applications mobiles, APIs et serveurs MCP contre le scraping, le credential stuffing, le scalping, les DDoS, et bien d'autres menaces. ",
+      "Website link": "https://datadome.co "
     }
   },
   {
@@ -220,7 +220,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0232",
       "Name": "Nestor (PaprWork)",
       "Product Category": "Privacy",
-      "Description": "service de collecte sécurisée de documents et de data des professionnels",
+      "Description": " service de collecte sécurisée de documents et de data des professionnels",
       "Website link": "https://paprwork.io/"
     }
   },
@@ -310,7 +310,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0333",
       "Name": "V6Protect",
       "Product Category": "Application Security",
-      "Description": "solution en SaaS. Offre 2 services complémentaires : surveiller les différentes surfaces d'attaques et alerte en cas de ocmprimssion. L'utilisateur peut analyser plus poussées :analyses dynamiques, via un audit OSAP TOP 10, couplé aux scans de vulnérabilités. Firewall Applicatif WAF : filtrage sur les requêtes avant accès au server web du client. Filtrage ;lié à l'IP réputation (IP fait parti d'une registre blacklisté), comportement de la requête.",
+      "Description": "solution en SaaS. Offre 2 services complémentaires : surveiller les différentes surfaces d'attaques et alerte en cas de ocmprimssion. L'utilisateur peut analyser plus poussées :analyses dynamiques, via un audit OSAP TOP 10, couplé aux scans de vulnérabilités. Firewall Applicatif WAF : filtrage sur les requêtes avant accès au server web du client. Filtrage ;lié à l'IP réputation (IP fait parti d'une registre blacklisté), comportement de la requête. ",
       "Website link": "https://www.v6protect.fr/"
     }
   },
@@ -385,7 +385,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0160",
       "Name": "Inspeere",
       "Product Category": "Data Security",
-      "Description": "Solution de sauvegarde des données, protéger les données en local qu'ils mettent un serveur en local chez le client, donner accès localemetn, protéger les données en les répartissant sur d'autres serveurs distribués chez des clients, sécurisés par la blockchain, pour que le risque se réduise, chiffrement de la donnée",
+      "Description": "Solution de sauvegarde des données, protéger les données en local qu'ils mettent un serveur en local chez le client, donner accès localemetn, protéger les données en les répartissant sur d'autres serveurs distribués chez des clients, sécurisés par la blockchain, pour que le risque se réduise, chiffrement de la donnée ",
       "Website link": "https://www.inspeere.com/"
     }
   },
@@ -400,7 +400,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0275",
       "Name": "Sekoia.io",
       "Product Category": "Threat & Actor Intelligence",
-      "Description": "Solution de threat intelligence issue de SEKOIA, Plateforme AISOC, plateforme de détection et de réponse aux attaques, alimentées par l'intelligence artificielle.",
+      "Description": "Solution de threat intelligence issue de SEKOIA, Plateforme AISOC, plateforme de détection et de réponse aux attaques, alimentées par l'intelligence artificielle. ",
       "Website link": "https://inthreat.com"
     }
   },
@@ -518,10 +518,10 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0245",
-      "Name": "Private Discuss",
+      "Name": "Private Discuss ",
       "Product Category": "Privacy",
       "Description": "solution de visioconférence et de télétravail française qui prend soin des télétravailleurs, valorise les entreprises utilisatrices et protège la planète",
-      "Website link": "www.private-discuss.com"
+      "Website link": "www.private-discuss.com "
     }
   },
   {
@@ -550,7 +550,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0003",
       "Name": "A3BC",
       "Product Category": "Data Security",
-      "Description": "Cryptographic data-storage protocol® (Stockage de donnée breveté)\n\nNouveau protocole de stockage de donnée qui part de l'hypothèse que quelque soit la nature des structure de protection (firewall etc..), à un moment donné il y aura un acte malveillant interne ou externe qui exfiltrera des données. Le protocole de ségrégation et de réconciliation des données à la source permet de ne jamais disposer des données en un seul morceau au même endroit (transfert et stockage). Si données exfiltrées elles sont inexploitables. Réconciliation uniquement avec clefs (biométriques ou pas). Réconciliation on spot et détruite immédiatement.",
+      "Description": "Cryptographic data-storage protocol® (Stockage de donnée breveté)\n\nNouveau protocole de stockage de donnée qui part de l'hypothèse que quelque soit la nature des structure de protection (firewall etc..), à un moment donné il y aura un acte malveillant interne ou externe qui exfiltrera des données. Le protocole de ségrégation et de réconciliation des données à la source permet de ne jamais disposer des données en un seul morceau au même endroit (transfert et stockage). Si données exfiltrées elles sont inexploitables. Réconciliation uniquement avec clefs (biométriques ou pas). Réconciliation on spot et détruite immédiatement.\n",
       "Website link": "https://www.a3bc.io/"
     }
   },
@@ -565,7 +565,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0024",
       "Name": "Astran (Astrachain)",
       "Product Category": "Resilience",
-      "Description": "Solution qui permet de maintenir les activités les plus critiques en cas d'incident.",
+      "Description": "Solution qui permet de maintenir les activités les plus critiques en cas d'incident.  ",
       "Website link": "https://www.astran.ai/"
     }
   },
@@ -698,7 +698,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0091",
-      "Name": "Cybervadis",
+      "Name": "Cybervadis ",
       "Product Category": "Governance & Risk Compliance",
       "Description": "Evaluer pour le compte des client la maturité cybervadis leurs tier sur une approhes d'autit classique. Ils ont un groupe d'analyste au sein de leurs équipe qui dématerialise et analyse les données. Lorsqu'ils offraient auparavant une solution de notation de la maturité cyber, aujourd'hui Cybervadis propose une solution de gestion des risques globale. Ils se positionnent aujourd'hui sur l'amélioration de la posture cyber des entreprises.",
       "Website link": "https://cybervadis.com/"
@@ -716,7 +716,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "Name": "Gatewatcher",
       "Product Category": "Network Security",
       "Description": "Gatewatcher est un acteur majeur de la cybersécurité et figure parmi les leaders mondiaux du NDR (Network Detection & Response).\nSa plateforme analyse les flux réseau afin de détecter les cybermenaces avancées, les comportements anormaux et les tentatives de compromission en temps réel et permet aux entreprises de prendre des décisions actionnables et contextualisées.\nInteropérable et agnostique, la solution s’intègre aux principaux écosystèmes de sécurité (SIEM, EDR, cloud, IAM, CTI…) pour centraliser, corréler et contextualiser les signaux de sécurité au sein d’une même chaîne de décision.\nGatewatcher permet ainsi aux organisations d’accélérer la détection, la prise de décision et la réponse face aux cybermenaces, notamment dans les environnements critiques, sensibles et souverains.\n\nAnalyse et détection intrusions/menaces/comportements avancées/malveillant/intrusif, moteur interne pr reconnaitre les attaques, plusieurs capteurs positionnés au sein du réseau communiquent avec une appliance centrale\n\n2 offres : NDR et CTI\nR&D multivectorielle\nLa convergence entre la connaissance des menaces et la compréhension des modèles/des scénarios d'attaque donne naissance à leur propre moteur de détection unique sur le marché\n\nUn attaquant doit forcément exec du code sur la machine : l'outil permet : capture réseau - reconstituer le code et déterminer s'il est malicieux avec des technologies propres et issues de leurs r&d\n\ndétection de communication entre une machine connectée et une infra de commande\n\nune attaque n'a jms lieu depuis les machine des attaquants : mais l'outil permet tout de même la détection de communication récurrentes entre une machine infectée et la tour de contrôle des attaquants\n\npermet de savoir quelles sont les actions de l'attaque en cours : reconnaissance, prise d'accès, pivoter dans l'infra, exfiltrer de l'info\n\n2 modes de fonctionnement : le client achète le NDR et le possède on prem, ou on la solution peut être héberger dans les DC de l'entreprise",
-      "Website link": "www.gatewatcher.com"
+      "Website link": "www.gatewatcher.com "
     }
   },
   {
@@ -803,7 +803,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0083",
-      "Name": "Cybelangel",
+      "Name": "Cybelangel ",
       "Product Category": "Threat & Actor Intelligence",
       "Description": "Surveillance et détection : alerte les clients en temps réel grâce à l’utilisation d’une technologie propriétaire de découverte et de priorisation des actifs exposés à l’extérieur du périmètre. Cela inclut la fuite de données, les domaines malveillants et les API publiques. Ils utilisent un crawler haute fréquence pour surveiller les canaux de communication sensibles et détecter les identifiants et mots de passe compromis. Ajout d'une brique de threat intelligent qui va permettre d'anticiper les menaces (acteur malveiolant, profiling, investigation)",
       "Website link": "www.cybelangel.com"
@@ -851,7 +851,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "Name": "Prove & Run (ProvenRun)",
       "Product Category": "Data Security",
       "Description": "La mission de ProvenRun est de fournir aux clients les produits et services de confiance qui les aideront à intégrer la sécurité dans leur infrastructure d'appareils connectés partout où cela est nécessaire, au niveau de la puce, de l'appareil, de la périphérie ou du cloud. Après avoir créé un OS certifié Critères Communs EAL7, le seul au monde, l'entreprise propose aujourd'hui un boîtier HSM avec un fort niveau de sécurité.",
-      "Website link": "www.provenrun.com"
+      "Website link": "www.provenrun.com "
     }
   },
   {
@@ -865,7 +865,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0274",
       "Name": "Seela",
       "Product Category": "Awareness & Training",
-      "Description": "Seela est une société spécialisée dans le cyberentraînement. Elle propose une plateforme de sensibilisation (Cyberunity), de formation (CyberTraining) et une plateforme de CTF compétitive (BattleHack).",
+      "Description": "Seela est une société spécialisée dans le cyberentraînement. Elle propose une plateforme de sensibilisation (Cyberunity), de formation (CyberTraining) et une plateforme de CTF compétitive (BattleHack). ",
       "Website link": "https://seela.io/"
     }
   },
@@ -925,7 +925,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0233",
       "Name": "Parcoor",
       "Product Category": "OT Security",
-      "Description": "Détecter des attaques et malware sur des appareils embarqués grâce à l'IA. Complages de microévénements pour détecter une attaque. Utilise TINYML. Approche MachineLearning =/= modèle énorme chapgpt etc qui nécessitent bcp de ressources -> Tiny vise à développer des modèles suffisants, lightweight, pour les faire tourner sur des petits appareilis, approche globale qui vise à déployer de l'IA en périphérie, toutes les données remontent par les petits capteurs et est traitée directement.",
+      "Description": "Détecter des attaques et malware sur des appareils embarqués grâce à l'IA. Complages de microévénements pour détecter une attaque. Utilise TINYML. Approche MachineLearning =/= modèle énorme chapgpt etc qui nécessitent bcp de ressources -> Tiny vise à développer des modèles suffisants, lightweight, pour les faire tourner sur des petits appareilis, approche globale qui vise à déployer de l'IA en périphérie, toutes les données remontent par les petits capteurs et est traitée directement. ",
       "Website link": "https://parcoor.com"
     }
   },
@@ -1016,7 +1016,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "Name": "Paladax SAS(Umbra)",
       "Product Category": "Secure Data Exchange",
       "Description": "outil de sécurisation des appareils électroniques assurant la confidentialité des réunions",
-      "Website link": "https://get-umbra.com/?utm_source=LesPepitesTech.com"
+      "Website link": "https://get-umbra.com/?utm_source=LesPepitesTech.com\t"
     }
   },
   {
@@ -1031,7 +1031,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "Name": "Sahar",
       "Product Category": "Threat & Actor Intelligence",
       "Description": "SAHAR est spécialisée dans la collecte, le traitement et la visualisation de données massives, notamment en source ouverte (OSINT). SAHAR conçoit des outils pouvant s’insérer dans des chaînes de traitement ou fonctionner de façon autonome, avec une approche flexible et innovante de la data science, intégrant des travaux de recherche en IA, apprentissage automatique, deep learning, traitement du langage naturel et analyse de graphes.\nLa solution de SAHAR est particulièrement adaptée aux besoins des secteurs de la défense et de la cybersécurité, permettant de détecter, identifier et suivre des événements, risques ou menaces en temps réel.",
-      "Website link": "http://sahar.fr/"
+      "Website link": "http://sahar.fr/ "
     }
   },
   {
@@ -1060,7 +1060,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0501",
       "Name": "Authentic BlockChain",
       "Product Category": "Anti-Fraud",
-      "Description": "Sécuristaion des documents grâce à la blockchain, Empêchement de la falsification des docs reçus et envoyés par les utilisateurs. ( Seul entreprise a faire cela 100%)",
+      "Description": "Sécuristaion des documents grâce à la blockchain, Empêchement de la falsification des docs reçus et envoyés par les utilisateurs. ( Seul entreprise a faire cela 100%) ",
       "Website link": "https://authentic-blockchain.com/"
     }
   },
@@ -1133,7 +1133,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0125",
-      "Name": "Escape",
+      "Name": "Escape ",
       "Product Category": "Application Security",
       "Description": "Escape est une entreprise de sécurité offensive destinée aux équipes de sécurité, proposant une plateforme structurée autour de trois produits complémentaires : l’Attack Surface Management (ASM) pour détecter les expositions et les vecteurs d'attaque potentiels, le DAST afin d'identifier les vulnérabilités potentielles au sein d'une application et le pentest automatisé par IA.",
       "Website link": "https://escape.tech/"
@@ -1210,7 +1210,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0367",
       "Name": "Kubo Labs",
       "Product Category": "Attack Surface Management",
-      "Description": "Kubo Labs développe une solution de sécurité dédiée aux environnements Kubernetes, permettant d’identifier et corriger automatiquement les mauvaises configurations et vulnérabilités avant qu’elles n’impactent les déploiements et la production.",
+      "Description": "Kubo Labs développe une solution de sécurité dédiée aux environnements Kubernetes, permettant d’identifier et corriger automatiquement les mauvaises configurations et vulnérabilités avant qu’elles n’impactent les déploiements et la production. ",
       "Website link": "https://www.kubolabs.io/"
     }
   },
@@ -1343,7 +1343,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0235",
-      "Name": "Phinasoft",
+      "Name": "Phinasoft ",
       "Product Category": "Governance & Risk Compliance",
       "Description": "Phinasoft :  logiciel permettant de faciliter la réalition et le pilotage de gestion de rsique, de gestion de tiers",
       "Website link": "https://phinasoft.com/"
@@ -1465,7 +1465,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0281",
       "Name": "Set in Stone (Holding Benoit)",
       "Product Category": "Secure Data Exchange",
-      "Description": "Leur différenciation réside dans la combinaison de plusieurs moteurs avec l’intelligence artificielle.Sonde de détection d'incidents adaptée à la Loi de Programmation Militaire.",
+      "Description": "Leur différenciation réside dans la combinaison de plusieurs moteurs avec l’intelligence artificielle.Sonde de détection d'incidents adaptée à la Loi de Programmation Militaire. ",
       "Website link": "https://setinstone.io/; https://setinstone.io/ , https://lab.setinstone.io/"
     }
   },
@@ -1508,9 +1508,9 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0213",
-      "Name": "Nybble-security",
+      "Name": "Nybble-security ",
       "Product Category": "Surveillance",
-      "Description": "plateformes de protection des infrastructures IT On-premise ou dans le Cloud;  plateformes de protection des infrastructures IT On-premise ou dans le Cloud. Mise en place de communauté d'analyste qu'ils mettent à disposition de leurs clients via une platforme. 2 services : l'un our traiter les alertes et le second pour decouvrir les failles",
+      "Description": " plateformes de protection des infrastructures IT On-premise ou dans le Cloud;  plateformes de protection des infrastructures IT On-premise ou dans le Cloud. Mise en place de communauté d'analyste qu'ils mettent à disposition de leurs clients via une platforme. 2 services : l'un our traiter les alertes et le second pour decouvrir les failles",
       "Website link": "Nybble (nybble-security.io)"
     }
   },
@@ -1525,7 +1525,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0242",
       "Name": "Predictalab",
       "Product Category": "Threat & Actor Intelligence",
-      "Description": "Premier produit moteur de recherche annuaire inversée de recherche (renseignmeent en source ouverte). Predicta.search  Predictagraph mapping des graphes. Fostileur.ai qui permet de recouper les logs sur les identifiants et les mots de passes stockés pour renseingment sur le fuitage de données des organisme.",
+      "Description": "Premier produit moteur de recherche annuaire inversée de recherche (renseignmeent en source ouverte). Predicta.search  Predictagraph mapping des graphes. Fostileur.ai qui permet de recouper les logs sur les identifiants et les mots de passes stockés pour renseingment sur le fuitage de données des organisme. ",
       "Website link": "https://predictalab.fr/"
     }
   },
@@ -1538,9 +1538,9 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0272",
-      "Name": "Securas Technologies",
+      "Name": "Securas Technologies ",
       "Product Category": "Vulnerabilities",
-      "Description": "Solutions et des services de Cybersécurité permettent de détecter et prévenir les attaques cyber : Tests d'intrusion plus ingénierie sociale.",
+      "Description": "Solutions et des services de Cybersécurité permettent de détecter et prévenir les attaques cyber : Tests d'intrusion plus ingénierie sociale. ",
       "Website link": "https://securas.fr/nos-services"
     }
   },
@@ -1570,7 +1570,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0174",
       "Name": "Haryon (Knock knock)",
       "Product Category": "Vulnerabilities",
-      "Description": "Solution de test d’intrusion cyber automatisé qui permet de reproduire la démarche d’un pentester, d’identifier et d’arpenter les chemins menant vers les biens qui ont de la valeur pour l’organisation cliente. Il sera alors possible de définir et de positionner les mesures de sécurité à même de dissuader, ralentir ou détecter un attaquant potentiel. Concrètement, la solution découvre et exploite les vulnérabilités référencées d’un système d’information, pour réaliser un premier niveau d’audit. Il génère ensuite une cartographie des chemins d’attaque et un rapport d’audit permettant une capacité avancée d’analyses et de prises de décision.Contrôle continue, cartographier du point de vue offensif",
+      "Description": "Solution de test d’intrusion cyber automatisé qui permet de reproduire la démarche d’un pentester, d’identifier et d’arpenter les chemins menant vers les biens qui ont de la valeur pour l’organisation cliente. Il sera alors possible de définir et de positionner les mesures de sécurité à même de dissuader, ralentir ou détecter un attaquant potentiel. Concrètement, la solution découvre et exploite les vulnérabilités référencées d’un système d’information, pour réaliser un premier niveau d’audit. Il génère ensuite une cartographie des chemins d’attaque et un rapport d’audit permettant une capacité avancée d’analyses et de prises de décision.Contrôle continue, cartographier du point de vue offensif  ",
       "Website link": "https://www.haryon.fr"
     }
   },
@@ -1600,7 +1600,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0298",
       "Name": "Stoik",
       "Product Category": "Cyber Insurance",
-      "Description": "Stoïk protège les PME et les ETI à travers l’Europe contre les risques cyber grâce à un modèle intégré, alimenté par l’IA, qui combine assurance cyber, prévention active des risques et réponse aux incidents internalisée. Stoïk accompagne ainsi les entreprises avant, pendant et après une attaque, afin de préserver la continuité de leurs activités, de limiter les pertes financières et de faciliter une reprise en toute confiance.",
+      "Description": "Stoïk protège les PME et les ETI à travers l’Europe contre les risques cyber grâce à un modèle intégré, alimenté par l’IA, qui combine assurance cyber, prévention active des risques et réponse aux incidents internalisée. Stoïk accompagne ainsi les entreprises avant, pendant et après une attaque, afin de préserver la continuité de leurs activités, de limiter les pertes financières et de faciliter une reprise en toute confiance. ",
       "Website link": "https://www.stoik.com/"
     }
   },
@@ -1615,7 +1615,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0435",
       "Name": "Kleer",
       "Product Category": "Governance & Risk Compliance",
-      "Description": "Kleer.ai est une solution d’évaluation des risques tiers visant à automatiser l’ensemble de la chaîne de due diligence, au‑delà d’une simple logique de conformité déclarative. La plateforme digitalise les questionnaires clients et fournisseurs et s’appuie sur des mécanismes d’IA pour authentifier les pièces d’identité et renforcer les contrôles documentaires. Elle permet également de vérifier les tiers au regard des listes de sanctions, des PPE (personnes politiquement exposées) et de bases criminelles, en croisant des bases de données publiques et des sources privées payantes. Kleer a développé une IA propriétaire, “Tripton”, capable de produire différents niveaux de rapports (de la due diligence légère à renforcée) afin de fournir une évaluation réelle du risque.\n\nKleer est outil permettant d'automatiser la chaine d'evaluation de ces tiers au travers de système basés sur de l’IA en : \n\t- Digitalisant les questionnaires clients et fournisseurs pour lutter contre la fraude en authentifiant les pièces d’identités et mène des contrôles renforcés sur les documents.\n\t- Vérifiant les tiers au regard des listes de sanctions, des PPEs et des listes criminelles\n\t- Et rendant  les ’information est accessible pour aux commerciaux et opérationnels\n\nKleer n'est pas un outil de conformité en remplissant des cases, mais évaluation des risques, jusque due diligence à ce service, ont développé IA \"tripton\" qui fait plusieurs niveaux de rapport  (due diligence light jusque renforcé) qui corrobore bdd publiques et d'autres qu'ils payent",
+      "Description": "Kleer.ai est une solution d’évaluation des risques tiers visant à automatiser l’ensemble de la chaîne de due diligence, au‑delà d’une simple logique de conformité déclarative. La plateforme digitalise les questionnaires clients et fournisseurs et s’appuie sur des mécanismes d’IA pour authentifier les pièces d’identité et renforcer les contrôles documentaires. Elle permet également de vérifier les tiers au regard des listes de sanctions, des PPE (personnes politiquement exposées) et de bases criminelles, en croisant des bases de données publiques et des sources privées payantes. Kleer a développé une IA propriétaire, “Tripton”, capable de produire différents niveaux de rapports (de la due diligence légère à renforcée) afin de fournir une évaluation réelle du risque.\n\nKleer est outil permettant d'automatiser la chaine d'evaluation de ces tiers au travers de système basés sur de l’IA en : \n\t- Digitalisant les questionnaires clients et fournisseurs pour lutter contre la fraude en authentifiant les pièces d’identités et mène des contrôles renforcés sur les documents.\n\t- Vérifiant les tiers au regard des listes de sanctions, des PPEs et des listes criminelles\n\t- Et rendant  les ’information est accessible pour aux commerciaux et opérationnels\n\nKleer n'est pas un outil de conformité en remplissant des cases, mais évaluation des risques, jusque due diligence à ce service, ont développé IA \"tripton\" qui fait plusieurs niveaux de rapport  (due diligence light jusque renforcé) qui corrobore bdd publiques et d'autres qu'ils payent ",
       "Website link": "https://kleer.ai/"
     }
   },
@@ -1720,7 +1720,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0180",
       "Name": "Legapass",
       "Product Category": "Data Security",
-      "Description": "Sécurise  la transmission du patrimoine numérique  en proposant un coffre-fort virtuel où sont enregistrés les  différents éléments du patrimoine numérique sur: identifiants de messagerie, téléphone, services de stockage en ligne, réseaux sociaux, bibliothèques virtuelles, actifs bancaires, comptes offshore, cryptomonnaies, NFTs.\nCe coffre-fort offre un archivage sécurisé hors ligne, accessible aux proches . Les données sont stockées sur des disques physiques, protégés dans un environnement sûr.\nPropose une plateforme dédiée aux notaires permettant de réaliser des études patrimoniales en détectant l'ensemble des plateformes (banques, wallets,etc) utilisées par le client.",
+      "Description": " Sécurise  la transmission du patrimoine numérique  en proposant un coffre-fort virtuel où sont enregistrés les  différents éléments du patrimoine numérique sur: identifiants de messagerie, téléphone, services de stockage en ligne, réseaux sociaux, bibliothèques virtuelles, actifs bancaires, comptes offshore, cryptomonnaies, NFTs.\nCe coffre-fort offre un archivage sécurisé hors ligne, accessible aux proches . Les données sont stockées sur des disques physiques, protégés dans un environnement sûr.\nPropose une plateforme dédiée aux notaires permettant de réaliser des études patrimoniales en détectant l'ensemble des plateformes (banques, wallets,etc) utilisées par le client.",
       "Website link": "https://legapass.com/"
     }
   },
@@ -1855,7 +1855,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0200",
       "Name": "Merox",
       "Product Category": "Network Security",
-      "Description": "Plateforme qui permet aux pros de la cyber (RSSI par exemple) d'améliorer et de tester leur environnement DNS, DMARC, noms de domaines\nLutte contre l'usurpation d'identité (fraude au président notamment)\nSurveillance, conformité, collecte de rapports techniques\nFonctionalités d'aide à la mise en place de protocoles",
+      "Description": "Plateforme qui permet aux pros de la cyber (RSSI par exemple) d'améliorer et de tester leur environnement DNS, DMARC, noms de domaines\nLutte contre l'usurpation d'identité (fraude au président notamment)\nSurveillance, conformité, collecte de rapports techniques\nFonctionalités d'aide à la mise en place de protocoles ",
       "Website link": "https://merox.io/fr/"
     }
   },
@@ -1913,7 +1913,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0292",
-      "Name": "Snowpack",
+      "Name": "Snowpack ",
       "Product Category": "Network Security",
       "Description": "Snowpack offre le meilleur anonymat grâce à sa technologie unique et brevetée ne necessitant pas de tier de confiance et invulnerable au attaques \"Man in the Middle\". Facile à deployer, personnalisable Snowpack permet de cacher les activités, services web et infra",
       "Website link": "https://snowpack.eu/"
@@ -1930,7 +1930,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0380",
       "Name": "Treebal",
       "Product Category": "Secure Data Exchange",
-      "Description": "Treebal est une messagerie instantanée éthique et éco-responsable qui protège les données de ses utilisateurs et minimise son impact sur l’environnement. Au-delà de la messagerie accessible gratuitement pour le grand public, Treebal Pro propose aux professionnels une plate-forme collaborative éthique et sécurisée qui permet aux organisations d’engager l’ensemble de leurs parties prenantes dans la durée. Entreprise et collectivités !",
+      "Description": "Treebal est une messagerie instantanée éthique et éco-responsable qui protège les données de ses utilisateurs et minimise son impact sur l’environnement. Au-delà de la messagerie accessible gratuitement pour le grand public, Treebal Pro propose aux professionnels une plate-forme collaborative éthique et sécurisée qui permet aux organisations d’engager l’ensemble de leurs parties prenantes dans la durée. Entreprise et collectivités ! ",
       "Website link": "https://www.treebal.green"
     }
   },
@@ -1975,7 +1975,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0038",
       "Name": "BforeAI",
       "Product Category": "Anti-Fraud",
-      "Description": "Solution de détection et prévention intélligente des menaces et des attaques informatiques par l'identification des noms de domaines frauduleux. Cette identification permettra d'identifier les domaines malicieux avant qu'ils ne puissent lancer une attaque (\"pré-crime\"). Bfore.Ai propose 2 éléments :  tout d'abord 'Threat intelligence' qui  prédira les noms de domaine frauduleux. Puis, 'Brand Protection' qui detectera les noms de domaines frauduleux en fonction de leur client (nom de domaine du client, etc.) \nLeur Infrastructure est composé d'un scanner internet qui récupèrent constamment tous les noms de domaines existants ainsi que des informations complémentaires (nameserver, IP, éléments DNS). Deux catégories sont préalablement faites : les comportements de domaines malicieux et les comportements standard. L'entierté des noms de domaines est analyser selon ces données comportementales afin de les catégoriser dans l'une des deux catégories.",
+      "Description": "Solution de détection et prévention intélligente des menaces et des attaques informatiques par l'identification des noms de domaines frauduleux. Cette identification permettra d'identifier les domaines malicieux avant qu'ils ne puissent lancer une attaque (\"pré-crime\"). Bfore.Ai propose 2 éléments :  tout d'abord 'Threat intelligence' qui  prédira les noms de domaine frauduleux. Puis, 'Brand Protection' qui detectera les noms de domaines frauduleux en fonction de leur client (nom de domaine du client, etc.) \nLeur Infrastructure est composé d'un scanner internet qui récupèrent constamment tous les noms de domaines existants ainsi que des informations complémentaires (nameserver, IP, éléments DNS). Deux catégories sont préalablement faites : les comportements de domaines malicieux et les comportements standard. L'entierté des noms de domaines est analyser selon ces données comportementales afin de les catégoriser dans l'une des deux catégories. ",
       "Website link": "https://bfore.ai/"
     }
   },
@@ -2095,7 +2095,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0490",
       "Name": "Cybalgoris",
       "Product Category": "Awareness & Training",
-      "Description": "Sécurisation logiciel donc de la secur by design",
+      "Description": "Sécurisation logiciel donc de la secur by design ",
       "Website link": "https://cybalgoris.com/"
     }
   },
@@ -2123,7 +2123,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
     "logo": "",
     "raw": {
       "ID": "SC0170",
-      "Name": "Kamaé",
+      "Name": "Kamaé ",
       "Product Category": "Awareness & Training",
       "Description": "Kamaé propose une plateforme de sensibilisation aux risques cyber gamifiée, conçue pour responsabiliser durablement les collaborateurs (en s'appuyant sur les bonnes pratiques émises par l'ANSSI et la CNIL) et renforcer la confiance des clients en contribuant à la mise en conformité de l’entreprise. Elle propose une sensibilisation continue et engageante, combinant entraînements, tests de phishing, contenus pédagogiques sur formats variés (chatbots, vidéos, quiz, événements saisonniers), afin de maintenir l’attention dans le temps. Inspirée des arts martiaux, la plateforme plonge les utilisateurs dans un “cyber dojo” où la progression se fait par niveaux et ceintures, avec mécanismes d’immersion, de classement et de comparaison. Une console centralisée permet aux utilisateurs de suivre leurs progrès.",
       "Website link": "https://www.kamae.fr/"
@@ -2155,7 +2155,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0098",
       "Name": "Daspren",
       "Product Category": "Data Security",
-      "Description": "Issue de l’INRIA, Daspren aide les organisations à protéger leur patrimoine numérique grâce à une approche unique autour des 3C : Cartographie, Classification et Contrôle des données. La solution offre une visibilité complète sur vos flux, identifie les données sensibles et détecte le Shadow IT, tout en appliquant des mesures de sécurité adaptées à la criticité des actifs. Daspren détecte et bloque en temps réel toute tentative d’accès non autorisé et encadre l’usage de l’IA pour prévenir les fuites de données.",
+      "Description": "Issue de l’INRIA, Daspren aide les organisations à protéger leur patrimoine numérique grâce à une approche unique autour des 3C : Cartographie, Classification et Contrôle des données. La solution offre une visibilité complète sur vos flux, identifie les données sensibles et détecte le Shadow IT, tout en appliquant des mesures de sécurité adaptées à la criticité des actifs. Daspren détecte et bloque en temps réel toute tentative d’accès non autorisé et encadre l’usage de l’IA pour prévenir les fuites de données. ",
       "Website link": "http://www.daspren.com/"
     }
   },
@@ -2200,7 +2200,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0381",
       "Name": "Vaultys",
       "Product Category": "Identity & Access Management",
-      "Description": "Vaultys redessine l'identité numérique à partir de zéro, en imitant l'identification IRL.\n- Réduire les risques liés aux erreurs humaines : Offrir aux entreprises la possibilité de garantir que leurs employés ne seront pas victimes d'attaques liées à des failles humaines.\n- Simplification de l'authentification : Assurer une expérience utilisateur fluide avec une clé cryptographique échangée facilement entre l'utilisateur et l'entreprise, incluant une authentification multi-facteurs (MFA) en un clic.\n- Visibilité du Shadow IT : Rendre visible l'utilisation non contrôlée des applications et des accès aux données, tout en séparant l'identité (I) du système de gestion des accès (AM) dans la gestion d'identité (IAM). - Sécurisation de l'utilisation des agents l'IA (évolution)",
+      "Description": "Vaultys redessine l'identité numérique à partir de zéro, en imitant l'identification IRL.\n- Réduire les risques liés aux erreurs humaines : Offrir aux entreprises la possibilité de garantir que leurs employés ne seront pas victimes d'attaques liées à des failles humaines.\n- Simplification de l'authentification : Assurer une expérience utilisateur fluide avec une clé cryptographique échangée facilement entre l'utilisateur et l'entreprise, incluant une authentification multi-facteurs (MFA) en un clic.\n- Visibilité du Shadow IT : Rendre visible l'utilisation non contrôlée des applications et des accès aux données, tout en séparant l'identité (I) du système de gestion des accès (AM) dans la gestion d'identité (IAM). - Sécurisation de l'utilisation des agents l'IA (évolution) ",
       "Website link": "https://vaultys.com/"
     }
   },
@@ -2215,7 +2215,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0407",
       "Name": "Zygon",
       "Product Category": "Identity & Access Management",
-      "Description": "detection des Saas utilisés dans une organisation et déployer des politiques de sécurité : desactiver les comptes des personnes qui partent + detecter quand des personnes.",
+      "Description": "detection des Saas utilisés dans une organisation et déployer des politiques de sécurité : desactiver les comptes des personnes qui partent + detecter quand des personnes. ",
       "Website link": "https://www.zygon.tech/"
     }
   },
@@ -2245,7 +2245,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0221",
       "Name": "Open Sezam",
       "Product Category": "Identity & Access Management",
-      "Description": "Connexion 100% authentification forte et sans friction pour l’utilisateur.",
+      "Description": "Connexion 100% authentification forte et sans friction pour l’utilisateur. ",
       "Website link": "http://www.opensezam.com/"
     }
   },
@@ -2305,7 +2305,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0058",
       "Name": "Chimere",
       "Product Category": "Network Security",
-      "Description": "Sécurisation d'entité sur le web (Site avec user accès API et VPN)\nModification de TOR pour créer un \"darknet\" privé.\nSolution Saas réparti sur plusieurs cloud qui s'interface entre l'user et l'entreprise. \nPermet d'anonymiser les service (atteindre le service par un client sans avoir besoin de connaitre son adresse IP si son port).Accès aux service par des clés publiques.\nStructure développée en intraprenariat par Thalès\nPas de structure juridique car intraprenariat.",
+      "Description": "Sécurisation d'entité sur le web (Site avec user accès API et VPN)\nModification de TOR pour créer un \"darknet\" privé.\nSolution Saas réparti sur plusieurs cloud qui s'interface entre l'user et l'entreprise. \nPermet d'anonymiser les service (atteindre le service par un client sans avoir besoin de connaitre son adresse IP si son port).Accès aux service par des clés publiques.\nStructure développée en intraprenariat par Thalès\nPas de structure juridique car intraprenariat. ",
       "Website link": "https://chimere.eu/"
     }
   },
@@ -2470,7 +2470,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0428",
       "Name": "GOTTAPHISH",
       "Product Category": "Awareness & Training",
-      "Description": "Basé sur la plateforme open-source : Gophish, Gottaphish propose un outil amélioré clé en main et autopiloté pour créer, personnaliser et visualiser facilement vos campagnes de phishing et spearphising personnalisé grâce à l’intelligence artificielle générative.",
+      "Description": "Basé sur la plateforme open-source : Gophish, Gottaphish propose un outil amélioré clé en main et autopiloté pour créer, personnaliser et visualiser facilement vos campagnes de phishing et spearphising personnalisé grâce à l’intelligence artificielle générative. ",
       "Website link": "https://gottaphish.com/"
     }
   },
@@ -2575,7 +2575,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0523",
       "Name": "Aegis Technologies",
       "Product Category": "Threat & Actor Intelligence",
-      "Description": "Offre des réponses logicielles sur mesure aux acteurs de la défense et de la sécurité. Systèmes d'unification et de structures de la donnée (cyber), on va se plugger en amont d'un soc pour empechement l'aveuglement du SOC. Il se focalise sur le siem et ses données. Plateforme d'infrastructure CTI as a Service, déployer des sondes.",
+      "Description": "Offre des réponses logicielles sur mesure aux acteurs de la défense et de la sécurité. Systèmes d'unification et de structures de la donnée (cyber), on va se plugger en amont d'un soc pour empechement l'aveuglement du SOC. Il se focalise sur le siem et ses données. Plateforme d'infrastructure CTI as a Service, déployer des sondes. ",
       "Website link": "https://aegis-technologies.fr/"
     }
   },
@@ -2680,7 +2680,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0390",
       "Name": "Hamyna",
       "Product Category": "Privacy",
-      "Description": "Hamynä propose une suite d’outils souverains dédiés à la conformité RGPD et à la cybersécurité, conçus pour aider les organisations à piloter facilement leurs obligations, documenter leur conformité et sécuriser leur système d’information.",
+      "Description": " Hamynä propose une suite d’outils souverains dédiés à la conformité RGPD et à la cybersécurité, conçus pour aider les organisations à piloter facilement leurs obligations, documenter leur conformité et sécuriser leur système d’information.",
       "Website link": "https://www.hamyna.fr/"
     }
   },
@@ -2740,7 +2740,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0522",
       "Name": "EuroCyberGroup",
       "Product Category": "Surveillance",
-      "Description": "Plateforme ECGProtect, plateforme de centralisation et d'automatisation de la cybersecurité par l'IA, sur la gouvernance européene",
+      "Description": "Plateforme ECGProtect, plateforme de centralisation et d'automatisation de la cybersecurité par l'IA, sur la gouvernance européene ",
       "Website link": "https://eurocybergroup.fr/"
     }
   },
@@ -2800,7 +2800,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0216",
       "Name": "OGO Security",
       "Product Category": "Application Security",
-      "Description": "C'est une solution de protection des sites web et applications à l'aide d'une IA d'analyse comportementale. (WAF pas cher pour les PMEs)\n\nPour se protéger actuellement il faut des ressources financières et des ressources internes, ils ont simplifié tout ca. Ils gèrent cela par 2 facon, une IA qui analyse tout et en plus de cela elle fait de l'analyse comportementale (IP, géolocalisation, vitesse de frappe...). Ils récupèrent des données et à partir de la détermine un profil type par utilisateur et tout ce qui sort de ce profil est considéré comme une attaque. Au début on le ban et si ca se répète on le bloque (enregistrement de 'lP). et on blacklist l'IP sur les autres sites. Formule cloud based PME/TPE mais ils commencent à travailler chez les grands comptes on premise ou on cloud. Dans 3 ans environ, ils pourraient intégrer leurs AI dans d'autres partie comme le SOC ou sur les devices car elle est très légère (dev en C++). Protection CDM, Anti DDOS, Bot mitigation",
+      "Description": "C'est une solution de protection des sites web et applications à l'aide d'une IA d'analyse comportementale. (WAF pas cher pour les PMEs)\n\nPour se protéger actuellement il faut des ressources financières et des ressources internes, ils ont simplifié tout ca. Ils gèrent cela par 2 facon, une IA qui analyse tout et en plus de cela elle fait de l'analyse comportementale (IP, géolocalisation, vitesse de frappe...). Ils récupèrent des données et à partir de la détermine un profil type par utilisateur et tout ce qui sort de ce profil est considéré comme une attaque. Au début on le ban et si ca se répète on le bloque (enregistrement de 'lP). et on blacklist l'IP sur les autres sites. Formule cloud based PME/TPE mais ils commencent à travailler chez les grands comptes on premise ou on cloud. Dans 3 ans environ, ils pourraient intégrer leurs AI dans d'autres partie comme le SOC ou sur les devices car elle est très légère (dev en C++). Protection CDM, Anti DDOS, Bot mitigation\n",
       "Website link": "https://www.ogosecurity.com/#/landing"
     }
   },
@@ -2905,7 +2905,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0485",
       "Name": "Avanoo",
       "Product Category": "Securing AI",
-      "Description": "Avanoo propose une solution permettant d’optimiser la gestion des logiciels SaaS et IA, en renforçant la sécurité et en améliorant l’expérience des employés. La plateforme offre une visibilité complète sur les outils utilisés, y compris le Shadow AI, et permet de piloter les accès, les coûts et les agents IA de manière centralisée.",
+      "Description": "Avanoo propose une solution permettant d’optimiser la gestion des logiciels SaaS et IA, en renforçant la sécurité et en améliorant l’expérience des employés. La plateforme offre une visibilité complète sur les outils utilisés, y compris le Shadow AI, et permet de piloter les accès, les coûts et les agents IA de manière centralisée.\n",
       "Website link": "https://avanoo.ai/"
     }
   },
@@ -3205,7 +3205,7 @@ window.RADAR_MAPPER_EXAMPLE_STARTUP_RECORDS = [
       "ID": "SC0147",
       "Name": "HarfangLab",
       "Product Category": "Endpoints",
-      "Description": "HarfangLab est un éditeur de solutions de cybersécurité dédié à la protection des endpoints et des environnements de travail (workplaces). Sa plateforme repose sur une approche modulaire articulée autour de trois grandes verticales : l’Endpoint Protection Platform (EPP), l’Endpoint Detection & Response (EDR) et l’Attack Surface Management (ASM). Initialement centrée sur l’endpoint, la plateforme s’est enrichie pour couvrir des enjeux plus larges, tels que la gestion du Shadow IT et la réduction de la surface d’attaque, au sein d’une solution unifiée.\n\nFournisseur une EDR, les endpoints, au travers de MSSP. Quatres offres : Track (EDR), Guard (EPP), Scout (Vuln. Management) et Shield (Vuln. Management sortie fin d'année 2025)\nprotéger des endpoints et workplaces ; EDR certifié par l'ANSSI et BSI ; 2025 : EndpointProtectionPlateform ; maintenant shadow IT etc ; plateforme avec briques ; 3 grandes verticales : ASM EPP et EDR",
+      "Description": "HarfangLab est un éditeur de solutions de cybersécurité dédié à la protection des endpoints et des environnements de travail (workplaces). Sa plateforme repose sur une approche modulaire articulée autour de trois grandes verticales : l’Endpoint Protection Platform (EPP), l’Endpoint Detection & Response (EDR) et l’Attack Surface Management (ASM). Initialement centrée sur l’endpoint, la plateforme s’est enrichie pour couvrir des enjeux plus larges, tels que la gestion du Shadow IT et la réduction de la surface d’attaque, au sein d’une solution unifiée.\n\nFournisseur une EDR, les endpoints, au travers de MSSP. Quatres offres : Track (EDR), Guard (EPP), Scout (Vuln. Management) et Shield (Vuln. Management sortie fin d'année 2025)\nprotéger des endpoints et workplaces ; EDR certifié par l'ANSSI et BSI ; 2025 : EndpointProtectionPlateform ; maintenant shadow IT etc ; plateforme avec briques ; 3 grandes verticales : ASM EPP et EDR  ",
       "Website link": "https://www.harfanglab.io/"
     }
   },
