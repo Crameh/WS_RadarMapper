@@ -143,7 +143,7 @@
   #stage { position:relative; width:1024px; height:576px; background:white; border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.13); overflow:visible; }
   #stageScaler { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin: top left; }
   #radarImg { position:absolute; inset:0; width:1280px; height:720px; user-select:none; -webkit-user-drag:none; }
-  #overlay { position:absolute; inset:0; width:1280px; height:720px; }
+  #overlay { position:absolute; inset:0; width:1280px; height:720px; touch-action:none; }
   .zone { fill:rgba(234,126,38,.20); stroke:rgba(184,89,20,.78); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
@@ -932,9 +932,12 @@ function boundsFromPoints(points){
   return {x:Math.min(...xs), y:Math.min(...ys), w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys)};
 }
 function pointerPos(e){
-  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
-  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
-  return {x:clamp(p.x,0,IMG_W), y:clamp(p.y,0,IMG_H)};
+  const rect = svg.getBoundingClientRect();
+  if(!rect.width || !rect.height) return {x:0, y:0};
+  return {
+    x: clamp((e.clientX - rect.left) * IMG_W / rect.width, 0, IMG_W),
+    y: clamp((e.clientY - rect.top) * IMG_H / rect.height, 0, IMG_H)
+  };
 }
 function shapeEl(z){
   let el;
