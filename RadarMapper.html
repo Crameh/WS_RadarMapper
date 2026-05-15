@@ -2297,29 +2297,35 @@ function getAiConfig(){
 }
 const AI_MODEL_CATALOG = {
   anthropic:[
-    {value:'claude-opus-4-1-20250805', label:'Claude Opus 4.1'},
+    {value:'claude-opus-4-7', label:'Claude Opus 4.7'},
+    {value:'claude-sonnet-4-6', label:'Claude Sonnet 4.6'},
+    {value:'claude-haiku-4-5-20251001', label:'Claude Haiku 4.5'},
     {value:'claude-opus-4-20250514', label:'Claude Opus 4'},
     {value:'claude-sonnet-4-20250514', label:'Claude Sonnet 4'},
     {value:'claude-3-7-sonnet-20250219', label:'Claude Sonnet 3.7'},
     {value:'claude-3-5-haiku-latest', label:'Claude Haiku 3.5'}
   ],
   openai:[
-    {value:'gpt-5.2', label:'GPT-5.2'},
-    {value:'gpt-5.2-pro', label:'GPT-5.2 pro'},
-    {value:'gpt-5.1', label:'GPT-5.1'},
-    {value:'gpt-5', label:'GPT-5'},
-    {value:'gpt-5-mini', label:'GPT-5 mini'},
-    {value:'gpt-5-nano', label:'GPT-5 nano'},
-    {value:'gpt-4.1', label:'GPT-4.1'}
+    {value:'gpt-4.1', label:'GPT-4.1'},
+    {value:'gpt-4.1-mini', label:'GPT-4.1 mini'},
+    {value:'gpt-4.1-nano', label:'GPT-4.1 nano'},
+    {value:'o4-mini', label:'o4-mini'},
+    {value:'o3', label:'o3'},
+    {value:'o3-mini', label:'o3-mini'},
+    {value:'o1', label:'o1'},
+    {value:'o1-mini', label:'o1-mini'},
+    {value:'gpt-4o', label:'GPT-4o'},
+    {value:'gpt-4o-mini', label:'GPT-4o mini'}
   ],
   azure:[
-    {value:'gpt-5.1-chat', label:'GPT-5.1 chat'},
-    {value:'gpt-5-chat', label:'GPT-5 chat'},
-    {value:'gpt-5', label:'GPT-5'},
-    {value:'gpt-5-mini', label:'GPT-5 mini'},
-    {value:'gpt-5-nano', label:'GPT-5 nano'},
     {value:'gpt-4.1', label:'GPT-4.1'},
-    {value:'gpt-4o', label:'GPT-4o'}
+    {value:'gpt-4.1-mini', label:'GPT-4.1 mini'},
+    {value:'o4-mini', label:'o4-mini'},
+    {value:'o3', label:'o3'},
+    {value:'o3-mini', label:'o3-mini'},
+    {value:'o1', label:'o1'},
+    {value:'gpt-4o', label:'GPT-4o'},
+    {value:'gpt-4o-mini', label:'GPT-4o mini'}
   ]
 };
 function refreshModelOptions({preserve=true} = {}){
@@ -2681,49 +2687,61 @@ function externalLlmInstructions(){
     '4) Return the updated JSON only, no markdown.'
   ].join('\n');
 }
+async function extractApiError(res){
+  const text=await res.text();
+  try{
+    const json=JSON.parse(text);
+    const msg=json?.error?.message||json?.message;
+    if(msg) return new Error(`[${res.status}] ${msg}`);
+  }catch(_){}
+  return new Error(`[${res.status}] ${text.slice(0,300)}`);
+}
 async function callOpenAiLike(cfg,prompt){
   const messages=[{role:'user',content:[
     {type:'text',text:prompt},
     {type:'image_url',image_url:{url:IMAGE_DATA}}
   ]}];
-  const isAzure=cfg.provider === 'azure';
+  const isAzure=cfg.provider==='azure';
   const url=isAzure
-    ? `${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
-    : 'https://api.openai.com/v1/chat/completions';
+    ?`${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
+    :'https://api.openai.com/v1/chat/completions';
   const headers={'Content-Type':'application/json'};
-  headers[isAzure ? 'api-key' : 'Authorization'] = isAzure ? cfg.apiKey : `Bearer ${cfg.apiKey}`;
-  const modelName=isAzure ? cfg.azureDeployment : cfg.model;
-  const supportsTemperature=!/^gpt-5/i.test(modelName) && !/^o\d/i.test(modelName);
-  const body=isAzure
-    ? {messages,response_format:{type:'json_object'}}
-    : {model:cfg.model,messages,response_format:{type:'json_object'}};
-  if(supportsTemperature) body.temperature=0;
+  headers[isAzure?'api-key':'Authorization']=isAzure?cfg.apiKey:`Bearer ${cfg.apiKey}`;
+  const modelName=isAzure?cfg.azureDeployment:cfg.model;
+  const supportsTemperature=!/^gpt-5/i.test(modelName)&&!/^o\d/i.test(modelName);
+  const supportsJsonMode=!/^o1/i.test(modelName);
+  const body=isAzure?{messages}:{model:cfg.model,messages};
+  if(supportsJsonMode) body.response_format={type:'json_object'};
+  if(supportsTemperature){
+    body.temperature=0;
+    body.max_tokens=16000;
+  }else{
+    body.max_completion_tokens=16000;
+  }
   const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
-  if(!res.ok) throw new Error(await res.text());
+  if(!res.ok) throw await extractApiError(res);
   const data=await res.json();
-  return data.choices?.[0]?.message?.content || '';
+  return data.choices?.[0]?.message?.content||'';
 }
 async function testOpenAiLike(cfg){
   const messages=[{role:'user',content:'Reply with OK only.'}];
-  const isAzure=cfg.provider === 'azure';
+  const isAzure=cfg.provider==='azure';
   const url=isAzure
-    ? `${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
-    : 'https://api.openai.com/v1/chat/completions';
+    ?`${cfg.azureEndpoint}/openai/deployments/${encodeURIComponent(cfg.azureDeployment)}/chat/completions?api-version=${encodeURIComponent(cfg.azureVersion)}`
+    :'https://api.openai.com/v1/chat/completions';
   const headers={'Content-Type':'application/json'};
-  headers[isAzure ? 'api-key' : 'Authorization'] = isAzure ? cfg.apiKey : `Bearer ${cfg.apiKey}`;
-  const modelName=isAzure ? cfg.azureDeployment : cfg.model;
-  const supportsTemperature=!/^gpt-5/i.test(modelName) && !/^o\d/i.test(modelName);
-  const body=isAzure
-    ? {messages}
-    : {model:cfg.model,messages};
-  if(supportsTemperature) {
+  headers[isAzure?'api-key':'Authorization']=isAzure?cfg.apiKey:`Bearer ${cfg.apiKey}`;
+  const modelName=isAzure?cfg.azureDeployment:cfg.model;
+  const supportsTemperature=!/^gpt-5/i.test(modelName)&&!/^o\d/i.test(modelName);
+  const body=isAzure?{messages}:{model:cfg.model,messages};
+  if(supportsTemperature){
     body.temperature=0;
     body.max_tokens=8;
-  } else {
+  }else{
     body.max_completion_tokens=8;
   }
   const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
-  if(!res.ok) throw new Error(await res.text());
+  if(!res.ok) throw await extractApiError(res);
   return res.json();
 }
 async function callAnthropic(cfg,prompt){
@@ -2738,7 +2756,7 @@ async function callAnthropic(cfg,prompt){
     },
     body:JSON.stringify({
       model:cfg.model,
-      max_tokens:12000,
+      max_tokens:16000,
       temperature:0,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:image.mediaType,data:image.data}},
@@ -2746,7 +2764,7 @@ async function callAnthropic(cfg,prompt){
       ]}]
     })
   });
-  if(!res.ok) throw new Error(await res.text());
+  if(!res.ok) throw await extractApiError(res);
   const data=await res.json();
   return (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
 }
@@ -2766,7 +2784,7 @@ async function testAnthropic(cfg){
       messages:[{role:'user',content:'Reply with OK only.'}]
     })
   });
-  if(!res.ok) throw new Error(await res.text());
+  if(!res.ok) throw await extractApiError(res);
   return res.json();
 }
 function parseJsonFromText(text){
