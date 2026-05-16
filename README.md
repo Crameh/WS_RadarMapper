@@ -6,6 +6,7 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 
 - Import visuel radar (`jpg/png/webp/...`).
 - Import structure (`CSV/TSV/TXT/XLS/XLSX/JSON`) pour enrichir les zones.
+- Exemple préchargé avec un visuel radar, un jeu de structures et un mapping de zones par défaut.
 - Import `PPTX` (option **Alpha** désactivée par défaut) :
   - extraction d'une image de slide (thumbnail/média),
   - tentative d'import des formes/images en zones éditables.
