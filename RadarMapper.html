@@ -148,6 +148,12 @@
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
   .zone.unmatched { fill:rgba(210,165,0,.18); stroke:rgba(160,120,0,.72); stroke-dasharray:4 3; }
+  .zone.blinking { animation: zoneBlink 220ms ease-in-out 3; }
+  @keyframes zoneBlink {
+    0% { opacity:1; }
+    50% { opacity:.12; }
+    100% { opacity:1; }
+  }
   .zone.multiassigned { fill:rgba(122,78,201,.18); stroke:rgba(98,58,172,.82); }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
@@ -229,6 +235,10 @@
   .pendingCsvItem:last-child { border-bottom:0; }
   .pendingCsvList button.pendingCsvItem { width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid #eef3f6; cursor:pointer; }
   .pendingCsvList button.pendingCsvItem:hover { background:#f4fbff; }
+  .pendingCsvItem.noLogoMarked { opacity:.68; }
+  .pendingCsvRow { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .pendingCsvNoLogo { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#4b647a; white-space:nowrap; }
+  .pendingCsvNoLogo input { width:auto; accent-color:#1699a8; }
   .duplicateAssocList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .duplicateAssocItem { padding:9px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
   .duplicateAssocItem:last-child { border-bottom:0; }
@@ -386,6 +396,7 @@
   .zoneLegendDot.multi { color:#7a4ec9; }
   .zoneLegendDot.done { color:#0d7452; }
   body[data-mode="initPanel"] .zoneStatusFilter { display:none; }
+  body[data-mode="exportPanel"] .zoneStatusFilter { display:none; }
   body[data-mode="initPanel"] .zoneFilterLegend { display:none; }
   .structFilterBtn { min-width:auto; padding:2px 9px; border:1px solid #cbdde6; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; background:white; cursor:pointer; line-height:1.5; }
   .structFilterBtn.active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
@@ -679,6 +690,7 @@
               <p id="structureSearchCount" class="small">No structure selected.</p>
               <div id="structureSearchZoneList" class="pendingCsvList"></div>
               <p class="groupLabel" style="margin-top:10px">2. Unassigned structure</p>
+              <p class="small">If you cannot find a logo on the radar, check <strong>No logo</strong>. Marked structures are moved to the bottom of the list.</p>
               <p id="pendingCsvCount" class="small">0 unassociated structure(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
               <p class="groupLabel" style="margin-top:10px">3. Duplicate associations</p>
@@ -715,6 +727,7 @@
                 <option value="standalone">Standalone page, for iframe or dedicated page</option>
                 <option value="iframe">Responsive iframe snippet, recommended for Wavestone / RiskInsight</option>
                 <option value="snippet">CMS snippet, isolated CSS + lightweight interaction</option>
+                <option value="reallynice">Really really nice: premium interactive showcase</option>
                 <option value="imagemap">Image map without script</option>
               </select>
               <label>Exported experience</label>
@@ -892,6 +905,31 @@ function storedStartupRecords(){
 }
 let zones = storedZones();
 let startupRecords = storedStartupRecords();
+const noLogoStorageKey='radarNoLogoStructures';
+function storedNoLogoMap(){
+  try{
+    const raw=localStorage.getItem(noLogoStorageKey);
+    const parsed=JSON.parse(raw || '{}');
+    return parsed && typeof parsed==='object' ? parsed : {};
+  } catch(_err){
+    return {};
+  }
+}
+let noLogoStructures=storedNoLogoMap();
+function persistNoLogoMap(){
+  localStorage.setItem(noLogoStorageKey, JSON.stringify(noLogoStructures));
+}
+function setNoLogoFlag(structureName, checked){
+  const key=normalizeName(structureName);
+  if(!key) return;
+  if(checked) noLogoStructures[key]=true;
+  else delete noLogoStructures[key];
+  persistNoLogoMap();
+}
+function hasNoLogoFlag(structureName){
+  const key=normalizeName(structureName);
+  return !!(key && noLogoStructures[key]);
+}
 let selectedId = zones[0]?.id || null;
 let drag = null;
 let lastZonePointer = {id:null, time:0};
@@ -1031,6 +1069,14 @@ function render(){
 }
 function refreshZoneSelectionStyles(){
   svg.querySelectorAll('.zone').forEach(el=>el.classList.toggle('selected', el.dataset.id === selectedId));
+}
+function blinkZone(zoneId){
+  const el=svg.querySelector(`.zone[data-id="${CSS.escape(String(zoneId||''))}"]`);
+  if(!el) return;
+  el.classList.remove('blinking');
+  void el.getBoundingClientRect();
+  el.classList.add('blinking');
+  setTimeout(()=>el.classList.remove('blinking'), 750);
 }
 function renderHandles(z){
   if(z.shape === 'poly'){
@@ -1296,7 +1342,15 @@ function renderPendingCsvList(){
   const count=q('pendingCsvCount');
   if(!container || !count) return;
   const associated=associatedStartupNames();
-  const pending=startupRecords.filter(record=>!associated.has(normalizeName(record.name)));
+  const pending=startupRecords
+    .filter(record=>!associated.has(normalizeName(record.name)))
+    .slice()
+    .sort((a,b)=>{
+      const aMarked=hasNoLogoFlag(a.name) ? 1 : 0;
+      const bMarked=hasNoLogoFlag(b.name) ? 1 : 0;
+      if(aMarked!==bMarked) return aMarked-bMarked;
+      return a.name.localeCompare(b.name);
+    });
   count.textContent=`${pending.length} unassociated structure(s).`;
   container.innerHTML='';
   if(!pending.length){
@@ -1308,8 +1362,26 @@ function renderPendingCsvList(){
   }
   pending.slice(0,200).forEach(record=>{
     const row=document.createElement('div');
-    row.className='pendingCsvItem';
-    row.textContent=record.name;
+    const checked=hasNoLogoFlag(record.name);
+    row.className='pendingCsvItem'+(checked?' noLogoMarked':'');
+    const line=document.createElement('div');
+    line.className='pendingCsvRow';
+    const name=document.createElement('span');
+    name.textContent=record.category ? `${record.name} (${record.category})` : record.name;
+    const label=document.createElement('label');
+    label.className='pendingCsvNoLogo';
+    const input=document.createElement('input');
+    input.type='checkbox';
+    input.checked=checked;
+    input.addEventListener('change',()=>{
+      setNoLogoFlag(record.name, input.checked);
+      renderPendingCsvList();
+    });
+    label.appendChild(input);
+    label.appendChild(document.createTextNode('No logo'));
+    line.appendChild(name);
+    line.appendChild(label);
+    row.appendChild(line);
     container.appendChild(row);
   });
 }
@@ -1361,6 +1433,7 @@ function renderDuplicateAssociations(){
       btn.onclick=()=>{
         selectedId=z.id;
         render();
+        blinkZone(z.id);
       };
       zoneWrap.appendChild(btn);
     });
@@ -1898,6 +1971,8 @@ q('startupDataFile').onchange=async e=>{
 };
 if(q('clearStartupData')) q('clearStartupData').onclick=()=>{
   startupRecords=[];
+  noLogoStructures={};
+  persistNoLogoMap();
   persistStartupRecords();
   refreshStartupSuggestions();
   structureSearchActiveZoneIds=null;
@@ -2067,6 +2142,7 @@ function updateExportPreview(){
     standalone:'Standalone page',
     snippet:'CMS snippet',
     iframe:'Responsive iframe',
+    reallynice:'Really really nice',
     imagemap:'Image map without script'
   };
   const experienceLabels = {
@@ -3099,9 +3175,11 @@ q('resetLocalBase').onclick=()=>{
   zones=[];
   selectedId=null;
   startupRecords=[];
+  noLogoStructures={};
   setRadarImage('',1280,720);
   localStorage.removeItem('radarOverlayZones');
   localStorage.removeItem('radarStartupRecords');
+  localStorage.removeItem(noLogoStorageKey);
   refreshStartupSuggestions();
   updateStartupImportStatus('No structure file imported.');
   q('radarUpload').value='';
@@ -3355,6 +3433,119 @@ function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClas
   const canvasSelector=`.${containerClass} .rm-canvas`;
   return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface>${controlsHtml}<div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot', experience) : ''}`;
 }
+function exportReallyNiceScript(rootSelector, hotspotSelector='.rrn-hotspot'){
+  return `<script>
+(function(){
+  const root=document.querySelector('${rootSelector}');
+  if(!root) return;
+  const search=root.querySelector('[data-rrn-search]');
+  const reset=root.querySelector('[data-rrn-reset]');
+  const urlOnly=root.querySelector('[data-rrn-url-only]');
+  const visibleCount=root.querySelector('[data-rrn-visible]');
+  const totalCount=root.querySelector('[data-rrn-total]');
+  const withUrlCount=root.querySelector('[data-rrn-with-url]');
+  const selectedCategory=root.querySelector('[data-rrn-selected-category]');
+  const topResults=root.querySelector('[data-rrn-results]');
+  const categoryWrap=root.querySelector('[data-rrn-categories]');
+  const hotspots=Array.from(root.querySelectorAll('${hotspotSelector}'));
+  let activeCategory='';
+  const categories=[...new Set(hotspots.map(h=>(h.dataset.sector||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const makeChip=(label,group,selectFn)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='rrn-chip';
+    btn.textContent=label;
+    btn.dataset.group=group;
+    btn.addEventListener('click',()=>selectFn(btn,label));
+    return btn;
+  };
+  const selectChip=(btn,label)=>{
+    activeCategory=(activeCategory===label)?'':label;
+    categoryWrap.querySelectorAll('.rrn-chip').forEach(b=>b.classList.toggle('active', b===btn && !!activeCategory));
+    apply();
+  };
+  categories.forEach(c=>categoryWrap && categoryWrap.appendChild(makeChip(c,'category',selectChip)));
+  const renderResults=(items)=>{
+    if(!topResults) return;
+    topResults.innerHTML='';
+    if(!items.length){
+      const empty=document.createElement('div');
+      empty.className='rrn-result-empty';
+      empty.textContent='No match with current filters.';
+      topResults.appendChild(empty);
+      return;
+    }
+    items.slice(0,8).forEach(h=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='rrn-result';
+      btn.innerHTML='<strong>'+((h.dataset.name||'Unnamed').replace(/</g,'&lt;'))+'</strong><span>'+((h.dataset.sector||h.dataset.cadran||'Uncategorized').replace(/</g,'&lt;'))+'</span>';
+      btn.addEventListener('click',()=>{
+        h.classList.add('rrn-pulse');
+        setTimeout(()=>h.classList.remove('rrn-pulse'),700);
+        h.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:window.innerWidth/2,clientY:window.innerHeight/2}));
+      });
+      topResults.appendChild(btn);
+    });
+  };
+    const apply=()=>{
+      const term=(search?.value||'').trim().toLowerCase();
+      const onlyUrl=!!urlOnly?.checked;
+      const active=!!(term || activeCategory || onlyUrl);
+      let visible=0;
+      let withUrl=0;
+      const matched=[];
+    hotspots.forEach(h=>{
+      const txt=((h.dataset.search||'')+' '+(h.dataset.name||'')).toLowerCase();
+      const category=(h.dataset.sector||'').trim();
+      const hasUrl=!!(h.dataset.url||'').trim();
+      const okTerm=!term || txt.includes(term);
+      const okCategory=!activeCategory || category===activeCategory;
+      const okUrl=!onlyUrl || hasUrl;
+      const ok=okTerm && okCategory && okUrl;
+      h.classList.toggle('rrn-dim', !ok);
+      h.classList.toggle('rrn-match', ok);
+      if(ok) visible++;
+      if(hasUrl) withUrl++;
+      if(ok) matched.push(h);
+    });
+    root.classList.toggle('rrn-active', active);
+    if(visibleCount) visibleCount.textContent=String(visible);
+    if(totalCount) totalCount.textContent=String(hotspots.length);
+    if(withUrlCount) withUrlCount.textContent=String(withUrl);
+    if(selectedCategory) selectedCategory.textContent=activeCategory || 'All';
+    matched.sort((a,b)=>(a.dataset.name||'').localeCompare(b.dataset.name||''));
+    renderResults(matched);
+  };
+  if(search) search.addEventListener('input',apply);
+  if(urlOnly) urlOnly.addEventListener('change',apply);
+  if(reset) reset.addEventListener('click',()=>{
+    if(search) search.value='';
+    if(urlOnly) urlOnly.checked=false;
+    activeCategory='';
+    root.querySelectorAll('.rrn-chip').forEach(chip=>chip.classList.remove('active'));
+    apply();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='/' && search){ e.preventDefault(); search.focus(); }
+  });
+  apply();
+})();
+<\/script>`;
+}
+function buildReallyReallyNiceSnippet(containerClass='radarmapper-wow', layerClass='rrn-layer', includeScript=true){
+  const popupId=`rrn-popup-${Date.now().toString(36)}`;
+  const cfg=getExportRenderConfig();
+  const hoverFill=hexToRgba(cfg.hoverFill, Math.min(0.28, cfg.hoverOpacity+0.08));
+  const hoverStroke=hexToRgba(cfg.hoverStroke,.95);
+  const css=`.${containerClass}{max-width:${IMG_W}px;margin:24px auto;font-family:\"Sora\",\"Avenir Next\",Avenir,Montserrat,\"Segoe UI\",sans-serif;color:#0f2b42}.${containerClass} *{box-sizing:border-box}.${containerClass} .rrn-shell{background:radial-gradient(1200px 420px at 0% 0%,#163b65 0%,#0e2f4f 40%,#0f243b 100%);border-radius:20px;padding:14px;box-shadow:0 24px 55px rgba(7,24,40,.36)}.${containerClass} .rrn-head{display:grid;grid-template-columns:1fr auto;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.18);border-radius:16px;background:linear-gradient(130deg,rgba(255,255,255,.16),rgba(255,255,255,.08));backdrop-filter:blur(6px)}.${containerClass} .rrn-title{margin:0;font-size:22px;font-weight:900;letter-spacing:.01em;color:#eff9ff}.${containerClass} .rrn-sub{margin:4px 0 0;font-size:12px;color:#c7e7ff}.${containerClass} .rrn-kpis{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;justify-content:flex-end}.${containerClass} .rrn-kpi{min-width:120px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.45)}.${containerClass} .rrn-kpi b{display:block;font-size:18px;color:#005c7a}.${containerClass} .rrn-kpi span{font-size:11px;color:#486175;font-weight:700}.${containerClass} .rrn-main{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;margin-top:12px}.${containerClass} .rrn-panel{border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(248,253,255,.95);padding:10px}.${containerClass} .rrn-tools{display:grid;grid-template-columns:1fr;gap:8px}.${containerClass} .rrn-search{min-height:40px;padding:10px 12px;border-radius:10px;border:1px solid #c7dce7;font:inherit;background:#fff}.${containerClass} .rrn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.${containerClass} .rrn-btn,.${containerClass} .rrn-toggle{min-height:36px;padding:8px 12px;border:1px solid #c7dce7;border-radius:10px;background:#fff;color:#17334a;font-weight:800;cursor:pointer}.${containerClass} .rrn-toggle{display:inline-flex;align-items:center;gap:6px}.${containerClass} .rrn-facetbox{border:1px solid #dceaf2;border-radius:12px;padding:8px;background:#fbfdff}.${containerClass} .rrn-facetbox label{display:block;font-size:11px;font-weight:800;color:#405a6e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}.${containerClass} .rrn-chiprow{display:flex;gap:6px;flex-wrap:wrap}.${containerClass} .rrn-chip{min-height:26px;padding:4px 9px;border-radius:999px;border:1px solid #c8dde8;background:#fff;color:#345269;font-size:11px;font-weight:700;cursor:pointer}.${containerClass} .rrn-chip.active{background:#0f8794;color:#fff;border-color:#0f8794}.${containerClass} .rrn-selected{margin-top:6px;font-size:11px;color:#4b647a}. ${containerClass} .rrn-results{margin-top:8px;max-height:220px;overflow:auto;border:1px solid #dceaf2;border-radius:10px;background:#fff}.${containerClass} .rrn-result{width:100%;text-align:left;display:grid;gap:2px;padding:8px 10px;border:0;border-bottom:1px solid #edf4f8;background:#fff;cursor:pointer}. ${containerClass} .rrn-result:hover{background:#f2f9ff}. ${containerClass} .rrn-result strong{font-size:12px;color:#11354d}. ${containerClass} .rrn-result span{font-size:10px;color:#607b8f}. ${containerClass} .rrn-result-empty{padding:10px;font-size:12px;color:#607b8f}. ${containerClass} .rrn-canvas{position:relative;isolation:isolate;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(8,42,58,.38);background:#fff}.${containerClass} img{display:block;width:100%;height:auto}.${containerClass} .${layerClass}{position:absolute;inset:0;width:100%;height:100%}.${containerClass} .rrn-hotspot{cursor:pointer;outline:none;transition:opacity .16s ease, filter .16s ease}.${containerClass} .rrn-zone{fill:transparent;stroke:transparent;vector-effect:non-scaling-stroke;pointer-events:all;transition:fill .16s ease,stroke .16s ease,opacity .16s ease}.${containerClass} .rrn-hotspot:hover .rrn-zone,.${containerClass} .rrn-hotspot:focus .rrn-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass} .rrn-hotspot.rrn-dim{opacity:.1;filter:grayscale(.75)}.${containerClass}.rrn-active .rrn-hotspot:not(.rrn-match) .rrn-zone{fill:transparent!important;stroke:transparent!important;opacity:0!important}.${containerClass} .rrn-hotspot.rrn-match{opacity:1;filter:none}.${containerClass}.rrn-active .rrn-hotspot.rrn-match .rrn-zone{fill:${hoverFill};stroke:${hoverStroke};stroke-width:${cfg.hoverStrokeWidth}}.${containerClass} .rrn-hotspot.rrn-pulse .rrn-zone{animation:rrnPulse .72s ease-in-out 1}.@keyframes rrnPulse{0%{fill:${hoverFill};stroke:${hoverStroke}}50%{fill:rgba(255,211,65,.46);stroke:rgba(245,151,36,.95)}100%{fill:${hoverFill};stroke:${hoverStroke}}}.${containerClass} .rm-popup{position:absolute;z-index:6;max-width:min(${cfg.popupWidth}px,calc(100% - 24px));background:${cfg.popupBg};border:1px solid ${cfg.popupBorder};border-radius:${cfg.popupRadius}px;box-shadow:${cfg.popupShadow};padding:${cfg.popupPadding}px;color:${cfg.popupText};font-size:${cfg.popupFontSize}px}.${containerClass} .rm-popup a{color:${cfg.popupAccent};font-weight:700}.${containerClass} .popup-logo{max-width:120px;max-height:60px;object-fit:contain;display:block;margin:0 0 8px}.${containerClass} .rm-popup p{margin:8px 0 0;line-height:1.35}@media(max-width:980px){.${containerClass} .rrn-head{grid-template-columns:1fr}.${containerClass} .rrn-main{grid-template-columns:1fr}}`;
+  const rootSelector=`.${containerClass}`;
+  const canvasSelector=`.${containerClass} .rrn-canvas`;
+  const spots=svgMarkupForCms('rrn');
+  const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
+  const body=`<div class="${containerClass}" data-radarmapper-embed><div class="rrn-shell"><div class="rrn-head"><div><h2 class="rrn-title">${title}</h2><p class="rrn-sub">Search with <kbd>/</kbd>, filter by category, and jump directly to any startup.</p></div><div class="rrn-kpis"><div class="rrn-kpi"><b data-rrn-visible>0</b><span>Visible</span></div><div class="rrn-kpi"><b data-rrn-total>0</b><span>Total zones</span></div><div class="rrn-kpi"><b data-rrn-with-url>0</b><span>With URL</span></div></div></div><div class="rrn-main"><aside class="rrn-panel"><div class="rrn-tools"><input class="rrn-search" type="search" data-rrn-search placeholder="Search startup, description, category..."><div class="rrn-row"><label class="rrn-toggle"><input data-rrn-url-only type="checkbox"> Only with URL</label><button class="rrn-btn" data-rrn-reset type="button">Reset</button></div><div class="rrn-facetbox"><label>Categories</label><div class="rrn-chiprow" data-rrn-categories></div></div><div class="rrn-selected">Category: <strong data-rrn-selected-category>All</strong></div><div class="rrn-results" data-rrn-results></div></div></aside><div class="rrn-canvas"><img src="${IMAGE_DATA}" alt="${title}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${spots}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div></div></div>`;
+  return `<style>${css}</style>${body}${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rrn-hotspot', cfg)+exportReallyNiceScript(rootSelector, '.rrn-hotspot') : ''}`;
+}
 function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', includeScript=true){
   const isStandaloneClass=containerClass==='radar';
   const prefix=isStandaloneClass ? '' : 'rm';
@@ -3400,6 +3591,7 @@ function buildIframeSnippet(){
 function buildExportHtml(mode=getExportMode()){
   const experience=getExportExperience();
   try{
+    if(mode==='reallynice') return buildReallyReallyNiceSnippet('radarmapper-wow', 'rrn-layer', true);
     if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
     if(mode==='iframe') return buildIframeSnippet();
     if(mode==='imagemap') return buildImageMapSnippet();
