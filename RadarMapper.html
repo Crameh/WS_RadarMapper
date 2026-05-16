@@ -127,14 +127,14 @@
     border-radius:0;
     background:transparent;
   }
-  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap; min-height:38px; }
-  .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; white-space:nowrap; min-width:0; }
+  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; min-height:38px; }
+  .zoneToolsRight { display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-width:0; }
   .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; }
   .zoneTools label { margin:0; color:#12314a; font-weight:800; }
   .zoneTools input[type="range"] { width:210px; accent-color:#1699a8; }
   .zoneTools input[type="checkbox"] { width:auto; accent-color:#1699a8; }
   .modeHintLine { font-size:12px; font-weight:700; color:#3b566d; opacity:.92; }
-  .zoneToolsTitle { font-size:12px; font-weight:800; color:#12314a; }
+  .zoneToolsTitle { font-size:11px; font-weight:800; color:#12314a; white-space:nowrap; }
   body[data-mode="initPanel"] .zoneToolsEdit,
   body[data-mode="exportPanel"] .zoneToolsEdit,
   body[data-mode="configPanel"] .zoneToolsEdit { display:none; }
@@ -176,7 +176,6 @@
   button.danger { border-color:#f3bbbb; color:#b00020; }
   button:disabled { opacity:.45; cursor:not-allowed; }
   .small { font-size:12px; opacity:.75; line-height:1.35; }
-  #zoneList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .item { padding:8px 10px; border-bottom:1px solid #eef3f6; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px; }
   .item:last-child { border-bottom:0; }
   .item.sel { background:#e5f8f5; font-weight:800; color:#0b7582; }
@@ -228,6 +227,8 @@
   .pendingCsvList { margin-top:10px; max-height:180px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .pendingCsvItem { padding:7px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
   .pendingCsvItem:last-child { border-bottom:0; }
+  .pendingCsvList button.pendingCsvItem { width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid #eef3f6; cursor:pointer; }
+  .pendingCsvList button.pendingCsvItem:hover { background:#f4fbff; }
   .duplicateAssocList { margin-top:10px; max-height:220px; overflow:auto; border:1px solid #cbdde6; border-radius:12px; background:white; }
   .duplicateAssocItem { padding:9px 10px; border-bottom:1px solid #eef3f6; font-size:12px; color:#23415b; }
   .duplicateAssocItem:last-child { border-bottom:0; }
@@ -363,11 +364,11 @@
   .editZonePopup textarea { resize:vertical; }
   .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
   .editLogoZoom canvas { display:block; border-radius:6px; image-rendering:pixelated; }
-  .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; white-space:nowrap; min-width:0; }
+  .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
   .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; min-height:30px; }
   .zoneToolsRight .zoomControl { min-height:34px; }
   .zoneStatusFilter { display:flex; gap:2px; align-items:center; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
-  .zoneFilterBtn { min-width:auto; padding:2px 8px; border:1px solid transparent; border-radius:9px; font-size:12px; font-weight:700; color:#65788a; line-height:1.5; }
+  .zoneFilterBtn { min-width:auto; padding:2px 7px; border:1px solid transparent; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; line-height:1.4; }
   .zoneFilterBtn[data-filter="all"].active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
   .zoneFilterBtn.zoneFilterTodo { color:#b05a10; }
   .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
@@ -386,7 +387,6 @@
   .zoneLegendDot.done { color:#0d7452; }
   body[data-mode="initPanel"] .zoneStatusFilter { display:none; }
   body[data-mode="initPanel"] .zoneFilterLegend { display:none; }
-  .structureFilter { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
   .structFilterBtn { min-width:auto; padding:2px 9px; border:1px solid #cbdde6; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; background:white; cursor:pointer; line-height:1.5; }
   .structFilterBtn.active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
   .structFilterBtn.sfNoStructure.active { background:#fff3e8; border-color:#e8924a; color:#b05a10; }
@@ -414,6 +414,10 @@
     .statusArea { padding:8px 16px; justify-content:flex-end; }
     main { margin-left:18px; margin-right:18px; }
     main { grid-template-columns:1fr; }
+  }
+  @media (min-width: 1280px) {
+    .zoneToolsRow { flex-wrap:nowrap; }
+    .zoneToolsRight { flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; white-space:nowrap; }
   }
   @media (max-width: 640px) {
     .statusArea { align-items:flex-start; flex-wrap:wrap; white-space:normal; }
@@ -466,7 +470,7 @@
   <section id="stageWrap">
     <div class="zoneTools">
       <div class="zoneToolsRow">
-        <span id="zoneToolsTitle" class="zoneToolsTitle">Radar and Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
+        <span id="zoneToolsTitle" class="zoneToolsTitle">Zones <span id="modeBadge" class="modeBadge">Prepare</span></span>
         <div class="zoneToolsEdit" aria-label="Zone creation and shape">
           <button id="addZoneBtn" class="addZoneBtn" type="button" aria-label="Add a zone" title="Add a zone">+</button>
           <span class="shapeIcons zoneToolsShapes" title="Create or modify a zone shape">
@@ -670,18 +674,14 @@
                 <div class="editStatCard"><strong>Structures:</strong> <span id="statsStructures">0</span> total | <span id="statsStructuresUnassigned">0</span> unassigned</div>
                 <div class="editStatCard"><strong>Zones:</strong> <span id="statsZones">0</span> total | <span id="statsZonesUnassigned">0</span> unassigned | <span id="statsZonesMultiAssigned">0</span> multi-assigned</div>
               </div>
-              <label>Search</label>
-              <input id="search" placeholder="name, id or URL">
-              <div class="structureFilter" id="structureFilter">
-                <button type="button" class="structFilterBtn active" data-sf="all">All</button>
-                <button type="button" class="structFilterBtn sfNoStructure" data-sf="nostructure" title="Zones with no associated structure in the CSV">No structure</button>
-                <button type="button" class="structFilterBtn sfDuplicate" data-sf="duplicate" title="Zones whose structure is associated with multiple blocks">Duplicates</button>
-              </div>
-              <div id="zoneList"></div>
-              <p class="groupLabel" style="margin-top:10px">Remaining CSV data</p>
+              <p class="groupLabel" style="margin-top:6px">1. Search structure</p>
+              <input id="structureSearchInput" list="startupSuggestions" placeholder="Type a structure name">
+              <p id="structureSearchCount" class="small">No structure selected.</p>
+              <div id="structureSearchZoneList" class="pendingCsvList"></div>
+              <p class="groupLabel" style="margin-top:10px">2. Unassigned structure</p>
               <p id="pendingCsvCount" class="small">0 unassociated structure(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
-              <p class="groupLabel" style="margin-top:10px">Duplicate associations</p>
+              <p class="groupLabel" style="margin-top:10px">3. Duplicate associations</p>
               <p id="duplicateAssocCount" class="small">0 structure associated with multiple zones.</p>
               <div id="duplicateAssocList" class="duplicateAssocList"></div>
             </div>
@@ -912,8 +912,8 @@ const MODE_COPY = {
 let activeTab = 'initPanel';
 document.body.dataset.mode = activeTab;
 let zoneStatusFilter = 'all';
-let zoneStructureFilter = 'all';
 let duplicateZoneIdsCache = new Set();
+let structureSearchActiveZoneIds = null;
 
 function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 function zoneById(id){ return zones.find(z => z.id === id); }
@@ -1109,6 +1109,7 @@ function duplicateZoneIdSet(){
   return new Set(duplicateAssociations().flatMap(group=>group.zones.map(zone=>zone.id)));
 }
 function zoneMatchesFilter(z){
+  if(structureSearchActiveZoneIds && !structureSearchActiveZoneIds.has(z.id)) return false;
   if(zoneStatusFilter==='all') return true;
   if(zoneStatusFilter==='confirmed') return !!(z.dataConfirmed || z.associationConfirmed);
   if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && !(z.dataConfirmed||z.associationConfirmed));
@@ -1201,55 +1202,9 @@ function confirmAssociation(prefix=''){
   fillEditPopup(updated);
   if(prefix === 'editPopup') hideEditZonePopup();
 }
-function zoneMatchesStructureFilter(z, dupeIds){
-  if(zoneStructureFilter==='all') return true;
-  if(zoneStructureFilter==='nostructure') return !findStartupRecord(z.name);
-  if(zoneStructureFilter==='duplicate') return dupeIds.has(z.id);
-  return true;
-}
 function renderList(){
-  const s=q('search').value.toLowerCase();
-  q('zoneList').innerHTML = '';
-  const dupeIds=new Set(duplicateAssociations().flatMap(g=>g.zones.map(z=>z.id)));
-  zones.filter(z =>
-    (!s || `${z.id} ${z.name} ${z.url} ${z.description}`.toLowerCase().includes(s)) &&
-    zoneMatchesFilter(z) &&
-    zoneMatchesStructureFilter(z, dupeIds)
-  ).forEach(z=>{
-    const d=document.createElement('div'); d.className='item'+(z.id===selectedId?' sel':'');
-    const pill = z.dataConfirmed || z.associationConfirmed ? 'confirmed' : dupeIds.has(z.id) ? 'multi-assigned' : z.llmPrevalidated ? 'LLM guess' : 'unassigned';
-    d.innerHTML = `<span class="itemMain">${escapeHtml(z.name || z.id)}</span><span class="itemRight"><span class="pill">${pill}</span><button type="button" class="itemEditBtn">Edit</button></span>`;
-    d.onclick=()=>{selectedId=z.id; render();};
-    const zoneElement=()=>Array.from(svg.querySelectorAll('.zone')).find(el=>el.dataset.id===z.id) || null;
-    d.ondblclick=e=>{
-      e.preventDefault();
-      selectedId=z.id;
-      render();
-      showEditZonePopup({
-        currentTarget: zoneElement(),
-        preventDefault:()=>{},
-        stopPropagation:()=>{},
-        clientX:stage.getBoundingClientRect().left + 24,
-        clientY:stage.getBoundingClientRect().top + 24,
-        target:e.target
-      });
-    };
-    d.querySelector('.itemEditBtn').onclick=e=>{
-      e.stopPropagation();
-      selectedId=z.id;
-      render();
-      showEditZonePopup({
-        currentTarget: zoneElement(),
-        preventDefault:()=>{},
-        stopPropagation:()=>{},
-        clientX:stage.getBoundingClientRect().left + 24,
-        clientY:stage.getBoundingClientRect().top + 24,
-        target:e.target
-      });
-    };
-    q('zoneList').appendChild(d);
-  });
   updateEditStats();
+  renderStructureSearchSelection();
   renderPendingCsvList();
   renderDuplicateAssociations();
 }
@@ -1270,6 +1225,71 @@ function updateEditStats(){
   if(q('statsZones')) q('statsZones').textContent=String(zones.length);
   if(q('statsZonesUnassigned')) q('statsZonesUnassigned').textContent=String(zonesUnassigned);
   if(q('statsZonesMultiAssigned')) q('statsZonesMultiAssigned').textContent=String(zonesMultiAssigned);
+}
+function zonesLinkedToRecord(record){
+  const key=normalizeName(record?.name);
+  if(!key) return [];
+  return zones.filter(z=>{
+    const matched=findStartupRecord(z.name);
+    return matched && normalizeName(matched.name)===key;
+  });
+}
+function setStructureSearchSelection(value){
+  const input=q('structureSearchInput');
+  if(input && value!==undefined) input.value=value;
+  const raw=(value!==undefined ? value : input?.value || '').trim();
+  if(!raw){
+    structureSearchActiveZoneIds=null;
+    render();
+    return;
+  }
+  const record=findStartupRecord(raw);
+  if(!record){
+    structureSearchActiveZoneIds=null;
+    render();
+    return;
+  }
+  const linked=zonesLinkedToRecord(record);
+  structureSearchActiveZoneIds=new Set(linked.map(z=>z.id));
+  if(linked.length) selectedId=linked[0].id;
+  render();
+}
+function renderStructureSearchSelection(){
+  const container=q('structureSearchZoneList');
+  const count=q('structureSearchCount');
+  const input=q('structureSearchInput');
+  if(!container || !count || !input) return;
+  const raw=input.value.trim();
+  container.innerHTML='';
+  if(!raw){
+    count.textContent='No structure selected.';
+    return;
+  }
+  const record=findStartupRecord(raw);
+  if(!record){
+    count.textContent='No exact structure match.';
+    return;
+  }
+  const linked=zonesLinkedToRecord(record);
+  count.textContent=`${record.name}: ${linked.length} zone(s) linked.`;
+  if(!linked.length){
+    const row=document.createElement('div');
+    row.className='pendingCsvItem';
+    row.textContent='No zone linked to this structure yet.';
+    container.appendChild(row);
+    return;
+  }
+  linked.forEach(z=>{
+    const row=document.createElement('button');
+    row.type='button';
+    row.className='pendingCsvItem';
+    row.textContent=`${z.id} - ${z.name || 'Unnamed zone'}`;
+    row.addEventListener('click',()=>{
+      selectedId=z.id;
+      render();
+    });
+    container.appendChild(row);
+  });
 }
 function renderPendingCsvList(){
   const container=q('pendingCsvList');
@@ -1815,13 +1835,6 @@ document.querySelectorAll('#zoneStatusFilter .zoneFilterBtn').forEach(btn=>{
     renderList(); render();
   });
 });
-document.querySelectorAll('#structureFilter .structFilterBtn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    zoneStructureFilter=btn.dataset.sf;
-    document.querySelectorAll('#structureFilter .structFilterBtn').forEach(b=>b.classList.toggle('active', b===btn));
-    renderList();
-  });
-});
 q('editPopupConfirmAssociation').onclick=()=>confirmAssociation('editPopup');
 q('editPopupName').setAttribute('role','combobox');
 q('editPopupName').setAttribute('aria-autocomplete','list');
@@ -1887,10 +1900,19 @@ if(q('clearStartupData')) q('clearStartupData').onclick=()=>{
   startupRecords=[];
   persistStartupRecords();
   refreshStartupSuggestions();
+  structureSearchActiveZoneIds=null;
+  if(q('structureSearchInput')) q('structureSearchInput').value='';
   updateStartupImportStatus();
+  render();
   setInitStatus('Structure dataset cleared from local workspace.','success');
 };
-q('search').oninput=renderList; q('showFill').onchange=render;
+if(q('structureSearchInput')){
+  q('structureSearchInput').addEventListener('input',()=>{
+    if(!q('structureSearchInput').value.trim()) setStructureSearchSelection('');
+  });
+  q('structureSearchInput').addEventListener('change',()=>setStructureSearchSelection(q('structureSearchInput').value));
+}
+q('showFill').onchange=render;
 function autoFitZoom(){
   if(!IMG_W) return;
   const wrap=document.getElementById('stageWrap');
@@ -1983,7 +2005,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('click',e=>{
   const popup=q('editZonePopup');
   if(!popup || popup.hidden) return;
-  if(popup.contains(e.target)) return;
+  if(popup.contains(e.target) || e.target.closest?.('.zone')) return;
   hideEditZonePopup();
 });
 document.addEventListener('keydown',e=>{
@@ -3370,15 +3392,22 @@ function buildImageMapSnippet(){
   return `<div class="radarmapper-image-map" style="width:100%;max-width:${IMG_W}px;margin:24px auto;box-sizing:border-box;overflow:hidden"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" usemap="#${mapName}" style="display:block;width:100%;height:auto"><map name="${mapName}">\n${zones.filter(zoneHasData).map(imageMapArea).join('\n')}\n</map></div>`;
 }
 function buildIframeSnippet(){
-  const src=escapeHtml(q('cfgHostedUrl').value.trim() || 'REPLACE_WITH_EXPORTED_HTML_URL');
+  const raw=(q('cfgHostedUrl').value || '').trim();
+  const srcValue=safeUrl(raw) || 'about:blank';
+  const src=escapeHtml(srcValue);
   return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
 function buildExportHtml(mode=getExportMode()){
   const experience=getExportExperience();
-  if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
-  if(mode==='iframe') return buildIframeSnippet();
-  if(mode==='imagemap') return buildImageMapSnippet();
-  return buildStandaloneHtml();
+  try{
+    if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
+    if(mode==='iframe') return buildIframeSnippet();
+    if(mode==='imagemap') return buildImageMapSnippet();
+    return buildStandaloneHtml();
+  } catch(_err){
+    // Fallback for strict preview environments (e.g. Copilot preview) where interactive script generation may fail.
+    return buildImageMapSnippet();
+  }
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
 function download(filename, text, type){ const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
