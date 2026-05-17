@@ -446,7 +446,7 @@
     .prepChoice { padding:10px; }
     input, select, textarea { font-size:16px; }
     .zoneFilterLegend { display:none; }
-    .configMenu { top:auto; bottom:8px; max-height:min(85vh,600px); }
+    .configMenu { max-height:min(85vh,600px); }
   }
   @media (max-width: 480px) {
     .phaseBtn { min-width:88px; font-size:11px; padding:5px 8px 4px; }
@@ -1311,8 +1311,14 @@ function setStructureSearchSelection(value){
     return;
   }
   const linked=zonesLinkedToRecord(record);
+  if(!linked.length){
+    // Keep all zones visible when the selected structure has no associated zone yet.
+    structureSearchActiveZoneIds=null;
+    render();
+    return;
+  }
   structureSearchActiveZoneIds=new Set(linked.map(z=>z.id));
-  if(linked.length) selectedId=linked[0].id;
+  selectedId=linked[0].id;
   render();
 }
 function renderStructureSearchSelection(){
@@ -2073,13 +2079,40 @@ function closeConfigMenu(){
   q('configPanel').classList.remove('open');
   q('configPanel').setAttribute('aria-hidden','true');
 }
+function positionConfigMenu(){
+  const panel=q('configPanel');
+  const trigger=q('openConfigBtn');
+  if(!panel || !trigger) return;
+  const spacing=6;
+  const margin=8;
+  const triggerRect=trigger.getBoundingClientRect();
+  const panelRect=panel.getBoundingClientRect();
+  const width=panelRect.width || Math.min(420, window.innerWidth - (margin*2));
+  let left=triggerRect.right - width;
+  left=Math.min(Math.max(left, margin), Math.max(window.innerWidth - width - margin, margin));
+  let top=triggerRect.bottom + spacing;
+  top=Math.min(Math.max(top, margin), Math.max(window.innerHeight - panelRect.height - margin, margin));
+  panel.style.left=`${Math.round(left)}px`;
+  panel.style.right='auto';
+  panel.style.top=`${Math.round(top)}px`;
+  panel.style.bottom='auto';
+  panel.style.maxHeight=`${Math.max(180, Math.floor(window.innerHeight - top - margin))}px`;
+}
 function toggleConfigMenu(){
   const panel=q('configPanel');
-  panel.classList.toggle('open');
-  panel.setAttribute('aria-hidden', panel.classList.contains('open') ? 'false' : 'true');
+  const willOpen=!panel.classList.contains('open');
+  panel.classList.toggle('open', willOpen);
+  panel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+  if(willOpen) positionConfigMenu();
 }
 q('openConfigBtn').addEventListener('click',toggleConfigMenu);
 q('closeConfigBtn').addEventListener('click',closeConfigMenu);
+window.addEventListener('resize',()=>{
+  if(q('configPanel').classList.contains('open')) positionConfigMenu();
+});
+window.addEventListener('scroll',()=>{
+  if(q('configPanel').classList.contains('open')) positionConfigMenu();
+}, true);
 document.addEventListener('click',e=>{
   if(!q('configPanel').classList.contains('open')) return;
   if(q('configPanel').contains(e.target) || q('openConfigBtn').contains(e.target)) return;
@@ -2092,6 +2125,13 @@ document.addEventListener('click',e=>{
   if(popup.contains(e.target) || e.target.closest?.('.zone')) return;
   hideExportLivePopup();
 });
+document.addEventListener('pointerdown',e=>{
+  if(!isExportMode()) return;
+  const popup=q('exportLivePopup');
+  if(!popup || popup.hidden) return;
+  if(popup.contains(e.target) || e.target.closest?.('.zone')) return;
+  hideExportLivePopup();
+}, true);
 document.addEventListener('click',e=>{
   const popup=q('editZonePopup');
   if(!popup || popup.hidden) return;
@@ -3418,7 +3458,14 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
       }
     });
   });
-  document.addEventListener('click',event=>{ if(popup && !root.contains(event.target)) popup.hidden=true; });
+  document.addEventListener('click',event=>{
+    if(!popup || popup.hidden) return;
+    const target=event.target;
+    const clickedHotspot=target && target.closest ? target.closest('${hotspotSelector}') : null;
+    if(clickedHotspot) return;
+    if(popup.contains(target)) return;
+    popup.hidden=true;
+  });
 })();
 <\/script>`;
 }
