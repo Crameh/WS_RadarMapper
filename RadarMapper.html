@@ -131,6 +131,7 @@
     background:transparent;
   }
   .zoneToolsRow { display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:nowrap; min-height:38px; }
+  .zoneToolsRow.filtersRow { min-height:30px; }
   .zoneToolsRight { display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:nowrap; min-width:0; }
   .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; }
   .zoneTools label { margin:0; color:#12314a; font-weight:800; }
@@ -532,6 +533,11 @@
         </div>
         <div class="zoneToolsRight">
           <label class="zoomControl">Zoom <input id="zoom" type="range" min="10" max="140" value="80"></label>
+          <input id="showFill" type="checkbox" checked hidden>
+        </div>
+      </div>
+      <div class="zoneToolsRow filtersRow">
+        <div class="zoneToolsRight">
           <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filter zones by status">
             <button type="button" class="zoneFilterBtn active" data-filter="all">All</button>
             <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="Unassigned (orange)">● Unassigned</button>
@@ -540,7 +546,6 @@
             <button type="button" class="zoneFilterBtn zoneFilterMulti" data-filter="multiassigned" title="Multi-assigned (purple)">● Multi-assigned</button>
             <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Confirmed (green)">● Confirmed</button>
           </div>
-          <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
       <div class="modeHintLine" id="modeHint">Import radar assets and organization data, then generate clickable zones.</div>
