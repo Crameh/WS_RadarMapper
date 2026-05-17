@@ -150,7 +150,7 @@
   .zone { fill:rgba(234,126,38,.20); stroke:rgba(184,89,20,.78); stroke-width:1.5; cursor:default; vector-effect:non-scaling-stroke; }
   .zone.confirmed { fill:rgba(46,211,155,.20); stroke:rgba(21,143,100,.84); }
   .zone.prevalidated { fill:rgba(54,121,230,.20); stroke:rgba(37,95,190,.86); }
-  .zone.unmatched { fill:rgba(210,165,0,.18); stroke:rgba(160,120,0,.72); stroke-dasharray:4 3; }
+  .zone.unmatched { fill:rgba(220,50,50,.18); stroke:rgba(180,30,30,.85); stroke-dasharray:4 3; }
   .zone.blinking { animation: zoneBlink 220ms ease-in-out 3; }
   @keyframes zoneBlink {
     0% { opacity:1; }
@@ -163,7 +163,7 @@
   .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
   .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
   .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
-  .zone.selected.unmatched { fill:rgba(210,165,0,.28); stroke:#c89a00; }
+  .zone.selected.unmatched { fill:rgba(220,50,50,.30); stroke:#c93030; }
   .zone.selected.multiassigned { fill:rgba(122,78,201,.26); stroke:#7a4ec9; }
   .zone.hiddenFill { fill:transparent; }
   .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
@@ -172,6 +172,7 @@
   aside { border:1px solid #e6f0f4; border-radius:14px; background:rgba(255,255,255,.92); overflow:auto; padding:20px; box-shadow:var(--shadow); }
   label { display:block; font-size:12px; font-weight:800; margin-top:10px; margin-bottom:4px; color:#243d55; }
   input, select, textarea, button { font:inherit; }
+  input, textarea { user-select:text; -webkit-user-select:text; }
   input, select, textarea { width:100%; padding:9px 10px; border:1px solid #cbdde6; border-radius:10px; background:white; color:var(--text); }
   input:focus, select:focus, textarea:focus { outline:2px solid rgba(46,211,155,.24); border-color:#54cdb2; }
   input[type="color"] { padding:0; height:40px; min-height:40px; cursor:pointer; background:transparent; }
@@ -323,6 +324,15 @@
     border-top:1px solid #edf3f6;
   }
   .actionNote { margin:8px 0 0; color:#60778a; font-size:11px; line-height:1.35; }
+  .enrichProgressWrap { display:flex; align-items:center; gap:8px; margin:8px 0 0; }
+  .enrichProgressWrap progress { flex:1; height:8px; border:none; border-radius:4px; background:#e4e9ee; overflow:hidden; }
+  .enrichProgressWrap progress::-webkit-progress-bar { background:#e4e9ee; border-radius:4px; }
+  .enrichProgressWrap progress::-webkit-progress-value { background:linear-gradient(90deg,#3679e6,#54cdb2); border-radius:4px; transition:width .25s ease; }
+  .enrichProgressWrap progress::-moz-progress-bar { background:#3679e6; border-radius:4px; }
+  .enrichProgressText { color:#3a4d5e; font-size:11px; font-weight:600; min-width:60px; text-align:right; }
+  .llmDetectionBusy { display:inline-flex; align-items:center; gap:8px; margin:8px 0 0; color:#3679e6; font-size:11px; font-weight:600; }
+  .llmDetectionBusy::before { content:''; width:12px; height:12px; border-radius:50%; border:2px solid #c5d5ed; border-top-color:#3679e6; animation:rmSpin .8s linear infinite; }
+  @keyframes rmSpin { to { transform:rotate(360deg); } }
   .dangerNote { color:#9c2730; }
   .resetGroup { margin-top:12px; padding-top:12px; border-top:1px solid #edf3f6; }
   .primaryAction { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
@@ -426,6 +436,7 @@
   .editStatCard strong { color:#0f3046; }
   .editTaskLine { display:flex; align-items:center; gap:10px; margin:10px 0 6px; font-size:13px; font-weight:800; color:#1d3a52; }
   .editTaskLine .prepStepNumber { width:28px; height:28px; min-width:28px; min-height:28px; font-size:16px; line-height:28px; }
+  .editFlowStep { grid-template-columns:minmax(0, 1fr); }
   .importActionBtn { border-color:#7eb0c3; background:#f4fbff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.75), 0 1px 2px rgba(15,70,90,.12); }
   .importActionBtn:hover { border-color:#4e98b1; background:#edf8ff; }
   body[data-mode="exportPanel"] #overlay .zone,
@@ -610,6 +621,17 @@
               <p class="actionNote">Supported radar file: image file (<code>jpg</code>, <code>png</code>, <code>webp</code>, etc.). Supported dataset files: <code>csv</code>, <code>tsv</code>, <code>txt</code>, <code>xls</code>, <code>xlsx</code>, <code>json</code>. Required column: <code>name</code> or <code>startup</code>. Recommended columns: <code>url</code>, <code>description</code>, <code>logo</code>, keywords/tags.</p>
               <p id="startupImportStatus" class="startupImportStatus">No organization dataset file imported.</p>
               <div id="initStatusLine" class="initStatus">Waiting for imports.</div>
+              <hr class="prepChoiceDivider">
+              <label>Dataset enrichment (optional, Anthropic only)</label>
+              <p class="actionNote">Runs a separate LLM pass with web search to verify each entity and fill missing url, description, logo, keywords. Operates only on the dataset — does not change the radar or any zone.</p>
+              <div class="secondaryActions">
+                <button id="enrichCsvBtn" class="prepBtn" type="button">Enrich dataset via web search</button>
+              </div>
+              <div id="enrichCsvProgressWrap" class="enrichProgressWrap" hidden>
+                <progress id="enrichCsvProgress" value="0" max="100"></progress>
+                <span id="enrichCsvProgressText" class="enrichProgressText">0 / 0</span>
+              </div>
+              <p id="enrichCsvStatus" class="actionNote">Enrich status: idle.</p>
             </div>
           </div>
         </div>
@@ -622,13 +644,13 @@
               <p>Choose either a manual workflow with your own LLM tool, or run it directly in RadarMapper.</p>
             </div>
             <div class="prepStepBody">
-              <label class="inlineCheck"><input id="enrichNormalizeInfo" type="checkbox"> Enrich and normalize information (will try to gather on Internet the most relevant information, always check results)</label>
               <div class="prepChoiceGrid">
                 <div class="prepChoice">
                   <h4>Using an external LLM</h4>
                   <p>Copy the prompt, run it in your LLM tool with the required files, then import the resulting JSON.</p>
                   <div class="secondaryActions">
                     <button id="copyExternalPrompt" class="prepBtn" type="button">Copy LLM prompt to use</button>
+                    <button id="copyEnrichPrompt" class="prepBtn" type="button">Copy enrichment prompt</button>
                     <button id="exportInitJson" class="prepBtn" type="button">Download Empty Database (JSON)</button>
                   </div>
                   <p class="actionNote">Files to provide to your LLM: 1) exported initialization JSON, 2) radar image, 3) organization dataset file. Then import the completed JSON below.</p>
@@ -656,6 +678,11 @@
                   <label>Additional instructions</label>
                   <textarea id="llmExtraInstructions" rows="3" placeholder="Example: prefer exact names, reduce false positives, keep narrow logos."></textarea>
                   <p id="llmInAppHint" class="actionNote">Activity: idle.</p>
+                  <div id="llmDetectionBusy" class="llmDetectionBusy" hidden>Running detection on radar...</div>
+                  <div id="llmDetectionProgressWrap" class="enrichProgressWrap" hidden>
+                    <progress id="llmDetectionProgress" value="0" max="100"></progress>
+                    <span id="llmDetectionProgressText" class="enrichProgressText">0%</span>
+                  </div>
                   <hr class="prepChoiceDivider">
                   <details class="advancedGroup">
                     <summary>LLM response trace</summary>
@@ -703,26 +730,23 @@
       </div>
 
       <div class="prepSteps">
-        <div class="prepStep">
-          <div class="prepStepNumber">3</div>
+        <div class="prepStep editFlowStep">
           <div>
-            <div class="prepStepHeader">
-              <h3>Search a zone</h3>
-            </div>
             <div class="prepStepBody">
-              <p class="groupLabel" style="margin-top:6px">1. Search organization</p>
-              <input id="structureSearchInput" list="startupSuggestions" placeholder="Type an organization name">
-              <p id="structureSearchCount" class="small">No organization selected.</p>
-              <div id="structureSearchZoneList" class="pendingCsvList"></div>
               <div class="editTaskLine"><div class="prepStepNumber">1</div><span>Find unassigned organization and create the zone</span></div>
-              <p class="groupLabel" style="margin-top:10px">2. Unassigned organizations</p>
+              <p class="groupLabel" style="margin-top:10px">Unassigned organizations</p>
               <p class="small">If you cannot find a logo on the radar, check <strong>No logo</strong>. Marked organizations are moved to the bottom of the list.</p>
               <p id="pendingCsvCount" class="small">0 unassigned organization(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
               <div class="editTaskLine"><div class="prepStepNumber">2</div><span>Correct duplicate zones</span></div>
-              <p class="groupLabel" style="margin-top:10px">3. Duplicate organization links</p>
+              <p class="groupLabel" style="margin-top:10px">Duplicate organization links</p>
               <p id="duplicateAssocCount" class="small">0 organization linked to multiple zones.</p>
               <div id="duplicateAssocList" class="duplicateAssocList"></div>
+              <div class="editTaskLine"><div class="prepStepNumber">3</div><span>Search an organization</span></div>
+              <p class="groupLabel" style="margin-top:10px">Search organization</p>
+              <input id="structureSearchInput" list="startupSuggestions" placeholder="Type an organization name">
+              <p id="structureSearchCount" class="small">No organization selected.</p>
+              <div id="structureSearchZoneList" class="pendingCsvList"></div>
             </div>
           </div>
         </div>
@@ -788,6 +812,12 @@
               <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
               <div class="primaryAction">
                 <button id="exportHtml" class="primary" type="button">Export clickable radar</button>
+              </div>
+              <hr class="prepChoiceDivider">
+              <label>Organization dataset</label>
+              <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file.</p>
+              <div class="secondaryActions">
+                <button id="exportCsv" class="prepBtn" type="button">Export dataset as CSV</button>
               </div>
             </div>
           </div>
@@ -873,7 +903,6 @@
             <h3>LLM settings</h3>
             <p>Choose provider, model, and output behavior for built-in detection.</p>
           </div>
-          <label class="inlineCheck settingsCheck"><input id="aiApproved" type="checkbox"> Approval confirmed</label>
         </div>
         <p class="configSubTitle">Provider</p>
         <label>LLM provider</label>
@@ -900,13 +929,6 @@
           <option value="fr">Français</option>
           <option value="en">English</option>
           <option value="de">Deutsch</option>
-        </select>
-        <label>Prompt profile</label>
-        <select id="aiPromptProfile">
-          <option value="simple">Default (new)</option>
-          <option value="legacy_simple">Simple (archived)</option>
-          <option value="standard">Standard</option>
-          <option value="strict">Strict (advanced)</option>
         </select>
         <div class="actions">
           <button id="saveAiConfig" class="primary">Save settings</button>
@@ -1619,10 +1641,18 @@ function pickField(row, aliases){
   }
   return '';
 }
+function parseKeywordsValue(value){
+  if(Array.isArray(value)) return value.map(s=>String(s||'').trim()).filter(Boolean);
+  const s=String(value||'').trim();
+  if(!s) return [];
+  return s.split(/[,;|]+/).map(t=>t.trim()).filter(Boolean);
+}
 function startupRecordFromObject(row){
   const name=pickField(row,['name','nom','startup','start-up','company','entreprise','societe','société','structure',
     'unternehmen','firma','organisation','struktur']);
   if(!name) return null;
+  const rawKeywords=pickField(row,['keywords','keyword','tags','tag','mots-clés','mots cles','motscles','mots-clefs',
+    'schlagworte','schlüsselwörter','schluesselwoerter','stichworte','searchkeywords']);
   return {
     name,
     url:pickField(row,['url','website','website link','site','site web','lien','link','webseite']),
@@ -1631,6 +1661,7 @@ function startupRecordFromObject(row){
       'beschreibung','kurzbeschreibung','zusammenfassung']),
     category:pickField(row,['category','product category','categorie','catégorie','secteur','cadran','quadrant',
       'kategorie','bereich','sektor','branche']),
+    keywords:parseKeywordsValue(rawKeywords),
     raw:row
   };
 }
@@ -1801,19 +1832,23 @@ function validateAndAdvance({preferSuggestion=false}={}){
   }
 }
 function startupKeywords(value){
-  const source=(value && value.startupData) || (value && value.raw) || value || {};
-  if(!source || typeof source !== 'object') return '';
-  const known=new Set(['name','nom','startup','start-up','company','entreprise','societe','société','structure','url','website','site','site web','lien','link','logo','logo url','logo_url','logourl','image','image url','description','descriptif','desc','pitch','short description','resume','résumé'].map(normalizeName));
-  const keyAliases=['keyword','keywords','keyword 1','keyword 2','keyword 3','mot cle','mots cles','mots clés','tags','tag','theme','themes','category','categorie','catégorie','secteur','cadran','quadrant'];
   const items=[];
-  Object.entries(source).forEach(([k,v])=>{
-    const nk=normalizeHeader(k);
-    const isKeyAlias=keyAliases.some(alias=>normalizeHeader(alias)===nk);
-    if(isKeyAlias || !known.has(normalizeName(k))){
-      if(v !== undefined && v !== null && String(v).trim()) items.push(String(v).trim());
-    }
-  });
-  return items.join(' ');
+  if(value && Array.isArray(value.keywords)){
+    value.keywords.forEach(k=>{ const s=String(k||'').trim(); if(s) items.push(s); });
+  }
+  const source=(value && value.startupData) || (value && value.raw) || value || {};
+  if(source && typeof source === 'object'){
+    const known=new Set(['name','nom','startup','start-up','company','entreprise','societe','société','structure','url','website','site','site web','lien','link','logo','logo url','logo_url','logourl','image','image url','description','descriptif','desc','pitch','short description','resume','résumé'].map(normalizeName));
+    const keyAliases=['keyword','keywords','keyword 1','keyword 2','keyword 3','mot cle','mots cles','mots clés','tags','tag','theme','themes','category','categorie','catégorie','secteur','cadran','quadrant'];
+    Object.entries(source).forEach(([k,v])=>{
+      const nk=normalizeHeader(k);
+      const isKeyAlias=keyAliases.some(alias=>normalizeHeader(alias)===nk);
+      if(isKeyAlias || !known.has(normalizeName(k))){
+        if(v !== undefined && v !== null && String(v).trim()) items.push(String(v).trim());
+      }
+    });
+  }
+  return Array.from(new Set(items)).join(' ');
 }
 function applyStartupRecordToZone(z, record){
   if(!z || !record) return false;
@@ -2487,7 +2522,7 @@ async function importProjectJson(text){
           description:sanitizeTextValue(row.description||''),
           logo:sanitizeTextValue(row.logo||''),
           category:sanitizeTextValue(row.category||''),
-          tags:sanitizeTextValue(row.tags||'')
+          keywords:Array.isArray(row.keywords)?row.keywords.map(k=>sanitizeTextValue(String(k))).filter(Boolean):parseKeywordsValue(row.keywords)
         }));
       persistStartupRecords();
       refreshStartupSuggestions();
@@ -2508,7 +2543,6 @@ async function importProjectJson(text){
 }
 function getAiConfig(){
   return {
-    approved:q('aiApproved').checked,
     pptxAlphaEnabled:!!(q('enablePptxAlpha') && q('enablePptxAlpha').checked),
     provider:q('aiProvider').value,
     model:q('aiModel').value.trim(),
@@ -2516,8 +2550,7 @@ function getAiConfig(){
     azureEndpoint:q('aiAzureEndpoint').value.trim().replace(/\/$/,''),
     azureDeployment:q('aiAzureDeployment').value.trim(),
     azureVersion:q('aiAzureVersion').value.trim() || '2024-12-01-preview',
-    language:q('aiLanguage').value,
-    promptProfile:(q('aiPromptProfile') && q('aiPromptProfile').value) || 'simple'
+    language:q('aiLanguage').value
   };
 }
 const AI_MODEL_CATALOG = {
@@ -2580,7 +2613,7 @@ function refreshModelOptions({preserve=true} = {}){
   q('aiModel').value=(preserve && current) ? current : ((options[0] && options[0].value) || '');
 }
 function isAiConnected(cfg=getAiConfig()){
-  if(!cfg.approved || !cfg.apiKey || !cfg.model) return false;
+  if(!cfg.apiKey || !cfg.model) return false;
   if(cfg.provider === 'azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)) return false;
   return true;
 }
@@ -2620,7 +2653,6 @@ function loadAiConfig(){
     delete safeCfg.apiKey;
     safeStorageSet('radarMapperAiConfig', JSON.stringify(safeCfg));
   }
-  q('aiApproved').checked=!!cfg.approved;
   q('enablePptxAlpha').checked=!!cfg.pptxAlphaEnabled;
   q('aiProvider').value=cfg.provider||'anthropic';
   q('aiModel').value=cfg.model||'';
@@ -2629,7 +2661,6 @@ function loadAiConfig(){
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
   q('aiLanguage').value=cfg.language||'en';
-  q('aiPromptProfile').value=cfg.promptProfile||'simple';
   refreshModelOptions({preserve:true});
   refreshProviderFields();
   updatePptxImportVisibility(!!cfg.pptxAlphaEnabled);
@@ -2638,7 +2669,6 @@ function loadAiConfig(){
 }
 function clearAiConfig(){
   safeStorageRemove('radarMapperAiConfig');
-  q('aiApproved').checked=false;
   q('enablePptxAlpha').checked=false;
   q('aiProvider').value='anthropic';
   q('aiModel').value='';
@@ -2647,7 +2677,6 @@ function clearAiConfig(){
   q('aiAzureDeployment').value='';
   q('aiAzureVersion').value='2024-12-01-preview';
   q('aiLanguage').value='en';
-  q('aiPromptProfile').value='simple';
   refreshProviderFields();
   updatePptxImportVisibility(false);
   updateAiStatus();
@@ -2658,336 +2687,61 @@ function imagePayload(){
   return {mediaType,data};
 }
 function llmPrompt(candidateZones=[]){
-  const skeleton=buildProjectJson('llm_detourage_request',{includeImageData:false});
   const extraInstructionsInput=q('llmExtraInstructions');
-  const enrichNormalizeInput=q('enrichNormalizeInfo');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
-  const enrichNormalizeInfo=!!(enrichNormalizeInput && enrichNormalizeInput.checked);
-  skeleton.zones=candidateZones;
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
-  const profile=getAiConfig().promptProfile || 'simple';
-  const outputContract=`FINAL OUTPUT CONTRACT (must be respected):
-- Return exactly one JSON object, and nothing else.
-- Do not wrap JSON in markdown fences.
-- Do not add any text before or after JSON.
-- Keep schema "wavestone-radar-mapper-v1".
-- Ensure root fields remain compatible with the input schema.
-- Ensure "zones" is an array of valid zone objects.
-- Ensure output is strictly parseable with JSON.parse (double quotes, no trailing commas, no comments).`;
-  const minimalValidJsonExample=`MINIMAL VALID JSON EXAMPLE (structure reference, adapt values to the real radar):
-{
-  "schema": "wavestone-radar-mapper-v1",
-  "source": "llm_detourage_request",
-  "image": {
-    "width": ${IMG_W},
-    "height": ${IMG_H},
-    "dataUrl": "[image attached separately]"
-  },
-  "imageAttachment": {
-    "required": true,
-    "expectedContent": "The same radar visual used to generate this JSON",
-    "coordinateSystem": "Pixel coordinates in the image space, origin at top-left (0,0)"
-  },
-  "config": {
-    "contrast": 58,
-    "minArea": 35,
-    "maxArea": 18000,
-    "padding": 6,
-    "mergeGap": 18,
-    "maxRatio": 14
-  },
-  "zones": [
-    {
-      "id": "z001",
-      "name": "Example Security",
-      "url": "https://www.example.com",
-      "logo": "",
-      "description": "Short description.",
-      "shape": "rect",
-      "x": 120,
-      "y": 80,
-      "w": 96,
-      "h": 42,
-      "points": [],
-      "ocrCandidate": "Example Security",
-      "confidence": 0.82,
-      "llmFound": true
-    }
-  ]
-}`;
-  const sharedHeader=`Analyze the radar image and the JSON below, then return an updated JSON.
-Expected language: ${language}.`;
-  const enrichNormalizeBlock=enrichNormalizeInfo
-    ? `\nData enrichment and normalization requirements:
-- Improve and normalize startup/company data in the output JSON whenever reliable.
-- Rewrite description into a concise, professional summary when missing, weak, or noisy.
-- Add associated keywords in "searchKeywords" as a deduplicated array of relevant terms.
-- Normalize the main website URL in "url" (HTTPS preferred, canonical homepage when possible).
-- Add a usable logo image URL in "logo" for popup display when a reliable direct image URL is available.
-- Keep existing values when uncertain; never fabricate unverifiable facts.`
-    : '';
-  const sharedFooter=`JSON:
-${JSON.stringify(skeleton,null,2)}
-${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : ''}
-${enrichNormalizeBlock}
-
-${minimalValidJsonExample}
-
-${outputContract}`;
-  if(profile==='simple'){
-    return `Task: detect all visible company/product logos in a radar image, create clickable zones from scratch, run OCR/name recognition, and map each zone to the correct entity record when possible.
-
-Output requirement:
-Return only valid JSON.
-No markdown, no explanation, no comments outside JSON.
-
-Inputs:
-1) A JSON initialization file following the schema wavestone-radar-mapper-v1.
-2) The radar image.
-3) A CSV or JSON dataset containing entity records (startup or other organizations).
-
-Goal:
-Create the complete zones array from scratch.
-Each zone must correspond to one visible logo or organization/product name on the radar.
-For every zone, infer the best organization/product name and, when possible, map it to the matching record in startupRecords or in the attached CSV/JSON dataset.
-
-Important:
-- The input JSON may contain no zones at all.
-- You must create all zones yourself.
-- Keep the original JSON schema unchanged.
-- Preserve image.width, image.height, image.dataUrl placeholder, imageAttachment, config, llmInstructions, examples, exportRender and exportExperience unless explicitly instructed otherwise.
-- Add or replace the zones array.
-- Preserve startupRecords if present, unless the user asks to remove it.
-
-Coordinate system:
-- Use the image coordinate system exactly.
-- Origin is top-left: x=0, y=0.
-- Units are pixels.
-- x and y are the top-left corner of the zone bounding box.
-- w and h are the width and height of the bounding box.
-- Never apply a global offset, scaling, rotation, or translation.
-- Do not infer coordinates from the displayed size in the browser or chat UI. Use the actual pixel dimensions from image.width and image.height.
-- If the image is ${IMG_W}x${IMG_H}, all coordinates must fit inside that space.
-
-Detection method:
-1) Visually scan the full radar image from top-left to bottom-right.
-2) Detect every logo, wordmark, entity name, or product mark that appears as an individual organization entry.
-3) Include logos in the main radar and in lower bands such as scale-ups, unicorns, or other side sections.
-4) Ignore decorative category labels, axis labels, titles, legends, background shapes, arrows, sector names and publisher branding unless they are actual startup/company entries.
-5) Avoid duplicate zones for the same visible logo unless the logo appears as a separate repeated entry in the radar.
-6) If a logo is unreadable but clearly present, still create a zone with a generated placeholder name.
-
-Geometry rules:
-- Fit each zone closely to the visible logo/name boundaries.
-- Include the full clickable visual mark, including icon and wordmark when both belong to the same company.
-- Do not make overly large horizontal rows.
-- Do not merge neighboring logos.
-- Do not overlap zones unless visual logos genuinely overlap.
-- Prefer simple shapes:
-  - "rect" for most wordmarks and horizontal logos.
-  - "circle" for circular logos or compact round marks.
-  - "diamond" for diamond-shaped marks.
-  - "poly" only when a tighter custom polygon is materially better.
-- For shape="rect", "circle", or "diamond", points must be [].
-- For shape="poly", points must contain absolute image coordinates as { "x": number, "y": number }.
-- For shape="poly", x, y, w, h must still describe the polygon bounding box.
-
-Zone ID rules:
-- Since zones are created from scratch, assign sequential IDs:
-  z001, z002, z003, ...
-- IDs must be unique.
-- Sort zones primarily from top to bottom, then left to right.
-- Do not skip IDs.
-
-Name recognition and mapping:
-For each zone:
-1) Read visible text using OCR and visual recognition.
-2) Compare the OCR result to startupRecords and to the attached dataset.
-3) Use fuzzy matching to account for logo stylization, capitalization, punctuation, accents, hyphens, spaces, OCR errors, and product-vs-company naming.
-4) When a reliable match exists, fill:
-   - name with the canonical record name
-   - url with the record website
-   - logo with the record logo if present, otherwise ""
-   - description with the record description if present
-5) When no reliable record match exists but the visible name is clear:
-   - name with the visible public name
-   - ocrCandidate with the OCR result
-   - confidence based on recognition quality
-   - url, logo and description as "" unless reliably known from the provided data
-6) When the logo is visible but not readable:
-   - name as "zone_XXX", matching the numeric ID, for example zone_042
-   - ocrCandidate as ""
-   - confidence between 0.05 and 0.25
-   - llmFound as false
-
-Confidence rules:
-- confidence must be a number between 0 and 1.
-- Use confidence >= 0.85 when the visible text is clear and the record match is strong.
-- Use 0.65 to 0.84 when the text is readable but there is some ambiguity.
-- Use 0.55 to 0.64 when the match is plausible but weak.
-- Use < 0.55 when the name is uncertain.
-- llmFound must be true only if confidence >= 0.55 and name is not a placeholder such as zone_042.
-- llmFound must be false otherwise.
-
-Required zone object format:
-Each zone must have exactly these fields, compatible with the provided schema:
-
-{
-  "id": "z001",
-  "name": "Canonical or visible name",
-  "url": "https://example.com/",
-  "logo": "",
-  "description": "Short description from the matching record, if available.",
-  "shape": "rect",
-  "x": 120,
-  "y": 80,
-  "w": 96,
-  "h": 42,
-  "points": [],
-  "ocrCandidate": "Visible OCR text",
-  "confidence": 0.82,
-  "llmFound": true
-}
-
-Output JSON construction:
-- Start from the provided initialization JSON.
-- Add a top-level "zones" array if absent.
-- Replace any empty zones array with the newly detected zones.
-- Keep all other top-level fields intact.
-- Do not invent additional top-level fields unless already present in the schema.
-- Do not include comments.
-- Do not include trailing commas.
-- Return strictly parseable JSON.
-
-Quality checks before final output:
-- Validate that every zone has id, name, url, logo, description, shape, x, y, w, h, points, ocrCandidate, confidence and llmFound.
-- Validate that all coordinates are inside the image boundaries.
-- Validate that w > 0 and h > 0.
-- Validate that every id is unique and sequential.
-- Validate that points is [] except for shape="poly".
-- Validate that llmFound agrees with confidence and name.
-- Validate that the output is valid JSON.
-- Validate that no markdown has been returned.
-
-Expected output:
-Return the full updated JSON only.
-
-${sharedFooter}`;
+  const records=Array.isArray(startupRecords) ? startupRecords : [];
+  const compactRecords=records.map(r=>{
+    const o={name:r.name};
+    if(r.category) o.category=r.category;
+    return o;
+  });
+  const skeleton={image:{width:IMG_W,height:IMG_H}};
+  if(candidateZones && candidateZones.length){
+    skeleton.candidateZones=candidateZones.map(z=>({
+      id:z.id, shape:z.shape, x:z.x, y:z.y, w:z.w, h:z.h,
+      points:Array.isArray(z.points)?z.points:[],
+      name:z.name||'', ocrCandidate:z.ocrCandidate||''
+    }));
   }
-  if(profile==='strict'){
-    return `${sharedHeader}
+  if(compactRecords.length) skeleton.knownEntities=compactRecords;
+  return `Task: detect every visible company/product logo in the radar image and return a JSON list of zones.
+Expected language for any human-readable text: ${language}.
 
-Expected method:
-- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
-- create new zones only when a visible company/product logo is missing from the candidate set;
-- update geometry when needed so zones closely fit logo boundaries;
-- recognize names visible in the image and map them to entity data when possible;
-- use startupRecords as the entity dataset reference when provided;
-- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords;
-- keep a candidate zone even if its name remains uncertain.
+Output (the ONLY thing you return):
+{"zones":[ {zone}, {zone}, ... ]}
 
-MANDATORY MEASUREMENT PROTOCOL (coordinate accuracy):
-- Before placing ANY zone, programmatically open the image and read its real pixel dimensions. Do not trust the dimensions declared in the JSON without verification.
-- Coordinate estimation by visual inspection alone is FORBIDDEN. Visual rendering at viewer-scale introduces systematic offsets of 5-15% that compound across the radar.
-- Use one of the following measurement methods, in order of preference:
-  a) Automated logo detection: apply contour detection (e.g. OpenCV findContours on a thresholded or edge-detected version of the image) to extract bounding boxes around logo regions, then assign names to detected boxes.
-  b) Gridded inspection: crop the image into sections at native resolution (no downscaling), overlay a pixel grid (every 10 px, with major labels every 50 px), and read coordinates directly from the grid. Each section must be processed at scale 2x or higher with the grid using the ORIGINAL image coordinates (not crop-local coordinates).
-  c) Reference anchoring: identify at least 3 visually unambiguous anchor points and verify their measured coordinates match the expected layout before placing surrounding zones.
-- For each detected zone, the bounding box (x, y, w, h) must enclose the visible logo (image mark + text label if both belong to the same brand block) with a tight fit. Padding above 4 px on any side is a defect.
-- After placing zones, perform a sanity check pass: render the proposed zones as semi-transparent overlays on the image and verify visually that each rectangle covers its target logo without significant offset, overlap with neighbours, or coverage of empty space.
-- If the radar contains more than 50 logos, do NOT attempt to place all zones by visual estimation in a single pass. Use method (a) or (b) above.
+Each zone object has EXACTLY these fields:
+- id: string, sequential "z001","z002",... (or keep existing id if the zone matches a provided candidateZone)
+- shape: "rect" | "circle" | "diamond" | "poly"
+- x,y,w,h: integers in image pixel coordinates (origin top-left). Must satisfy 0<=x, 0<=y, x+w<=${IMG_W}, y+h<=${IMG_H}.
+- points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.
+- name: the recognized organization/product name from the logo. Use "zone_XXX" (matching the id number) only when the logo is unreadable.
+- ocrCandidate: the raw text you read from the logo (may equal name, or "" if no readable text).
+- confidence: number in [0,1] reflecting your certainty in the name.
 
-Strict constraints:
-- return only valid JSON, without markdown;
-- keep the wavestone-radar-mapper-v1 schema;
-- keep existing ids as much as possible, especially those of candidate zones;
-- do not invent a URL if uncertain;
-- never set dataConfirmed or associationConfirmed to true: human validation is done afterwards in the Edit tab;
-- if a zone remains uncertain, keep a zone_XXX name, lower confidence below 0.55 and set llmFound to false;
-- if you identify a name with confidence >= 0.55, set llmFound to true;
-- x, y, w, h coordinates stay in the ${IMG_W} x ${IMG_H} coordinate system (verify against real image dimensions before starting);
-- points is empty except for shape=poly;
-- do not create zones for radar category labels, section headers, quadrant titles, ring labels, or any decorative text element. Only create zones for individual company or product logos;
-- fit each zone as tightly as possible around the logo boundaries. Choose the most appropriate shape (rect, circle, diamond, or poly) to closely follow the logo outline and avoid covering neighbouring logos.
-- for rotated/diagonal logos, the bounding box must enclose the rotated visible glyphs; dimensions must match observed orientation.
+Detection rules:
+- Detect each individual company/product logo or wordmark, including those in side bands (scale-ups, unicorns, etc.).
+- Ignore category labels, axis/ring labels, titles, legends, decorations, and publisher branding.
+- One zone per visible logo; do not merge neighbours; do not duplicate.
+- Fit the bounding box tightly to the logo + its wordmark when both belong to the same brand block. Choose the shape that best matches (rect for wordmarks, circle/diamond for compact marks, poly only if materially better).
+- Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.
 
-OUTPUT VERIFICATION (run before returning the JSON):
-- assert every zone has x in [0, image.width], y in [0, image.height], x+w <= image.width, y+h <= image.height;
-- assert every zone has w >= 20 and h >= 20;
-- assert no two zones with llmFound=true overlap by more than 50% of the smaller box;
-- assert the total number of zones is consistent with the visible logo count;
-- assert no zone is assigned to a category header, sector title, or central wheel decoration;
-- if any assertion fails, fix the offending zones before returning.
+Naming:
+- If a "knownEntities" list is provided in the CONTEXT below, prefer matching the visible logo to one of those names (case/accents/punctuation insensitive). Output that canonical name in "name".
+- Otherwise, use the visible name you can read.
+- If the logo is clearly present but unreadable: name="zone_XXX" (matching id), ocrCandidate="", confidence in [0.05,0.25].
 
-${sharedFooter}`;
-  }
-  if(profile==='standard'){
-    return `${sharedHeader}
+Forbidden:
+- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above (RadarMapper fills these locally).
+- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return {"zones":[...]}.
+- Do NOT wrap JSON in markdown fences or add any prose before/after.
+- Do NOT include comments or trailing commas.
 
-Expected method:
-- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
-- create new zones only when a visible company/product logo is missing from the candidate set;
-- update geometry when needed so zones closely fit logo boundaries;
-- recognize names visible in the image and map them to entity data when possible;
-- use startupRecords as the entity dataset reference when provided;
-- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords;
-- keep a candidate zone even if its name remains uncertain.
-
-Strict constraints:
-- return only valid JSON, without markdown;
-- keep the wavestone-radar-mapper-v1 schema;
-- keep existing ids as much as possible, especially those of candidate zones;
-- do not invent a URL if uncertain;
-- never set dataConfirmed or associationConfirmed to true: human validation is done afterwards in the Edit tab;
-- if a zone remains uncertain, keep a zone_XXX name, lower confidence below 0.55 and set llmFound to false;
-- if you identify a name with confidence >= 0.55, set llmFound to true;
-- x, y, w, h coordinates stay in the ${IMG_W} x ${IMG_H} coordinate system;
-- points is empty except for shape=poly;
-- do not create zones for radar category labels, section headers, quadrant titles, ring labels, or any decorative text element — only create zones for individual company or product logos;
-- fit each zone as tightly as possible around the logo boundaries; choose the most appropriate shape (rect, circle, diamond, or poly) to closely follow the logo outline and avoid covering neighbouring logos.
-
-${sharedFooter}`;
-  }
-  return `${sharedHeader}
-
-Expected method:
-- use the zones array as editable candidates (it may contain full, partial, or empty coverage);
-- create new zones only when a visible company/product logo is missing from the candidate set;
-- update geometry when needed so zones closely fit logo boundaries;
-- recognize names visible in the image and map them to entity data when possible;
-- use startupRecords as the entity dataset reference when provided;
-- complete name, ocrCandidate, confidence, url, logo and description when reliable or present in startupRecords.
-
-Placement rules (anti-offset):
-- Use the JSON image coordinate system exactly: origin at top-left, units in pixels.
-- Never apply a global shift/translation to all zones.
-- For each zone, adjust only from the visible logo in its local area.
-- Keep boxes tight around logo marks/text (no large padding).
-- Before returning, verify: 0 <= x,y and x+w <= image.width, y+h <= image.height.
-
-Strict constraints:
-- return only valid JSON, without markdown;
-- keep the wavestone-radar-mapper-v1 schema;
-- keep existing ids as much as possible, especially those of candidate zones;
-- never set dataConfirmed or associationConfirmed to true;
-- do not create zones for category labels, ring labels, titles, or decorative elements;
-- if uncertain on a zone name: keep zone_XXX, set confidence < 0.55 and llmFound=false.
-
-${sharedFooter}`;
+${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
+${JSON.stringify(skeleton)}`;
 }
 function externalLlmInstructions(){
-  const enrichNormalizeToggle=q('enrichNormalizeInfo');
-  const enrichNormalizeInfo=!!(enrichNormalizeToggle && enrichNormalizeToggle.checked);
-  const enrichNormalizeLines=enrichNormalizeInfo ? [
-    '',
-    'Data enrichment and normalization (required):',
-    '- Improve and normalize startup/company data directly in the JSON output when reliable.',
-    '- Improve description text so it is concise and usable in the popup.',
-    '- Add associated keywords in the searchKeywords field (deduplicated, relevant terms).',
-    '- Normalize the main website URL in url (prefer canonical HTTPS homepage).',
-    '- Add a usable logo image URL in logo for popup rendering when a reliable direct image URL exists.',
-    '- Keep current values when uncertain; do not invent unverifiable facts.'
-  ] : [];
   return [
     'Task: detect logos, run OCR, adjust zones, and map each zone to the correct entity record when possible.',
     'Output: return only valid JSON matching the provided schema.',
@@ -2997,7 +2751,9 @@ function externalLlmInstructions(){
     '2) Attach the radar visual file.',
     '3) Attach the entity dataset file (CSV/JSON).',
     '4) Return the updated JSON only, no markdown and no extra text.',
-  ].concat(enrichNormalizeLines).join('\n');
+    '',
+    'For dataset enrichment, use the separate "Copy enrichment prompt" button.'
+  ].join('\n');
 }
 async function extractApiError(res){
   const text=await res.text();
@@ -3026,14 +2782,17 @@ async function callOpenAiLike(cfg,prompt){
   if(supportsJsonMode) body.response_format={type:'json_object'};
   if(supportsTemperature){
     body.temperature=0;
-    body.max_tokens=16000;
+    body.max_tokens=32000;
   }else{
-    body.max_completion_tokens=16000;
+    body.max_completion_tokens=32000;
   }
   const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
   if(!res.ok) throw await extractApiError(res);
   const data=await res.json();
-  return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  const choice=(data.choices && data.choices[0]) || {};
+  const text=(choice.message && choice.message.content) || '';
+  if(choice.finish_reason==='length') throw new Error(`Response truncated (finish_reason=length, ${text.length} chars). Reduce dataset/zone count or increase max_tokens.`);
+  return text;
 }
 async function testOpenAiLike(cfg){
   const messages=[{role:'user',content:'Reply with OK only.'}];
@@ -3058,6 +2817,14 @@ async function testOpenAiLike(cfg){
 }
 async function callAnthropic(cfg,prompt){
   const image=imagePayload();
+  const body={
+    model:cfg.model,
+    max_tokens:32000,
+    messages:[{role:'user',content:[
+      {type:'image',source:{type:'base64',media_type:image.mediaType,data:image.data}},
+      {type:'text',text:prompt}
+    ]}]
+  };
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{
@@ -3066,19 +2833,13 @@ async function callAnthropic(cfg,prompt){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({
-      model:cfg.model,
-      max_tokens:16000,
-      temperature:0,
-      messages:[{role:'user',content:[
-        {type:'image',source:{type:'base64',media_type:image.mediaType,data:image.data}},
-        {type:'text',text:prompt}
-      ]}]
-    })
+    body:JSON.stringify(body)
   });
   if(!res.ok) throw await extractApiError(res);
   const data=await res.json();
-  return (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+  const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+  if(data.stop_reason==='max_tokens') throw new Error(`Anthropic response truncated (stop_reason=max_tokens, ${text.length} chars). Reduce dataset/zone count or increase max_tokens.`);
+  return text;
 }
 async function testAnthropic(cfg){
   const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -3089,25 +2850,158 @@ async function testAnthropic(cfg){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({
-      model:cfg.model,
-      max_tokens:8,
-      temperature:0,
-      messages:[{role:'user',content:'Reply with OK only.'}]
-    })
+    body:JSON.stringify({model:cfg.model,max_tokens:8,messages:[{role:'user',content:'Reply with OK only.'}]})
   });
   if(!res.ok) throw await extractApiError(res);
   return res.json();
 }
+function enrichBatchPrompt(names){
+  return `For each company/organization name below, use web search to verify it exists and find its official information.
+
+Return ONLY this JSON (no prose, no markdown fences):
+{"enriched":[{"name":"<input name verbatim>","canonicalName":"<official name or empty>","url":"<official homepage HTTPS or empty>","description":"<one concise sentence in English or empty>","logo":"<direct image URL of the logo or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
+
+Rules:
+- One entry per input, in the SAME order, with "name" matching the input exactly.
+- "verified" is true only if web search confirmed the entity exists.
+- Leave fields empty (string "" or [] for keywords) rather than guessing. Never fabricate URLs.
+- Prefer the canonical homepage (https://...). Do NOT include tracking parameters.
+- "logo" must be a direct image URL ending in .png/.jpg/.svg/.webp when possible; empty otherwise.
+- "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the entity's domain, product type, technology, and market. Examples: "cloud security", "siem", "iam", "endpoint protection". No duplicates. [] if unknown.
+
+Names (${names.length}):
+${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}`;
+}
+async function callOpenAiEnrichBatch(cfg,names){
+  const prompt=enrichBatchPrompt(names);
+  const res=await fetch('https://api.openai.com/v1/responses',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':`Bearer ${cfg.apiKey}`
+    },
+    body:JSON.stringify({
+      model:cfg.model,
+      tools:[{type:'web_search_preview'}],
+      input:prompt,
+      max_output_tokens:8000
+    })
+  });
+  if(!res.ok) throw await extractApiError(res);
+  const data=await res.json();
+  let text='';
+  if(typeof data.output_text==='string') text=data.output_text;
+  else if(Array.isArray(data.output)){
+    text=data.output.flatMap(item=>(item && Array.isArray(item.content))?item.content:[])
+      .filter(c=>c && (c.type==='output_text' || c.type==='text'))
+      .map(c=>c.text||'').join('\n');
+  }
+  if(data.incomplete_details && data.incomplete_details.reason==='max_output_tokens'){
+    throw new Error(`OpenAI enrichment response truncated (max_output_tokens).`);
+  }
+  return text;
+}
+async function callAnthropicEnrichBatch(cfg,names){
+  const prompt=enrichBatchPrompt(names);
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':cfg.apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:cfg.model,
+      max_tokens:8000,
+      tools:[{type:'web_search_20250305',name:'web_search',max_uses:Math.min(names.length*2,20)}],
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok) throw await extractApiError(res);
+  const data=await res.json();
+  const text=(data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+  if(data.stop_reason==='max_tokens') throw new Error(`Enrichment response truncated (stop_reason=max_tokens).`);
+  return text;
+}
+async function enrichCsvViaWebSearch(cfg,onProgress){
+  if(cfg.provider==='azure'){
+    appendLlmInAppTrace('CSV enrichment skipped: Azure OpenAI does not expose a standard web_search tool. Use Anthropic or OpenAI direct.');
+    return {updated:0,verified:0,total:0,skipped:'azure'};
+  }
+  if(cfg.provider!=='anthropic' && cfg.provider!=='openai'){
+    appendLlmInAppTrace(`CSV enrichment skipped: provider "${cfg.provider}" is not supported for web search.`);
+    return {updated:0,verified:0,total:0,skipped:cfg.provider};
+  }
+  const records=Array.isArray(startupRecords)?startupRecords:[];
+  if(!records.length){
+    appendLlmInAppTrace('CSV enrichment skipped: no entities in the dataset.');
+    return {updated:0,verified:0,total:0};
+  }
+  const BATCH=10;
+  const totalBatches=Math.ceil(records.length/BATCH);
+  let updated=0, verified=0;
+  const byKey=new Map();
+  records.forEach(r=>{ const k=normalizeName(r && r.name); if(k) byKey.set(k,r); });
+  for(let i=0;i<records.length;i+=BATCH){
+    const slice=records.slice(i,i+BATCH);
+    const names=slice.map(r=>r.name).filter(Boolean);
+    if(!names.length) continue;
+    const batchIdx=Math.floor(i/BATCH)+1;
+    const done=Math.min(i+BATCH,records.length);
+    if(typeof onProgress==='function') onProgress({batch:batchIdx,totalBatches,done,total:records.length});
+    setLlmInAppHint(`enriching CSV: ${done}/${records.length}`);
+    appendLlmInAppTrace(`Enriching batch ${batchIdx}/${totalBatches} (${names.length} entities)...`);
+    let text;
+    try{
+      text = cfg.provider==='anthropic'
+        ? await callAnthropicEnrichBatch(cfg,names)
+        : await callOpenAiEnrichBatch(cfg,names);
+    }
+    catch(err){ appendLlmInAppTrace(`Batch error: ${err.message}. Skipping batch.`); continue; }
+    let parsed;
+    try{ parsed=parseJsonFromText(text); }
+    catch(err){ appendLlmInAppTrace(`Batch parse error: ${err.message}. Skipping batch.`); continue; }
+    const list=Array.isArray(parsed && parsed.enriched) ? parsed.enriched : [];
+    list.forEach(item=>{
+      if(!item || !item.name) return;
+      const record=byKey.get(normalizeName(item.name));
+      if(!record) return;
+      let changed=false;
+      if(item.verified) verified++;
+      if(item.canonicalName && !record.name.trim()){ record.name=String(item.canonicalName); changed=true; }
+      if(item.url && !record.url){ record.url=String(item.url); changed=true; }
+      if(item.description && !record.description){ record.description=String(item.description); changed=true; }
+      if(item.logo && !record.logo){ record.logo=String(item.logo); changed=true; }
+      const incomingKeywords=parseKeywordsValue(item.keywords);
+      if(incomingKeywords.length){
+        const existing=Array.isArray(record.keywords)?record.keywords:parseKeywordsValue(record.keywords);
+        if(!existing.length){ record.keywords=incomingKeywords; changed=true; }
+      }
+      if(changed) updated++;
+    });
+  }
+  persistStartupRecords();
+  refreshStartupSuggestions();
+  if(typeof onProgress==='function') onProgress({batch:totalBatches,totalBatches,done:records.length,total:records.length});
+  return {updated,verified,total:records.length};
+}
 function parseJsonFromText(text){
   const trimmed=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
-  try{ return JSON.parse(trimmed); } catch(_err){}
-  const start=trimmed.indexOf('{'), end=trimmed.lastIndexOf('}');
-  if(start>=0 && end>start) return JSON.parse(trimmed.slice(start,end+1));
-  throw new Error('LLM response contains no usable JSON.');
+  let parsed;
+  try{ parsed=JSON.parse(trimmed); } catch(_err){
+    const oStart=trimmed.indexOf('{'), oEnd=trimmed.lastIndexOf('}');
+    const aStart=trimmed.indexOf('['), aEnd=trimmed.lastIndexOf(']');
+    if(oStart>=0 && oEnd>oStart) parsed=JSON.parse(trimmed.slice(oStart,oEnd+1));
+    else if(aStart>=0 && aEnd>aStart) parsed=JSON.parse(trimmed.slice(aStart,aEnd+1));
+    else throw new Error('LLM response contains no usable JSON.');
+  }
+  if(Array.isArray(parsed)) return {zones:parsed};
+  if(parsed && typeof parsed==='object' && !Array.isArray(parsed.zones) && Array.isArray(parsed.detectedZones)) parsed.zones=parsed.detectedZones;
+  return parsed;
 }
 q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
-['aiApproved','aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage','aiPromptProfile'].forEach(id=>{
+['aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
   q(id).addEventListener('input',updateAiStatus);
   q(id).addEventListener('change',updateAiStatus);
 });
@@ -3116,7 +3010,6 @@ q('saveAiConfig').onclick=saveAiConfig;
 q('testAiConfig').onclick=async()=>{
   const cfg=getAiConfig();
   updateAiStatus();
-  if(!cfg.approved){ alert('Privacy approval required before testing the LLM connection.'); return; }
   if(!cfg.apiKey || !cfg.model){ alert('Choose a model and enter the API key before testing.'); return; }
   if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ alert('Azure OpenAI endpoint and deployment required.'); return; }
   try{
@@ -3135,9 +3028,17 @@ q('testAiConfig').onclick=async()=>{
   }
 };
 q('clearAiConfig').onclick=clearAiConfig;
+function showDetectionProgress(show){
+  const wrap=q('llmDetectionProgressWrap'); if(!wrap) return;
+  if(show) wrap.removeAttribute('hidden'); else wrap.setAttribute('hidden','');
+}
+function setDetectionProgress(pct,label){
+  const bar=q('llmDetectionProgress'); const txt=q('llmDetectionProgressText');
+  if(bar){ bar.max=100; bar.value=Math.max(0,Math.min(100,pct)); }
+  if(txt) txt.textContent=label ? `${Math.round(pct)}% — ${label}` : `${Math.round(pct)}%`;
+}
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
-  if(!cfg.approved){ setLlmInAppStatus('LLM status: missing privacy approval in configuration.','error'); alert('Privacy approval required in Configuration.'); return; }
   if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure the provider, model and API key before launching LLM detection.'); return; }
   if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Azure OpenAI endpoint and deployment required.'); return; }
   q('analysisLog').value='';
@@ -3148,6 +3049,9 @@ q('runAiMapping').onclick=async()=>{
   try{
     q('runAiMapping').disabled=true;
     q('runAiMapping').textContent='Running LLM...';
+    const busy=q('llmDetectionBusy'); if(busy) busy.removeAttribute('hidden');
+    showDetectionProgress(true);
+    setDetectionProgress(5,'preparing payload');
     setLlmInAppStatus('LLM status: running analysis...','success');
     const candidateZones=zones.length ? deepClone(zones) : [];
     if(candidateZones.length){
@@ -3164,17 +3068,46 @@ q('runAiMapping').onclick=async()=>{
     setLlmInAppHint('sending prompt and files to LLM');
     const prompt=llmPrompt(candidateZones);
     appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
+    setDetectionProgress(20,'sending to LLM');
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
+    setDetectionProgress(70,'response received');
     appendLlmInAppTrace('Raw LLM response received.');
     appendLlmInAppTrace(text.slice(0,2000) + (text.length>2000 ? '\n... [truncated]' : ''));
     setLlmInAppHint('parsing LLM JSON response');
+    setDetectionProgress(80,'parsing JSON');
     const data=parseJsonFromText(text);
     if(!data || !Array.isArray(data.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
+    setDetectionProgress(90,'matching against CSV');
+    const recordsByKey=new Map();
+    (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
+      const k=normalizeName(r && r.name);
+      if(k && !recordsByKey.has(k)) recordsByKey.set(k,r);
+    });
+    let matchedCount=0;
     data.zones.forEach(z=>{
       z.llmPrevalidated=true; z.dataConfirmed=false; z.associationConfirmed=false; delete z.confirmedAt;
-      if(z.llmFound===undefined) z.llmFound=!!(z.name && !/^zone_\d+$/i.test(z.name) && (z.confidence == null ? 0 : z.confidence)>=0.55);
+      const candidate=normalizeName(z.name || z.ocrCandidate);
+      const record=candidate ? recordsByKey.get(candidate) : null;
+      if(record){
+        z.name=record.name;
+        if(!z.url && record.url) z.url=record.url;
+        if(!z.logo && record.logo) z.logo=record.logo;
+        if(!z.description && record.description) z.description=record.description;
+        if(record.category && !z.category) z.category=record.category;
+        z.startupData=record.raw || record;
+        z.searchKeywords=startupKeywords(record);
+        matchedCount++;
+      } else {
+        if(z.url===undefined) z.url='';
+        if(z.logo===undefined) z.logo='';
+        if(z.description===undefined) z.description='';
+      }
+      z.llmFound=!!record;
     });
+    appendLlmInAppTrace(`Local match: ${matchedCount}/${data.zones.length} zone(s) linked to a known entity.`);
+    setDetectionProgress(95,'importing zones');
     await importProjectJson(JSON.stringify(data));
+    setDetectionProgress(100,'done');
     setLlmInAppHint('completed successfully');
     setLlmInAppStatus(`LLM status: completed successfully. ${importSummaryLine()}`,'success');
     appendLlmInAppTrace(`Imported zones from LLM: ${data.zones.length}`);
@@ -3189,6 +3122,8 @@ q('runAiMapping').onclick=async()=>{
   } finally {
     q('runAiMapping').disabled=false;
     q('runAiMapping').textContent='Launch built-in LLM detection';
+    const busy=q('llmDetectionBusy'); if(busy) busy.setAttribute('hidden','');
+    setTimeout(()=>showDetectionProgress(false),2500);
   }
 };
 function setRadarImage(dataUrl,width,height){
@@ -3452,6 +3387,42 @@ q('copyExternalPrompt').onclick=async()=>{
     alert(`Failed to copy prompt: ${err.message}`);
   }
 };
+function buildEnrichPromptForExternal(){
+  const records=Array.isArray(startupRecords)?startupRecords:[];
+  const names=records.map(r=>r && r.name).filter(Boolean);
+  const namesBlock=names.length
+    ? names.map((n,i)=>`${i+1}. ${n}`).join('\n')
+    : '<paste one entity name per line here>';
+  return `Task: for each company/organization name below, use web search to verify it exists and enrich the dataset with official information.
+
+Return ONLY this JSON (no prose, no markdown fences):
+{"enriched":[{"name":"<input name verbatim>","canonicalName":"<official name or empty>","url":"<official homepage HTTPS or empty>","description":"<one concise sentence in English or empty>","logo":"<direct image URL of the logo or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
+
+Rules:
+- One entry per input, in the SAME order, with "name" matching the input exactly.
+- "verified" is true only if web search confirmed the entity exists.
+- Leave fields empty (string "" or [] for keywords) rather than guessing. Never fabricate URLs.
+- Prefer the canonical homepage (https://...). Do NOT include tracking parameters.
+- "logo" must be a direct image URL ending in .png/.jpg/.svg/.webp when possible; empty otherwise.
+- "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the entity's domain, product type, technology, and market. Examples: "cloud security", "siem", "iam", "endpoint protection". No duplicates. [] if unknown.
+
+Names (${names.length}):
+${namesBlock}`;
+}
+q('copyEnrichPrompt').onclick=async()=>{
+  const records=Array.isArray(startupRecords)?startupRecords:[];
+  if(!records.length){
+    if(!confirm('No dataset is loaded. Copy a generic enrichment prompt template anyway?')) return;
+  }
+  const text=buildEnrichPromptForExternal();
+  try{
+    await navigator.clipboard.writeText(text);
+    setInitStatus(`Enrichment prompt copied to clipboard (${records.length} entit${records.length===1?'y':'ies'}).`,'success');
+  } catch(err){
+    setInitStatus(`Failed to copy enrichment prompt: ${err.message}`,'error');
+    alert(`Failed to copy enrichment prompt: ${err.message}`);
+  }
+};
 function makeZone(shape){
   if(!isEditMode()) return;
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
@@ -3547,6 +3518,20 @@ window.addEventListener('keydown', e=>{
   if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
   e.preventDefault(); z.x=clamp(z.x+dx,0,IMG_W-z.w); z.y=clamp(z.y+dy,0,IMG_H-z.h); if(z.points) z.points=z.points.map(p=>({x:clamp(p.x+dx,0,IMG_W),y:clamp(p.y+dy,0,IMG_H)})); render();
 });
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey || e.metaKey)) return;
+  const key=String(e.key||'').toLowerCase();
+  if(!['c','v','x','a'].includes(key)) return;
+  const target=e.target;
+  const isEditable=!!(target && (
+    (target.tagName==='INPUT' && !target.readOnly && !target.disabled) ||
+    (target.tagName==='TEXTAREA' && !target.readOnly && !target.disabled) ||
+    target.isContentEditable
+  ));
+  if(!isEditable) return;
+  // Keep native copy/paste/select-all behavior in in-app browser inputs.
+  e.stopPropagation();
+}, true);
 function safeUrl(url){
   const value=String(url||'').trim();
   if(!value) return '';
@@ -3934,6 +3919,64 @@ function buildExportHtml(mode=getExportMode()){
   }
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
+function csvEscape(value){
+  const s=String(value==null?'':value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+}
+function buildStartupCsv(){
+  const headers=['name','url','logo','description','category','keywords'];
+  const records=Array.isArray(startupRecords)?startupRecords:[];
+  const lines=[headers.join(',')];
+  records.forEach(r=>{
+    lines.push(headers.map(h=>{
+      const v=r && r[h];
+      if(h==='keywords') return csvEscape(Array.isArray(v) ? v.join(', ') : (v||''));
+      return csvEscape(v);
+    }).join(','));
+  });
+  return '﻿'+lines.join('\r\n');
+}
+q('exportCsv').onclick=()=>{
+  if(!Array.isArray(startupRecords) || !startupRecords.length){ alert('No dataset loaded. Import a CSV/JSON dataset first.'); return; }
+  download('radar_dataset.csv', buildStartupCsv(), 'text/csv;charset=utf-8');
+};
+function setEnrichStatus(text){ const el=q('enrichCsvStatus'); if(el) el.textContent=`Enrich status: ${text}`; }
+function showEnrichProgress(show){
+  const wrap=q('enrichCsvProgressWrap'); if(!wrap) return;
+  if(show) wrap.removeAttribute('hidden'); else wrap.setAttribute('hidden','');
+}
+function setEnrichProgress(done,total){
+  const bar=q('enrichCsvProgress'); const txt=q('enrichCsvProgressText');
+  if(bar){ bar.max=total||1; bar.value=done||0; }
+  if(txt) txt.textContent=`${done||0} / ${total||0}`;
+}
+q('enrichCsvBtn').onclick=async()=>{
+  const cfg=getAiConfig();
+  if(!cfg.apiKey || !cfg.model){ setEnrichStatus('missing provider/model/API key.'); alert('Configure the LLM provider, model and API key first.'); return; }
+  if(cfg.provider==='azure'){ setEnrichStatus('Azure OpenAI does not expose web search.'); alert('Dataset enrichment requires Anthropic or OpenAI (direct). Azure OpenAI does not expose a standard web_search tool.'); return; }
+  if(cfg.provider!=='anthropic' && cfg.provider!=='openai'){ setEnrichStatus(`provider "${cfg.provider}" not supported.`); alert(`Dataset enrichment requires Anthropic or OpenAI. Current provider: ${cfg.provider}.`); return; }
+  if(!Array.isArray(startupRecords) || !startupRecords.length){ setEnrichStatus('no dataset loaded.'); alert('Import a CSV/JSON dataset first.'); return; }
+  try{
+    q('enrichCsvBtn').disabled=true;
+    q('enrichCsvBtn').textContent='Enriching...';
+    setEnrichStatus(`running on ${startupRecords.length} entities via ${cfg.provider}...`);
+    showEnrichProgress(true);
+    setEnrichProgress(0,startupRecords.length);
+    appendLlmInAppTrace(`Dataset enrichment started on ${startupRecords.length} entities (provider=${cfg.provider}).`);
+    const summary=await enrichCsvViaWebSearch(cfg,p=>setEnrichProgress(p.done,p.total));
+    setEnrichStatus(`done. ${summary.updated} record(s) updated, ${summary.verified} verified, out of ${summary.total}.`);
+    appendLlmInAppTrace(`Dataset enrichment finished: ${summary.updated} updated, ${summary.verified} verified.`);
+    alert(`Dataset enrichment finished.\n${summary.updated} record(s) updated, ${summary.verified} verified, out of ${summary.total}.`);
+  }catch(err){
+    setEnrichStatus(`failed (${err.message}).`);
+    appendLlmInAppTrace(`Dataset enrichment failed: ${err.message}`);
+    alert(`Dataset enrichment failed: ${err.message}`);
+  }finally{
+    q('enrichCsvBtn').disabled=false;
+    q('enrichCsvBtn').textContent='Enrich dataset via web search';
+    setTimeout(()=>showEnrichProgress(false),2500);
+  }
+};
 function download(filename, text, type){ const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 function refreshExportRenderPreview(){
   applyExportRenderConfig();
