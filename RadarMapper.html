@@ -416,6 +416,9 @@
   .dangerBox { border:2px solid #d7282f; background:#fff3f3; color:#991b1f; border-radius:12px; padding:14px; margin:12px 0; }
   .inlineCheck { display:flex; gap:10px; align-items:center; margin-top:12px; font-weight:800; }
   .inlineCheck input { width:auto; }
+  .settingsCheck { margin-top:8px; }
+  .settingsNote { margin:6px 0 0; color:#5b7387; font-size:12px; line-height:1.35; }
+  .configSubTitle { margin:14px 0 6px; color:#3d5569; font-size:11px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
   .providerFields { display:none; }
   .providerFields.active { display:block; }
   .popup-logo { max-width:96px; max-height:48px; object-fit:contain; display:block; margin:0 0 8px; }
@@ -810,56 +813,68 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h3>Save</h3>
-            <p>Automatically saves edits in this browser.</p>
+            <h3>Local save</h3>
+            <p>Automatically saves edits in this browser only.</p>
           </div>
         </div>
         <label class="inlineCheck"><input id="autosaveToggle" type="checkbox"> Auto-save 30s</label>
       </div>
-      <div class="dangerBox">
-        <strong>Privacy</strong>
-        <p>For privacy reasons, the use of an AI provider must be explicitly approved by the relevant organization.</p>
-        <label class="inlineCheck"><input id="aiApproved" type="checkbox"> I have written approval</label>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>Import options</h3>
+            <p>Control optional import features used in the Prepare step.</p>
+          </div>
+        </div>
+        <label class="inlineCheck settingsCheck"><input id="enablePptxAlpha" type="checkbox"> Enable PowerPoint import (alpha)</label>
+        <p class="settingsNote">When enabled, a <strong>Radar slide (PPTX Alpha)</strong> button appears in Prepare.</p>
       </div>
-      <div class="warningBox">
-        <strong>Experimental</strong>
-        <label class="inlineCheck"><input id="enablePptxAlpha" type="checkbox"> Enable PPTX import (Alpha)</label>
-      </div>
-      <label>LLM Provider</label>
-      <select id="aiProvider">
-        <option value="anthropic">Anthropic</option>
-        <option value="openai">OpenAI</option>
-        <option value="azure">Azure OpenAI</option>
-      </select>
-      <label>Model</label>
-      <select id="aiModel"></select>
-      <label>API Key</label>
-      <input id="aiApiKey" type="password" placeholder="sk-..." autocomplete="off" autocapitalize="off" spellcheck="false">
-      <div id="azureFields" class="providerFields">
-        <label>Azure OpenAI Endpoint</label>
-        <input id="aiAzureEndpoint" placeholder="https://resource.openai.azure.com">
-        <label>Azure Deployment</label>
-        <input id="aiAzureDeployment" placeholder="deployment-name">
-        <label>Azure API Version</label>
-        <input id="aiAzureVersion" value="2024-12-01-preview">
-      </div>
-      <label>Output language</label>
-      <select id="aiLanguage">
-        <option value="fr">Français</option>
-        <option value="en">English</option>
-        <option value="de">Deutsch</option>
-      </select>
-      <label>Prompt profile</label>
-      <select id="aiPromptProfile">
-        <option value="simple">Default (new)</option>
-        <option value="legacy_simple">Simple (archived)</option>
-        <option value="standard">Standard</option>
-        <option value="strict">Strict (advanced)</option>
-      </select>
-      <div class="actions">
-        <button id="saveAiConfig" class="primary">Save configuration</button>
-        <button id="testAiConfig">Test LLM connection</button>
-        <button id="clearAiConfig">Clear</button>
+      <div class="sectionGroup">
+        <div class="sectionHeader">
+          <div>
+            <h3>LLM settings</h3>
+            <p>Choose provider, model, and output behavior for built-in detection.</p>
+          </div>
+          <label class="inlineCheck settingsCheck"><input id="aiApproved" type="checkbox"> Approval confirmed</label>
+        </div>
+        <p class="configSubTitle">Provider</p>
+        <label>LLM provider</label>
+        <select id="aiProvider">
+          <option value="anthropic">Anthropic</option>
+          <option value="openai">OpenAI</option>
+          <option value="azure">Azure OpenAI</option>
+        </select>
+        <label>Model</label>
+        <select id="aiModel"></select>
+        <label>API key</label>
+        <input id="aiApiKey" type="password" placeholder="sk-..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div id="azureFields" class="providerFields">
+          <label>Azure endpoint</label>
+          <input id="aiAzureEndpoint" placeholder="https://resource.openai.azure.com">
+          <label>Azure deployment</label>
+          <input id="aiAzureDeployment" placeholder="deployment-name">
+          <label>Azure API version</label>
+          <input id="aiAzureVersion" value="2024-12-01-preview">
+        </div>
+        <p class="configSubTitle">Output</p>
+        <label>Output language</label>
+        <select id="aiLanguage">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <label>Prompt profile</label>
+        <select id="aiPromptProfile">
+          <option value="simple">Default (new)</option>
+          <option value="legacy_simple">Simple (archived)</option>
+          <option value="standard">Standard</option>
+          <option value="strict">Strict (advanced)</option>
+        </select>
+        <div class="actions">
+          <button id="saveAiConfig" class="primary">Save settings</button>
+          <button id="testAiConfig">Test connection</button>
+          <button id="clearAiConfig">Clear</button>
+        </div>
       </div>
     </section>
   </aside>
