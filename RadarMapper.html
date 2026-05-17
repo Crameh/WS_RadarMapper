@@ -44,7 +44,7 @@
   .brandBlock { grid-area:brand; padding:8px 12px 6px; border-right:1px solid rgba(255,255,255,.12); }
   .eyebrow { display:block; color:rgba(244,250,255,.78); font-size:10px; letter-spacing:.16em; font-weight:800; text-transform:uppercase; margin-bottom:2px; }
   header h1 { font-size:14px; line-height:1.05; margin:0; font-weight:850; letter-spacing:-.01em; color:#fff; }
-  .phaseNav { grid-area:phases; display:flex; align-items:stretch; justify-content:center; min-width:540px; }
+  .phaseNav { grid-area:phases; display:flex; align-items:stretch; justify-content:flex-start; min-width:540px; }
   .phaseBtn {
     appearance:none;
     min-width:120px;
@@ -130,8 +130,8 @@
     border-radius:0;
     background:transparent;
   }
-  .zoneToolsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; min-height:38px; }
-  .zoneToolsRight { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; min-width:0; }
+  .zoneToolsRow { display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:nowrap; min-height:38px; }
+  .zoneToolsRight { display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:nowrap; min-width:0; }
   .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; }
   .zoneTools label { margin:0; color:#12314a; font-weight:800; }
   .zoneTools input[type="range"] { width:210px; accent-color:#1699a8; }
@@ -210,7 +210,8 @@
   .shapeIcons button { min-width:30px; min-height:30px; padding:5px 7px; font-size:15px; line-height:1; box-shadow:none; }
   .shapeIcons button.active { background:var(--accent); color:white; border-color:var(--accent); }
   .zoneToolsEdit { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:50%; font-size:22px; line-height:1; background:#0f8794; color:#fff; border-color:#0f8794; box-shadow:none; }
+  .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:50%; font-size:22px; line-height:34px; background:#0f8794; color:#fff; border-color:#0f8794; box-shadow:none; }
+  .addZoneBtn { text-align:center; text-indent:1px; }
   .addZoneBtn:hover { background:#0d6f86; }
   .stageExportBtn { min-height:34px; padding:7px 12px; border-color:#0f8794; color:#0d6f86; }
   .confirmAssociationBtn { margin-top:6px; width:100%; min-height:34px; border-color:#23aa7a; color:#0d7452; background:#eafaf4; }
@@ -336,6 +337,7 @@
   .advancedBody { padding:0 12px 12px; }
   .fileActionGroup, .zoneActionGroup { margin-top:12px; }
   .groupLabel { margin:0 0 7px; color:#4a6074; font-size:11px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+  .groupLabel.groupLabelLg { font-size:15px; letter-spacing:.04em; margin-bottom:10px; }
   .noticeLine { margin:10px 0 0; border:1px solid #f0c84b; border-radius:10px; background:#fff8d5; color:#75420f; padding:9px 10px; font-size:12px; line-height:1.35; }
   .publishSummary { display:grid; gap:0; border:1px solid #dfeaf0; border-radius:12px; background:#fbfdfd; overflow:hidden; }
   .publishSummary .previewTitle { padding:10px 12px; margin:0; border-bottom:1px solid #edf3f6; background:#f4fbfa; }
@@ -391,11 +393,11 @@
   .editZonePopup textarea { resize:vertical; }
   .editLogoZoom { position:absolute; z-index:9; background:rgba(255,255,255,.97); border:1px solid #cfe2ea; border-radius:10px; padding:8px; box-shadow:0 8px 24px rgba(14,65,83,.18); }
   .editLogoZoom canvas { display:block; border-radius:6px; image-rendering:pixelated; }
-  .zoneToolsRight { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+  .zoneToolsRight { display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:0; }
   .zoneToolsRight label { display:inline-flex; align-items:center; gap:8px; min-height:30px; }
   .zoneToolsRight .zoomControl { min-height:34px; }
-  .zoneStatusFilter { display:flex; gap:2px; align-items:center; flex-wrap:wrap; border:1px solid #cbdde6; border-radius:12px; background:white; padding:3px 5px; }
-  .zoneFilterBtn { min-width:auto; padding:2px 7px; border:1px solid transparent; border-radius:9px; font-size:11px; font-weight:700; color:#65788a; line-height:1.4; }
+  .zoneStatusFilter { display:flex; gap:1px; align-items:center; flex-wrap:nowrap; border:1px solid #cbdde6; border-radius:10px; background:white; padding:2px 4px; white-space:nowrap; }
+  .zoneFilterBtn { min-width:auto; padding:1px 5px; border:1px solid transparent; border-radius:8px; font-size:10px; font-weight:700; color:#65788a; line-height:1.2; letter-spacing:0; }
   .zoneFilterBtn[data-filter="all"].active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
   .zoneFilterBtn.zoneFilterTodo { color:#b05a10; }
   .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
@@ -422,6 +424,8 @@
   .editStatsGrid { display:grid; grid-template-columns:1fr; gap:6px; margin:0 0 10px; }
   .editStatCard { border:1px solid #d8e9ef; border-radius:10px; background:#f7fcff; padding:8px 10px; font-size:12px; color:#25455d; }
   .editStatCard strong { color:#0f3046; }
+  .editTaskLine { display:flex; align-items:center; gap:10px; margin:10px 0 6px; font-size:13px; font-weight:800; color:#1d3a52; }
+  .editTaskLine .prepStepNumber { width:28px; height:28px; min-width:28px; min-height:28px; font-size:16px; line-height:28px; }
   .importActionBtn { border-color:#7eb0c3; background:#f4fbff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.75), 0 1px 2px rgba(15,70,90,.12); }
   .importActionBtn:hover { border-color:#4e98b1; background:#edf8ff; }
   body[data-mode="exportPanel"] #overlay .zone,
@@ -614,11 +618,11 @@
           <div class="prepStepNumber">2</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Generate a first draft</h3>
+              <h3>Generate a first mapping</h3>
               <p>Choose either a manual workflow with your own LLM tool, or run it directly in RadarMapper.</p>
             </div>
             <div class="prepStepBody">
-              <label class="inlineCheck"><input id="enrichNormalizeInfo" type="checkbox"> Enrich and normalize information</label>
+              <label class="inlineCheck"><input id="enrichNormalizeInfo" type="checkbox"> Enrich and normalize information (will try to gather on Internet the most relevant information, always check results)</label>
               <div class="prepChoiceGrid">
                 <div class="prepChoice">
                   <h4>Using an external LLM</h4>
@@ -646,11 +650,11 @@
                   <h4>Using the built-in LLM</h4>
                   <p>Run detection and matching directly with the LLM provider configured in RadarMapper.</p>
                   <div class="primaryAction">
-                    <button id="runAiMapping" class="prepBtn primary" type="button">Built-in LLM detection</button>
+                    <button id="runAiMapping" class="prepBtn primary" type="button">Launch built-in LLM detection</button>
                   </div>
+                  <div id="llmInAppStatus" class="initStatus">LLM status: not connected.</div>
                   <label>Additional instructions</label>
                   <textarea id="llmExtraInstructions" rows="3" placeholder="Example: prefer exact names, reduce false positives, keep narrow logos."></textarea>
-                  <div id="llmInAppStatus" class="initStatus">LLM status: not connected.</div>
                   <p id="llmInAppHint" class="actionNote">Activity: idle.</p>
                   <hr class="prepChoiceDivider">
                   <details class="advancedGroup">
@@ -666,7 +670,7 @@
         </div>
 
         <div class="prepStep">
-          <div class="prepStepNumber">3</div>
+          <div class="prepStepNumber" aria-hidden="true"></div>
           <div>
             <div class="prepStepHeader">
               <h3>Reset</h3>
@@ -692,28 +696,30 @@
           </div>
           <span class="sectionKicker">Step 2</span>
         </div>
+        <div class="editStatsGrid" aria-label="Edit statistics">
+          <div class="editStatCard"><strong>Organizations:</strong> <span id="statsStructures">0</span> total | <span id="statsStructuresUnassigned">0</span> unassigned</div>
+          <div class="editStatCard"><strong>Zones:</strong> <span id="statsZones">0</span> total | <span id="statsZonesUnassigned">0</span> unassigned | <span id="statsZonesMultiAssigned">0</span> multi-assigned</div>
+        </div>
       </div>
 
       <div class="prepSteps">
         <div class="prepStep">
-          <div class="prepStepNumber">1</div>
+          <div class="prepStepNumber">3</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Select a zone</h3>
+              <h3>Search a zone</h3>
             </div>
             <div class="prepStepBody">
-              <div class="editStatsGrid" aria-label="Edit statistics">
-                <div class="editStatCard"><strong>Organizations:</strong> <span id="statsStructures">0</span> total | <span id="statsStructuresUnassigned">0</span> unassigned</div>
-                <div class="editStatCard"><strong>Zones:</strong> <span id="statsZones">0</span> total | <span id="statsZonesUnassigned">0</span> unassigned | <span id="statsZonesMultiAssigned">0</span> multi-assigned</div>
-              </div>
               <p class="groupLabel" style="margin-top:6px">1. Search organization</p>
               <input id="structureSearchInput" list="startupSuggestions" placeholder="Type an organization name">
               <p id="structureSearchCount" class="small">No organization selected.</p>
               <div id="structureSearchZoneList" class="pendingCsvList"></div>
+              <div class="editTaskLine"><div class="prepStepNumber">1</div><span>Find unassigned organization and create the zone</span></div>
               <p class="groupLabel" style="margin-top:10px">2. Unassigned organizations</p>
               <p class="small">If you cannot find a logo on the radar, check <strong>No logo</strong>. Marked organizations are moved to the bottom of the list.</p>
               <p id="pendingCsvCount" class="small">0 unassigned organization(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
+              <div class="editTaskLine"><div class="prepStepNumber">2</div><span>Correct duplicate zones</span></div>
               <p class="groupLabel" style="margin-top:10px">3. Duplicate organization links</p>
               <p id="duplicateAssocCount" class="small">0 organization linked to multiple zones.</p>
               <div id="duplicateAssocList" class="duplicateAssocList"></div>
@@ -728,7 +734,7 @@
       <div class="sectionGroup">
         <div class="sectionHeader">
           <div>
-            <h2>Export radar</h2>
+            <h2>Save and export radar mapping</h2>
             <p>Choose a simple or searchable export, then adjust the popup appearance.</p>
           </div>
           <span class="sectionKicker">Step 3</span>
@@ -740,7 +746,22 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Choose format</h3>
+              <h3>Backup database</h3>
+            </div>
+            <div class="prepStepBody">
+              <div class="primaryAction">
+                <button id="exportJson" class="prepBtn primary" type="button">Save database</button>
+              </div>
+              <p class="actionNote">Save this backup JSON manually with your exported HTML files so you can reload and modify this radar later.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="prepStep">
+          <div class="prepStepNumber">2</div>
+          <div>
+            <div class="prepStepHeader">
+              <h3>Export the radar clickable file</h3>
             </div>
             <div class="prepStepBody">
               <label>Integration format</label>
@@ -751,7 +772,7 @@
                 <option value="reallynice">Really really nice: premium interactive showcase</option>
                 <option value="imagemap">Image map without script</option>
               </select>
-              <label>Exported experience</label>
+              <label>Exported experience (with or without search, with or without category filtering...)</label>
               <select id="cfgExportExperience">
                 <option value="basic">Basic: radar + popups</option>
                 <option value="simple">Simple: radar + popups + search (organization name or description)</option>
@@ -759,30 +780,27 @@
               </select>
               <label>HTML export filename</label>
               <input id="cfgHtmlName" value="clickable_radar.html">
-              <label>Exported title</label>
+              <label>Exported title (Cyber Startup Radar 2026, ...)</label>
               <input id="cfgExportTitle" value="Clickable radar">
-              <label>Organization label in export</label>
+              <label>Organization label in export (startups, editors, products...)</label>
               <input id="cfgEntityLabel" value="Organization" placeholder="Organization, Startup, Scale-up, Editor, Supplier...">
-              <label>Hosted HTML URL, for iframe snippet</label>
+              <label>Hosted HTML URL (optional, only for iFrame snippet)</label>
               <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
               <div class="primaryAction">
                 <button id="exportHtml" class="primary" type="button">Export clickable radar</button>
-              </div>
-              <div class="secondaryActions">
-                <button id="exportJson" type="button">Export database (backup)</button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="prepStep">
-          <div class="prepStepNumber">2</div>
+          <div class="prepStepNumber">3</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Appearance</h3>
+              <h3>Modify Appearance</h3>
             </div>
             <div class="prepStepBody">
-                  <p class="groupLabel">Hover effect</p>
+                  <p class="groupLabel groupLabelLg">Hover effect</p>
                   <div class="row">
                     <div><label>Background color</label><input id="cfgHoverFill" type="color" value="#137f9a"></div>
                     <div><label>Background opacity</label><input id="cfgHoverOpacity" type="number" min="0" max="1" step="0.05" value="0.16"></div>
@@ -791,7 +809,7 @@
                     <div><label>Border</label><input id="cfgHoverStroke" type="color" value="#137f9a"></div>
                     <div><label>Border width</label><input id="cfgHoverStrokeWidth" type="number" min="0" max="8" step="0.5" value="2"></div>
                   </div>
-                  <p class="groupLabel" style="margin-top:12px">Popup</p>
+                  <p class="groupLabel groupLabelLg" style="margin-top:12px">Popup</p>
                   <div class="row">
                     <div><label>Shape</label><select id="cfgPopupShape"><option value="card">Card</option><option value="pill">Rounded</option><option value="sharp">Sharp corners</option></select></div>
                     <div><label>Position</label><select id="cfgPopupPosition"><option value="cursor">Near click</option><option value="center">Centered on radar</option></select></div>
@@ -1029,7 +1047,7 @@ radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
   initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import radar assets and organization data, then generate clickable zones.'},
-  editPanel:{label:'Edit', title:'Zone editing', hint:'Adjust zone geometry, add or remove zones, and edit zone content by double-clicking.'},
+  editPanel:{label:'Edit', title:'Zone editing', hint:'First correct zone geometry, add or remove zones, then edit zone content by double-clicking)'},
   exportPanel:{label:'Export', title:'Export the clickable radar', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
 let activeTab = 'initPanel';
@@ -3128,7 +3146,7 @@ q('runAiMapping').onclick=async()=>{
     alert('LLM detection failed. See the log for details.');
   } finally {
     q('runAiMapping').disabled=false;
-    q('runAiMapping').textContent='Built-in LLM detection';
+    q('runAiMapping').textContent='Launch built-in LLM detection';
   }
 };
 function setRadarImage(dataUrl,width,height){
