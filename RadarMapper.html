@@ -746,7 +746,7 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Backup database</h3>
+              <h3>Save Database</h3>
             </div>
             <div class="prepStepBody">
               <div class="primaryAction">
@@ -2674,6 +2674,47 @@ function llmPrompt(candidateZones=[]){
 - Ensure root fields remain compatible with the input schema.
 - Ensure "zones" is an array of valid zone objects.
 - Ensure output is strictly parseable with JSON.parse (double quotes, no trailing commas, no comments).`;
+  const minimalValidJsonExample=`MINIMAL VALID JSON EXAMPLE (structure reference, adapt values to the real radar):
+{
+  "schema": "wavestone-radar-mapper-v1",
+  "source": "llm_detourage_request",
+  "image": {
+    "width": ${IMG_W},
+    "height": ${IMG_H},
+    "dataUrl": "[image attached separately]"
+  },
+  "imageAttachment": {
+    "required": true,
+    "expectedContent": "The same radar visual used to generate this JSON",
+    "coordinateSystem": "Pixel coordinates in the image space, origin at top-left (0,0)"
+  },
+  "config": {
+    "contrast": 58,
+    "minArea": 35,
+    "maxArea": 18000,
+    "padding": 6,
+    "mergeGap": 18,
+    "maxRatio": 14
+  },
+  "zones": [
+    {
+      "id": "z001",
+      "name": "Example Security",
+      "url": "https://www.example.com",
+      "logo": "",
+      "description": "Short description.",
+      "shape": "rect",
+      "x": 120,
+      "y": 80,
+      "w": 96,
+      "h": 42,
+      "points": [],
+      "ocrCandidate": "Example Security",
+      "confidence": 0.82,
+      "llmFound": true
+    }
+  ]
+}`;
   const sharedHeader=`Analyze the radar image and the JSON below, then return an updated JSON.
 Expected language: ${language}.`;
   const enrichNormalizeBlock=enrichNormalizeInfo
@@ -2689,6 +2730,8 @@ Expected language: ${language}.`;
 ${JSON.stringify(skeleton,null,2)}
 ${extraInstructions ? `\nAdditional user instructions:\n${extraInstructions}` : ''}
 ${enrichNormalizeBlock}
+
+${minimalValidJsonExample}
 
 ${outputContract}`;
   if(profile==='simple'){
@@ -3099,7 +3142,7 @@ q('runAiMapping').onclick=async()=>{
   if(cfg.provider==='azure' && (!cfg.azureEndpoint || !cfg.azureDeployment)){ setLlmInAppStatus('LLM status: missing Azure endpoint/deployment.','error'); alert('Azure OpenAI endpoint and deployment required.'); return; }
   q('analysisLog').value='';
   clearLlmInAppTrace();
-  setLlmInAppHint('preparing candidate zones');
+  setLlmInAppHint('preparing radar + dataset payload');
   appendLlmInAppTrace('LLM run started.');
   appendLlmInAppTrace(`Provider=${cfg.provider} | Model=${cfg.model}`);
   try{
@@ -3107,17 +3150,16 @@ q('runAiMapping').onclick=async()=>{
     q('runAiMapping').textContent='Running LLM...';
     setLlmInAppStatus('LLM status: running analysis...','success');
     const candidateZones=zones.length ? deepClone(zones) : [];
-    if(!candidateZones.length){
-      setLlmInAppHint('failed: no candidate zone available');
-      appendLlmInAppTrace('No candidate zone available. Stopping.');
-      logAnalysis('No candidate zone available: LLM detection stopped.');
-      alert('No candidate zone available. Import a zone JSON or create zones in Edit mode before running LLM detection.');
-      return;
+    if(candidateZones.length){
+      zones=candidateZones;
+      selectedId=zones[0] ? zones[0].id : null;
+      render();
+      logAnalysis(`${candidateZones.length} existing zone(s) sent to LLM as editable candidates.`);
+      appendLlmInAppTrace(`Candidate zones provided: ${candidateZones.length}`);
+    } else {
+      appendLlmInAppTrace('No candidate zones provided. LLM must detect and create zones from scratch.');
+      logAnalysis('No existing zones: LLM will create zones from image and startup dataset.');
     }
-    zones=candidateZones;
-    selectedId=zones[0] ? zones[0].id : null;
-    render();
-    logAnalysis(`${candidateZones.length} candidate zone(s) sent to LLM.`);
     logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
     const prompt=llmPrompt(candidateZones);
@@ -3422,14 +3464,18 @@ q('resetLocalBase').onclick=()=>{
   if(!confirm('Erase all data? This will clear local zones, imported data, and the current radar visual in this browser.')) return;
   zones=[];
   selectedId=null;
+  structureSearchActiveZoneIds=null;
   startupRecords=[];
   noLogoStructures={};
   setRadarImage('',1280,720);
   safeStorageRemove('radarOverlayZones');
-  safeStorageRemove('radarStartupRecords');
+  // Persist an explicit empty dataset so reload does not fall back to bundled examples.
+  persistStartupRecords();
   safeStorageRemove(noLogoStorageKey);
   refreshStartupSuggestions();
   updateStartupImportStatus('No organization dataset file imported.');
+  if(q('structureSearchInput')) q('structureSearchInput').value='';
+  if(q('editPopupName')) q('editPopupName').value='';
   q('radarUpload').value='';
   q('radarPptxUpload').value='';
   q('startupDataFile').value='';
