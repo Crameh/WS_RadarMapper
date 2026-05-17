@@ -325,12 +325,14 @@
   }
   .actionNote { margin:8px 0 0; color:#60778a; font-size:11px; line-height:1.35; }
   .enrichProgressWrap { display:flex; align-items:center; gap:8px; margin:8px 0 0; }
+  .enrichProgressWrap[hidden] { display:none; }
   .enrichProgressWrap progress { flex:1; height:8px; border:none; border-radius:4px; background:#e4e9ee; overflow:hidden; }
   .enrichProgressWrap progress::-webkit-progress-bar { background:#e4e9ee; border-radius:4px; }
   .enrichProgressWrap progress::-webkit-progress-value { background:linear-gradient(90deg,#3679e6,#54cdb2); border-radius:4px; transition:width .25s ease; }
   .enrichProgressWrap progress::-moz-progress-bar { background:#3679e6; border-radius:4px; }
   .enrichProgressText { color:#3a4d5e; font-size:11px; font-weight:600; min-width:60px; text-align:right; }
   .llmDetectionBusy { display:inline-flex; align-items:center; gap:8px; margin:8px 0 0; color:#3679e6; font-size:11px; font-weight:600; }
+  .llmDetectionBusy[hidden] { display:none; }
   .llmDetectionBusy::before { content:''; width:12px; height:12px; border-radius:50%; border:2px solid #c5d5ed; border-top-color:#3679e6; animation:rmSpin .8s linear infinite; }
   @keyframes rmSpin { to { transform:rotate(360deg); } }
   .dangerNote { color:#9c2730; }
@@ -409,14 +411,16 @@
   .zoneStatusFilter { display:flex; gap:1px; align-items:center; flex-wrap:nowrap; border:1px solid #cbdde6; border-radius:10px; background:white; padding:2px 4px; white-space:nowrap; }
   .zoneFilterBtn { min-width:auto; padding:1px 5px; border:1px solid transparent; border-radius:8px; font-size:10px; font-weight:700; color:#65788a; line-height:1.2; letter-spacing:0; }
   .zoneFilterBtn[data-filter="all"].active { background:#e5f8f5; border-color:#54cdb2; color:#0b7582; }
-  .zoneFilterBtn.zoneFilterTodo { color:#b05a10; }
-  .zoneFilterBtn.zoneFilterTodo.active { background:#fff3e8; border-color:#e8924a; }
-  .zoneFilterBtn.zoneFilterPreval { color:#1a58b0; }
-  .zoneFilterBtn.zoneFilterPreval.active { background:#e8f0fb; border-color:#5b8de6; }
-  .zoneFilterBtn.zoneFilterMulti { color:#7a4ec9; }
-  .zoneFilterBtn.zoneFilterMulti.active { background:#f0e9ff; border-color:#9b72e6; }
-  .zoneFilterBtn.zoneFilterDone { color:#0d7452; }
-  .zoneFilterBtn.zoneFilterDone.active { background:#eafaf4; border-color:#23aa7a; }
+  .zoneFilterBtn.zoneFilterTodo { color:#b85914; }
+  .zoneFilterBtn.zoneFilterTodo.active { background:#fdeede; border-color:#ea7e26; }
+  .zoneFilterBtn.zoneFilterPreval { color:#255fbe; }
+  .zoneFilterBtn.zoneFilterPreval.active { background:#e6efff; border-color:#3679e6; }
+  .zoneFilterBtn.zoneFilterUnmatched { color:#c93030; }
+  .zoneFilterBtn.zoneFilterUnmatched.active { background:#ffe6e6; border-color:#dc3232; }
+  .zoneFilterBtn.zoneFilterMulti { color:#623aac; }
+  .zoneFilterBtn.zoneFilterMulti.active { background:#efe7ff; border-color:#7a4ec9; }
+  .zoneFilterBtn.zoneFilterDone { color:#158f64; }
+  .zoneFilterBtn.zoneFilterDone.active { background:#e0f7ec; border-color:#2ed39b; }
   .zoneFilterLegend { display:flex; align-items:center; gap:10px; font-size:10px; color:#4b647a; font-weight:700; margin-left:2px; }
   .zoneLegendItem { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
   .zoneLegendDot { font-size:13px; line-height:1; }
@@ -531,7 +535,8 @@
           <div class="zoneStatusFilter" id="zoneStatusFilter" title="Filter zones by status">
             <button type="button" class="zoneFilterBtn active" data-filter="all">All</button>
             <button type="button" class="zoneFilterBtn zoneFilterTodo" data-filter="todo" title="Unassigned (orange)">● Unassigned</button>
-            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="LLM guess (blue)">● LLM guess</button>
+            <button type="button" class="zoneFilterBtn zoneFilterPreval" data-filter="prevalidated" title="LLM matched to dataset (blue)">● Matched</button>
+            <button type="button" class="zoneFilterBtn zoneFilterUnmatched" data-filter="unmatched" title="LLM zone with no dataset match (red)">● Unmatched</button>
             <button type="button" class="zoneFilterBtn zoneFilterMulti" data-filter="multiassigned" title="Multi-assigned (purple)">● Multi-assigned</button>
             <button type="button" class="zoneFilterBtn zoneFilterDone" data-filter="confirmed" title="Confirmed (green)">● Confirmed</button>
           </div>
@@ -621,17 +626,6 @@
               <p class="actionNote">Supported radar file: image file (<code>jpg</code>, <code>png</code>, <code>webp</code>, etc.). Supported dataset files: <code>csv</code>, <code>tsv</code>, <code>txt</code>, <code>xls</code>, <code>xlsx</code>, <code>json</code>. Required column: <code>name</code> or <code>startup</code>. Recommended columns: <code>url</code>, <code>description</code>, <code>logo</code>, keywords/tags.</p>
               <p id="startupImportStatus" class="startupImportStatus">No organization dataset file imported.</p>
               <div id="initStatusLine" class="initStatus">Waiting for imports.</div>
-              <hr class="prepChoiceDivider">
-              <label>Dataset enrichment (optional, Anthropic only)</label>
-              <p class="actionNote">Runs a separate LLM pass with web search to verify each entity and fill missing url, description, logo, keywords. Operates only on the dataset — does not change the radar or any zone.</p>
-              <div class="secondaryActions">
-                <button id="enrichCsvBtn" class="prepBtn" type="button">Enrich dataset via web search</button>
-              </div>
-              <div id="enrichCsvProgressWrap" class="enrichProgressWrap" hidden>
-                <progress id="enrichCsvProgress" value="0" max="100"></progress>
-                <span id="enrichCsvProgressText" class="enrichProgressText">0 / 0</span>
-              </div>
-              <p id="enrichCsvStatus" class="actionNote">Enrich status: idle.</p>
             </div>
           </div>
         </div>
@@ -649,8 +643,8 @@
                   <h4>Using an external LLM</h4>
                   <p>Copy the prompt, run it in your LLM tool with the required files, then import the resulting JSON.</p>
                   <div class="secondaryActions">
-                    <button id="copyExternalPrompt" class="prepBtn" type="button">Copy LLM prompt to use</button>
-                    <button id="copyEnrichPrompt" class="prepBtn" type="button">Copy enrichment prompt</button>
+                    <button id="copyExternalPrompt" class="prepBtn" type="button">Copy LLM Prompt for Detection</button>
+                    <button id="copyEnrichPrompt" class="prepBtn" type="button">Copy LLM Prompt for data enrichment</button>
                     <button id="exportInitJson" class="prepBtn" type="button">Download Empty Database (JSON)</button>
                   </div>
                   <p class="actionNote">Files to provide to your LLM: 1) exported initialization JSON, 2) radar image, 3) organization dataset file. Then import the completed JSON below.</p>
@@ -684,6 +678,16 @@
                     <span id="llmDetectionProgressText" class="enrichProgressText">0%</span>
                   </div>
                   <hr class="prepChoiceDivider">
+                  <p class="actionNote">Run a separate LLM pass with web search to verify each entity in the dataset and fill missing url, description, logo, keywords. Operates only on the dataset — does not change the radar or any zone. Requires Anthropic or OpenAI (not Azure).</p>
+                  <div class="primaryAction">
+                    <button id="enrichCsvBtn" class="prepBtn primary" type="button">Launch built-in LLM enrichment</button>
+                  </div>
+                  <div id="enrichCsvProgressWrap" class="enrichProgressWrap" hidden>
+                    <progress id="enrichCsvProgress" value="0" max="100"></progress>
+                    <span id="enrichCsvProgressText" class="enrichProgressText">0 / 0</span>
+                  </div>
+                  <p id="enrichCsvStatus" class="actionNote">Enrich status: idle.</p>
+                  <hr class="prepChoiceDivider">
                   <details class="advancedGroup">
                     <summary>LLM response trace</summary>
                     <div class="advancedBody">
@@ -692,6 +696,23 @@
                   </details>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="prepStep">
+          <div class="prepStepNumber" aria-hidden="true"></div>
+          <div>
+            <div class="prepStepHeader">
+              <h3>Load project</h3>
+            </div>
+            <div class="prepStepBody">
+              <p>Restore an entire project (radar image, zones, dataset with enrichment, export settings, LLM settings, extra instructions, UI preferences) from a JSON backup file. To create a backup, use the Export pane.</p>
+              <div class="secondaryActions">
+                <button id="backupImportBtn" class="prepBtn" type="button">Load project backup (JSON)</button>
+              </div>
+              <input id="backupImportFile" type="file" accept="application/json" style="display:none">
+              <p id="backupStatus" class="actionNote">Backup status: idle.</p>
             </div>
           </div>
         </div>
@@ -819,6 +840,13 @@
               <div class="secondaryActions">
                 <button id="exportCsv" class="prepBtn" type="button">Export dataset as CSV</button>
               </div>
+              <hr class="prepChoiceDivider">
+              <label>Project backup</label>
+              <p class="actionNote">Download the full project (radar image, zones, dataset with enrichment, export settings, LLM settings, extra instructions, UI preferences) as a single JSON file. Reload it from the Prepare pane. The API key is never included.</p>
+              <div class="secondaryActions">
+                <button id="backupExportBtn" class="prepBtn" type="button">Download full project backup (JSON)</button>
+              </div>
+              <p id="backupExportStatus" class="actionNote">Backup status: idle.</p>
             </div>
           </div>
         </div>
@@ -1288,7 +1316,8 @@ function zoneMatchesFilter(z){
   if(structureSearchActiveZoneIds && !structureSearchActiveZoneIds.has(z.id)) return false;
   if(zoneStatusFilter==='all') return true;
   if(zoneStatusFilter==='confirmed') return !!(z.dataConfirmed || z.associationConfirmed);
-  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='prevalidated') return !!(z.llmPrevalidated && z.llmFound!==false && !(z.dataConfirmed||z.associationConfirmed));
+  if(zoneStatusFilter==='unmatched') return !!(z.llmPrevalidated && z.llmFound===false && !(z.dataConfirmed||z.associationConfirmed));
   if(zoneStatusFilter==='multiassigned') return duplicateZoneIdsCache.has(z.id);
   if(zoneStatusFilter==='todo') return !(z.dataConfirmed||z.associationConfirmed||z.llmPrevalidated);
   return true;
@@ -1303,6 +1332,7 @@ function placeEditPopup(event){
   popup.style.top=Math.min(Math.max(top,8), Math.max(stage.clientHeight-popup.offsetHeight-8,8))+'px';
   setTimeout(updateEditLogoZoom,0);
 }
+let editZonePopupOpenedAt=0;
 function showEditZonePopup(event){
   if(!isEditMode()) return;
   event.preventDefault();
@@ -1315,6 +1345,7 @@ function showEditZonePopup(event){
   if(!z) return;
   fillEditPopup(z);
   placeEditPopup(event);
+  editZonePopupOpenedAt=Date.now();
   setTimeout(()=>{ q('editPopupName').focus(); q('editPopupName').select(); },0);
   renderList();
 }
@@ -2336,6 +2367,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('click',e=>{
   const popup=q('editZonePopup');
   if(!popup || popup.hidden) return;
+  if(Date.now()-editZonePopupOpenedAt < 350) return;
   if(popup.contains(e.target) || closestElement(e.target, '.zone')) return;
   hideEditZonePopup();
 });
@@ -2497,6 +2529,30 @@ function buildProjectJson(source, options={}){
     },
     exportRender:getExportRenderConfig(),
     exportExperience:getExportExperience(),
+    exportSettings:{
+      mode:getExportMode(),
+      experience:getExportExperience(),
+      title:(q('cfgExportTitle') && q('cfgExportTitle').value) || '',
+      entityLabel:(q('cfgEntityLabel') && q('cfgEntityLabel').value) || '',
+      htmlName:(q('cfgHtmlName') && q('cfgHtmlName').value) || '',
+      hostedUrl:(q('cfgHostedUrl') && q('cfgHostedUrl').value) || ''
+    },
+    aiSettings:(function(){
+      const a=getAiConfig();
+      return {
+        provider:a.provider,
+        model:a.model,
+        language:a.language,
+        azureEndpoint:a.azureEndpoint,
+        azureDeployment:a.azureDeployment,
+        azureVersion:a.azureVersion,
+        pptxAlphaEnabled:a.pptxAlphaEnabled
+      };
+    })(),
+    llmExtraInstructions:(q('llmExtraInstructions') && q('llmExtraInstructions').value) || '',
+    uiSettings:{
+      showFill:!!(q('showFill') && q('showFill').checked)
+    },
     startupRecords,
     zones
   };
@@ -2512,6 +2568,35 @@ async function importProjectJson(text){
     // They are ignored because local detection is no longer used.
     if(data.exportRender) setExportRenderConfig(data.exportRender);
     if(data.exportExperience && q('cfgExportExperience')) q('cfgExportExperience').value=normalizeExportExperience(data.exportExperience);
+    if(data.exportSettings){
+      const es=data.exportSettings;
+      if(es.mode && q('cfgExportMode')) q('cfgExportMode').value=es.mode;
+      if(es.experience && q('cfgExportExperience')) q('cfgExportExperience').value=normalizeExportExperience(es.experience);
+      if(typeof es.title==='string' && q('cfgExportTitle')) q('cfgExportTitle').value=es.title;
+      if(typeof es.entityLabel==='string' && q('cfgEntityLabel')) q('cfgEntityLabel').value=es.entityLabel;
+      if(typeof es.htmlName==='string' && q('cfgHtmlName')) q('cfgHtmlName').value=es.htmlName;
+      if(typeof es.hostedUrl==='string' && q('cfgHostedUrl')) q('cfgHostedUrl').value=es.hostedUrl;
+    }
+    if(data.aiSettings){
+      const a=data.aiSettings;
+      if(a.provider && q('aiProvider')) q('aiProvider').value=a.provider;
+      if(typeof a.model==='string' && q('aiModel')) q('aiModel').value=a.model;
+      if(a.language && q('aiLanguage')) q('aiLanguage').value=a.language;
+      if(typeof a.azureEndpoint==='string' && q('aiAzureEndpoint')) q('aiAzureEndpoint').value=a.azureEndpoint;
+      if(typeof a.azureDeployment==='string' && q('aiAzureDeployment')) q('aiAzureDeployment').value=a.azureDeployment;
+      if(typeof a.azureVersion==='string' && q('aiAzureVersion')) q('aiAzureVersion').value=a.azureVersion;
+      if(typeof a.pptxAlphaEnabled==='boolean' && q('enablePptxAlpha')){
+        q('enablePptxAlpha').checked=a.pptxAlphaEnabled;
+        if(typeof updatePptxImportVisibility==='function') updatePptxImportVisibility(a.pptxAlphaEnabled);
+      }
+      if(typeof refreshModelOptions==='function') refreshModelOptions({preserve:true});
+      if(typeof refreshProviderFields==='function') refreshProviderFields();
+      if(typeof updateAiStatus==='function') updateAiStatus();
+    }
+    if(typeof data.llmExtraInstructions==='string' && q('llmExtraInstructions')) q('llmExtraInstructions').value=data.llmExtraInstructions;
+    if(data.uiSettings){
+      if(typeof data.uiSettings.showFill==='boolean' && q('showFill')) q('showFill').checked=data.uiSettings.showFill;
+    }
     if(Array.isArray(data.startupRecords)){
       startupRecords=data.startupRecords
         .map(row=>startupRecordFromObject(row) || row)
@@ -3477,6 +3562,45 @@ q('importFile').onchange=async e=>{
     e.target.value='';
   }
 };
+function setBackupStatus(text,kind=''){
+  const color = kind==='error' ? '#b03030' : (kind==='success' ? '#0d7452' : '');
+  ['backupStatus','backupExportStatus'].forEach(id=>{
+    const el=q(id); if(!el) return;
+    el.textContent=`Backup status: ${text}`;
+    el.style.color=color;
+  });
+}
+q('backupExportBtn').onclick=()=>{
+  try{
+    const project=buildProjectJson('full_backup',{includeImageData:true});
+    const stamp=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    download(`radar_backup_${stamp}.json`, JSON.stringify(project,null,2), 'application/json');
+    setBackupStatus(`exported ${zones.length} zone(s), ${startupRecords.length} record(s).`,'success');
+  }catch(err){
+    setBackupStatus(`export failed: ${err.message}`,'error');
+    alert(`Backup export failed: ${err.message}`);
+  }
+};
+q('backupImportBtn').onclick=()=>q('backupImportFile').click();
+q('backupImportFile').onchange=async e=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  if(!confirm(`Load project backup "${f.name}"? This will replace the current zones, dataset and settings.`)){
+    e.target.value='';
+    return;
+  }
+  try{
+    setBackupStatus(`loading ${f.name}...`);
+    await importProjectJson(await f.text());
+    setBackupStatus(`loaded ${f.name}: ${zones.length} zone(s), ${startupRecords.length} record(s).`,'success');
+    setInitStatus(`Project backup loaded: ${f.name}. ${importSummaryLine()}`,'success');
+  }catch(err){
+    setBackupStatus(`load failed: ${err.message}`,'error');
+    alert(`Project backup load failed: ${err.message}`);
+  }finally{
+    e.target.value='';
+  }
+};
 window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
   const z=zoneById(selectedId); if(!z) return;
@@ -3964,16 +4088,41 @@ q('enrichCsvBtn').onclick=async()=>{
     setEnrichProgress(0,startupRecords.length);
     appendLlmInAppTrace(`Dataset enrichment started on ${startupRecords.length} entities (provider=${cfg.provider}).`);
     const summary=await enrichCsvViaWebSearch(cfg,p=>setEnrichProgress(p.done,p.total));
-    setEnrichStatus(`done. ${summary.updated} record(s) updated, ${summary.verified} verified, out of ${summary.total}.`);
-    appendLlmInAppTrace(`Dataset enrichment finished: ${summary.updated} updated, ${summary.verified} verified.`);
-    alert(`Dataset enrichment finished.\n${summary.updated} record(s) updated, ${summary.verified} verified, out of ${summary.total}.`);
+    const recordsByKey=new Map();
+    (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
+      const k=normalizeName(r && r.name);
+      if(k && !recordsByKey.has(k)) recordsByKey.set(k,r);
+    });
+    let zonesUpdated=0;
+    zones.forEach(z=>{
+      const k=normalizeName(z.name || z.ocrCandidate);
+      const r=k ? recordsByKey.get(k) : null;
+      if(!r) return;
+      let changed=false;
+      if(!z.url && r.url){ z.url=r.url; changed=true; }
+      if(!z.logo && r.logo){ z.logo=r.logo; changed=true; }
+      if(!z.description && r.description){ z.description=r.description; changed=true; }
+      if(!z.category && r.category){ z.category=r.category; changed=true; }
+      const newKeywords=startupKeywords(r);
+      if(newKeywords && newKeywords !== z.searchKeywords){ z.searchKeywords=newKeywords; changed=true; }
+      if(!z.startupData) z.startupData=r.raw || r;
+      if(changed) zonesUpdated++;
+    });
+    if(zonesUpdated){
+      persistZones({silent:true,reason:'auto'});
+      render();
+      updateExportPreview();
+    }
+    appendLlmInAppTrace(`Dataset enrichment finished: ${summary.updated} record(s) updated, ${summary.verified} verified. ${zonesUpdated} zone(s) refreshed from enriched records.`);
+    setEnrichStatus(`done. ${summary.updated} record(s) updated, ${summary.verified} verified. ${zonesUpdated} zone(s) refreshed.`);
+    alert(`Dataset enrichment finished.\n${summary.updated} record(s) updated, ${summary.verified} verified, out of ${summary.total}.\n${zonesUpdated} zone(s) refreshed with the enriched data.`);
   }catch(err){
     setEnrichStatus(`failed (${err.message}).`);
     appendLlmInAppTrace(`Dataset enrichment failed: ${err.message}`);
     alert(`Dataset enrichment failed: ${err.message}`);
   }finally{
     q('enrichCsvBtn').disabled=false;
-    q('enrichCsvBtn').textContent='Enrich dataset via web search';
+    q('enrichCsvBtn').textContent='Launch built-in LLM enrichment';
     setTimeout(()=>showEnrichProgress(false),2500);
   }
 };
