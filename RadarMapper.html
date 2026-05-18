@@ -2613,10 +2613,7 @@ function getDetectionConfig(){
 }
 function buildProjectJson(source, options={}){
   const includeImageData = options.includeImageData !== false;
-  const gridCoords = options.coordSpace==='grid';
-  const ex = gridCoords
-    ? {z:{x:118,y:96,w:104,h:52}, p:{x:250,y:110,w:110,h:130, points:[{x:305,y:110},{x:360,y:175},{x:305,y:240},{x:250,y:175}]}}
-    : {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
+  const ex = {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
   return {
     schema:'wavestone-radar-mapper-v1',
     source,
@@ -2628,22 +2625,16 @@ function buildProjectJson(source, options={}){
     imageAttachment:{
       required:true,
       expectedContent:'The same radar visual used to generate this JSON',
-      coordinateSystem: gridCoords
-        ? 'Integer 0..1000 grid over the whole image, origin top-left: x and w are measured across the image width, y and h down the image height (0 = left/top edge, 1000 = right/bottom edge).'
-        : 'Pixel coordinates in the image space, origin at top-left (0,0)'
+      coordinateSystem:'Pixel coordinates in the image space, origin at top-left (0,0): x and w along the image width, y and h along the image height.'
     },
     config:getDetectionConfig(),
     llmInstructions:{
       goal:'Identify every item visible in the radar (company/product logos, or keyword/topic labels), match each zone to the correct name/text, and complete the fields without changing the schema.',
-      output: gridCoords
-        ? 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are integers on a 0..1000 grid over the image (x and w across the width; y and h down the height).'
-        : 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
+      output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are integer pixels in the image coordinate system.',
       zoneRules:[
-        'id must remain stable if a zone already exists.',
+        'id is a unique zone identifier such as "z001".',
         'shape is rect, diamond, circle or poly.',
-        gridCoords
-          ? 'x, y, w, h describe the bounding box as integers on a 0..1000 grid (x and w across the image width; y and h down the image height).'
-          : 'x, y, w, h describe the bounding box.',
+        'x, y, w, h describe the bounding box in image pixels (top-left origin).',
         'points is empty except for shape=poly, where it contains {x,y} objects.',
         'name is the company/product name or the keyword text read from the radar; url, logo and description are filled later during enrichment (url and logo apply to a company radar, description applies to both).',
         'llmFound is true if you read the name/text reliably (confidence >= 0.55 and name != zone_XXX), false otherwise.'
@@ -2714,15 +2705,12 @@ function buildProjectJson(source, options={}){
     zones
   };
 }
-async function importProjectJson(text,options={}){
+async function importProjectJson(text){
   const data=JSON.parse(text);
-  const gridCoords=options.coordSpace==='grid';
   if(Array.isArray(data)){
-    if(gridCoords) scaleLlmZones(data);
     zones=data.map(normalizeImportedZone);
   } else {
     if(data.image && data.image.dataUrl && /^data:image\//.test(data.image.dataUrl)){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
-    if(gridCoords && Array.isArray(data.zones)) scaleLlmZones(data.zones);
     zones=Array.isArray(data.zones) ? data.zones.map(normalizeImportedZone) : [];
     // Legacy project files may include local-detection config values.
     // They are ignored because local detection is no longer used.
@@ -2962,20 +2950,20 @@ GOAL
 Look at the attached radar image and return one zone (a bounding box) for every ${itemWord} placed on the radar.
 
 COORDINATE SYSTEM — read this carefully
-- Place a grid 1000 units wide and 1000 units tall over the WHOLE image. x goes 0 (left edge) to 1000 (right edge); y goes 0 (top edge) to 1000 (bottom edge).
-- x is a position as a share of the image WIDTH; y is a share of the image HEIGHT. The image does NOT need to be square — x and y are scaled independently.
-- For each item give a bounding box as integers on this grid: x,y = top-left corner; w,h = width and height. Keep 0 <= x, 0 <= y, x+w <= 1000, y+h <= 1000.
-- Worked example: an item spanning 12%..27% of the width and 8%..14% of the height becomes x=120, y=80, w=150, h=60.
-- Use only this 0..1000 integer grid. Do NOT output raw pixels and do NOT output decimals between 0 and 1.
+- The radar image is exactly ${IMG_W} pixels wide and ${IMG_H} pixels tall. The origin (0,0) is its top-left corner; x grows to the right, y grows downward.
+- Give every position in pixels of THIS image. For each item the bounding box is: x,y = its top-left corner; w,h = its width and height.
+- Keep whole integers and stay inside the image: 0 <= x, 0 <= y, x+w <= ${IMG_W}, y+h <= ${IMG_H}.
+- Worked example: a logo whose top-left corner sits 230 px from the left and 90 px from the top, 180 px wide and 70 px tall, becomes x=230, y=90, w=180, h=70.
+- Always estimate against the full ${IMG_W}x${IMG_H} image, never against a thumbnail or preview size.
 
 OUTPUT — return ONLY this JSON object, nothing else
 {"zones":[ {zone}, {zone}, ... ]}
 
 Each zone has EXACTLY these fields:
-- id: string "z001","z002",... numbered in reading order (keep the existing id if the zone matches a provided candidateZone).
+- id: string "z001","z002",... numbered in reading order.
 - shape: "rect" | "circle" | "diamond" | "poly" — use "rect" unless another shape clearly fits the item better.
-- x, y, w, h: integers on the 0..1000 grid described above.
-- points: [] for every shape except "poly"; for "poly" give [{"x":int,"y":int},...] on the same 0..1000 grid.
+- x, y, w, h: integer pixel coordinates in the image (see COORDINATE SYSTEM above).
+- points: [] for every shape except "poly"; for "poly" give [{"x":int,"y":int},...] as image pixels.
 - name: ${nameLine}. Use "zone_001","zone_002",... (matching the id number) ONLY when the item is genuinely unreadable.
 - ocrCandidate: the raw text you actually read for this item ("" when there is no readable text).
 - confidence: number 0..1 — how sure you are about "name".
@@ -2998,7 +2986,7 @@ STRICT RULES
 - Include only the seven fields listed above — RadarMapper fills url, logo and description itself.
 - Do NOT echo the CONTEXT or any input back.`;
 }
-function llmPrompt(candidateZones=[]){
+function llmPrompt(){
   const extraInstructionsInput=q('llmExtraInstructions');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
   const records=Array.isArray(startupRecords) ? startupRecords : [];
@@ -3007,22 +2995,12 @@ function llmPrompt(candidateZones=[]){
     if(r.category) o.category=r.category;
     return o;
   });
-  const skeleton={};
-  if(candidateZones && candidateZones.length){
-    skeleton.candidateZones=candidateZones.map(z=>{
-      const g=zoneToGrid(z);
-      return {
-        id:z.id, shape:z.shape, x:g.x, y:g.y, w:g.w, h:g.h, points:g.points,
-        name:z.name||'', ocrCandidate:z.ocrCandidate||''
-      };
-    });
-  }
+  const skeleton={image:{width:IMG_W,height:IMG_H}};
   if(compactRecords.length) skeleton.knownEntities=compactRecords;
-  const context=Object.keys(skeleton).length ? JSON.stringify(skeleton) : '(none)';
   return `${detectionInstructionsBody()}
 
 ${extraInstructions ? `EXTRA USER INSTRUCTIONS\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo)
-${context}`;
+${JSON.stringify(skeleton)}`;
 }
 function externalLlmInstructions(){
   const extraInstructionsInput=q('llmExtraInstructions');
@@ -3350,36 +3328,6 @@ function setDetectionProgress(pct,label){
   if(bar){ bar.max=100; bar.value=Math.max(0,Math.min(100,pct)); }
   if(txt) txt.textContent=label ? `${Math.round(pct)}% — ${label}` : `${Math.round(pct)}%`;
 }
-// Project zones store image pixels; the LLM works on a 0..1000 grid.
-function zoneToGrid(z){
-  const gx=v=>IMG_W?Math.round((Number(v)||0)/IMG_W*1000):0;
-  const gy=v=>IMG_H?Math.round((Number(v)||0)/IMG_H*1000):0;
-  return {
-    x:gx(z&&z.x), y:gy(z&&z.y), w:gx(z&&z.w), h:gy(z&&z.h),
-    points:Array.isArray(z&&z.points) ? z.points.map(p=>({x:gx(p&&p.x),y:gy(p&&p.y)})) : []
-  };
-}
-// Convert a batch of LLM zones to image pixels. The prompt asks for a 0..1000
-// grid, but stay robust if a model answers with [0,1] fractions or raw pixels.
-function scaleLlmZones(zonesArr){
-  if(!Array.isArray(zonesArr) || !zonesArr.length) return;
-  let maxVal=0;
-  const visit=v=>{ const n=Number(v); if(isFinite(n)) maxVal=Math.max(maxVal,Math.abs(n)); };
-  zonesArr.forEach(z=>{
-    if(!z || typeof z!=='object') return;
-    visit(z.x); visit(z.y); visit(z.w); visit(z.h);
-    if(Array.isArray(z.points)) z.points.forEach(p=>{ visit(p&&p.x); visit(p&&p.y); });
-  });
-  if(maxVal>1200) return; // values too large for the grid: treat them as raw image pixels
-  const unit = (maxVal>0 && maxVal<=1.5) ? 1 : 1000; // <=1.5 means the model used [0,1] fractions
-  const sx=v=>Math.round((Number(v)||0)/unit*IMG_W);
-  const sy=v=>Math.round((Number(v)||0)/unit*IMG_H);
-  zonesArr.forEach(z=>{
-    if(!z || typeof z!=='object') return;
-    z.x=sx(z.x); z.y=sy(z.y); z.w=sx(z.w); z.h=sy(z.h);
-    if(Array.isArray(z.points)) z.points=z.points.map(p=>({x:sx(p&&p.x),y:sy(p&&p.y)}));
-  });
-}
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
   if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure the provider, model and API key before launching LLM detection.'); return; }
@@ -3396,20 +3344,10 @@ q('runAiMapping').onclick=async()=>{
     showDetectionProgress(true);
     setDetectionProgress(5,'preparing payload');
     setLlmInAppStatus('LLM status: running analysis...','success');
-    const candidateZones=zones.length ? deepClone(zones) : [];
-    if(candidateZones.length){
-      zones=candidateZones;
-      setPrimarySelection(zones[0] ? zones[0].id : null);
-      render();
-      logAnalysis(`${candidateZones.length} existing zone(s) sent to LLM as editable candidates.`);
-      appendLlmInAppTrace(`Candidate zones provided: ${candidateZones.length}`);
-    } else {
-      appendLlmInAppTrace('No candidate zones provided. LLM must detect and create zones from scratch.');
-      logAnalysis('No existing zones: LLM will create zones from the radar image.');
-    }
+    appendLlmInAppTrace('LLM will detect and create every zone from the radar image.');
     logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
-    const prompt=llmPrompt(candidateZones);
+    const prompt=llmPrompt();
     appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
     setDetectionProgress(20,'sending to LLM');
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
@@ -3449,7 +3387,7 @@ q('runAiMapping').onclick=async()=>{
     });
     appendLlmInAppTrace(`Local match: ${matchedCount}/${data.zones.length} zone(s) linked to a known entity.`);
     setDetectionProgress(95,'importing zones');
-    await importProjectJson(JSON.stringify(data),{coordSpace:'grid'});
+    await importProjectJson(JSON.stringify(data));
     if(!Array.isArray(startupRecords) || !startupRecords.length){
       const seen=new Set(); const derived=[];
       zones.forEach(z=>{
@@ -3734,7 +3672,7 @@ q('radarPptxUpload').onchange=async e=>{
   }
 };
 q('exportInitJson').onclick=()=>{
-  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false,coordSpace:'grid'});
+  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false});
   emptyProject.startupRecords=[];
   emptyProject.zones=[];
   download('radar_initialization.json', JSON.stringify(emptyProject,null,2), 'application/json');
@@ -3818,7 +3756,7 @@ q('importFile').onchange=async e=>{
     return;
   }
   try{
-    await importProjectJson(await f.text(),{coordSpace:'grid'});
+    await importProjectJson(await f.text());
     setInitStatus(`Completed JSON imported successfully: ${f.name}. ${importSummaryLine()}`,'success');
   } catch(err){
     setInitStatus(`Completed JSON import failed: ${err.message}`,'error');
