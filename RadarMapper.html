@@ -161,11 +161,11 @@
   .zone.multiassigned { fill:rgba(122,78,201,.18); stroke:rgba(98,58,172,.82); }
   body[data-mode="editPanel"] .zone { cursor:move; }
   .zone.noUrl { stroke-dasharray:5 4; }
-  .zone.selected { fill:rgba(234,126,38,.30); stroke:#ea7e26; stroke-width:2.5; }
-  .zone.selected.confirmed { fill:rgba(46,211,155,.28); stroke:#2ed39b; }
-  .zone.selected.prevalidated { fill:rgba(54,121,230,.30); stroke:#3679e6; }
-  .zone.selected.unmatched { fill:rgba(220,50,50,.30); stroke:#c93030; }
-  .zone.selected.multiassigned { fill:rgba(122,78,201,.26); stroke:#7a4ec9; }
+  .zone.selected { fill:rgba(234,126,38,.48); stroke:#c0392b; stroke-width:4; filter:drop-shadow(0 0 5px rgba(0,0,0,.6)); }
+  .zone.selected.confirmed { fill:rgba(46,211,155,.48); stroke:#0d7a55; }
+  .zone.selected.prevalidated { fill:rgba(54,121,230,.48); stroke:#1f54ad; }
+  .zone.selected.unmatched { fill:rgba(220,50,50,.48); stroke:#8f1a1a; }
+  .zone.selected.multiassigned { fill:rgba(122,78,201,.46); stroke:#4f2c97; }
   .zone.hiddenFill { fill:transparent; }
   .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
@@ -1126,7 +1126,7 @@ function zonesInRect(rx,ry,rw,rh){
   const out=[];
   zones.forEach(z=>{
     if((isEditMode()||isExportMode()) && !zoneMatchesFilter(z)) return;
-    if(z.x < rx+rw && z.x+z.w > rx && z.y < ry+rh && z.y+z.h > ry) out.push(z.id);
+    if(z.x >= rx && z.y >= ry && z.x+z.w <= rx+rw && z.y+z.h <= ry+rh) out.push(z.id);
   });
   return out;
 }
