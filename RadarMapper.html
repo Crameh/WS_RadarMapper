@@ -216,6 +216,9 @@
   .addZoneBtn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:50%; font-size:22px; line-height:34px; background:#0f8794; color:#fff; border-color:#0f8794; box-shadow:none; }
   .addZoneBtn { text-align:center; text-indent:1px; }
   .addZoneBtn:hover { background:#0d6f86; }
+  .undoBtn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:10px; font-size:18px; line-height:1; background:#fff; color:#0d6f86; border:1px solid #cbdde6; box-shadow:none; }
+  .undoBtn:hover:not(:disabled) { background:#f3fbfb; }
+  .undoBtn:disabled { opacity:.4; cursor:default; }
   .stageExportBtn { min-height:34px; padding:7px 12px; border-color:#0f8794; color:#0d6f86; }
   .confirmAssociationBtn { margin-top:6px; width:100%; min-height:34px; border-color:#23aa7a; color:#0d7452; background:#eafaf4; }
   .associationStatus { margin:5px 0 0; color:#65788a; font-size:11px; font-weight:800; }
@@ -531,6 +534,7 @@
             <button type="button" class="shapeBtn" data-shape="circle" aria-label="Circle">○</button>
             <button type="button" class="shapeBtn" data-shape="poly" aria-label="Polygon">⬠</button>
           </span>
+          <button id="undoBtn" class="undoBtn" type="button" aria-label="Undo last change" title="Undo last change (Ctrl+Z)" disabled>↶</button>
         </div>
         <div class="zoneToolsRight">
           <label class="zoomControl">Zoom <input id="zoom" type="range" min="10" max="140" value="80"></label>
@@ -1130,6 +1134,35 @@ function zonesInRect(rx,ry,rw,rh){
   });
   return out;
 }
+const HISTORY_LIMIT = 10;
+const historyStack = [];
+let lastNudgeTime = 0;
+function snapshotZones(){ return JSON.stringify(zones); }
+function pushSnapshot(snap){
+  if(typeof snap !== 'string') return;
+  if(historyStack.length && historyStack[historyStack.length-1] === snap) return;
+  historyStack.push(snap);
+  while(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  updateUndoBtn();
+}
+function recordHistory(){ pushSnapshot(snapshotZones()); }
+function updateUndoBtn(){
+  const btn = q('undoBtn');
+  if(btn) btn.disabled = historyStack.length === 0;
+}
+function undo(){
+  if(!historyStack.length) return;
+  let restored;
+  try{ restored = JSON.parse(historyStack.pop()); }
+  catch(_){ updateUndoBtn(); return; }
+  if(!Array.isArray(restored)){ updateUndoBtn(); return; }
+  zones = restored;
+  Array.from(selectedIds).forEach(id=>{ if(!zoneById(id)) selectedIds.delete(id); });
+  if(selectedId && !zoneById(selectedId)) selectedId = selectedIds.size ? Array.from(selectedIds)[0] : null;
+  persistZones({silent:true, reason:'undo'});
+  render();
+  updateUndoBtn();
+}
 let editPopupSuggestIndex = -1;
 let editPopupSuggestions = [];
 const svg = document.getElementById('overlay');
@@ -1141,7 +1174,7 @@ radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
   initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import the radar image, then generate clickable zones.'},
-  editPanel:{label:'Edit', title:'Zone editing', hint:'Correct zone geometry, add or remove zones, then edit content by double-clicking. Select several zones with a drag (rubber-band) or Caps Lock + click, and move them together by dragging one or with the arrow keys.'},
+  editPanel:{label:'Edit', title:'Zone editing', hint:'Correct zone geometry, add or remove zones, then edit content by double-clicking. Select several zones with a drag (rubber-band) or Caps Lock + click, and move them together by dragging one or with the arrow keys. Ctrl+Z undoes the last 10 changes.'},
   exportPanel:{label:'Export', title:'Export the clickable radar', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
 let activeTab = 'initPanel';
@@ -1420,6 +1453,7 @@ function applyEditPopup(){
   if(!isEditMode()) return;
   const z=zoneById(selectedId);
   if(!z) return;
+  const beforeEdit=snapshotZones();
   z.name=q('editPopupName').value.trim() || z.id;
   z.url=q('editPopupUrl').value.trim();
   z.logo=q('editPopupLogo').value.trim();
@@ -1437,6 +1471,7 @@ function applyEditPopup(){
   } else {
     z.points=[];
   }
+  if(beforeEdit !== snapshotZones()) pushSnapshot(beforeEdit);
   render();
 }
 function confirmAssociation(prefix=''){
@@ -2135,7 +2170,7 @@ function startMove(e){
     const gz=zoneById(id);
     if(gz) group.push({id, ox:gz.x, oy:gz.y, ow:gz.w, oh:gz.h, pts:(gz.points||[]).map(pt=>({x:pt.x,y:pt.y}))});
   });
-  drag={type:'move', sx:p.x, sy:p.y, group};
+  drag={type:'move', sx:p.x, sy:p.y, group, snapshot:snapshotZones()};
   try{ svg.setPointerCapture(e.pointerId); }catch(_){}
   refreshZoneSelectionStyles();
   renderList();
@@ -2144,13 +2179,13 @@ function startMove(e){
 function startResize(e){
   if(!isEditMode()) return;
   e.stopPropagation(); e.preventDefault(); const z=zoneById(selectedId); const p=pointerPos(e);
-  drag={type:'resize', corner:e.currentTarget.dataset.corner, sx:p.x, sy:p.y, x:z.x, y:z.y, w:z.w, h:z.h};
+  drag={type:'resize', corner:e.currentTarget.dataset.corner, sx:p.x, sy:p.y, x:z.x, y:z.y, w:z.w, h:z.h, snapshot:snapshotZones()};
   svg.setPointerCapture(e.pointerId);
 }
 function startVertex(e){
   if(!isEditMode()) return;
   e.stopPropagation(); e.preventDefault(); const p=pointerPos(e);
-  drag={type:'vertex', idx:Number(e.currentTarget.dataset.idx), sx:p.x, sy:p.y};
+  drag={type:'vertex', idx:Number(e.currentTarget.dataset.idx), sx:p.x, sy:p.y, snapshot:snapshotZones()};
   svg.setPointerCapture(e.pointerId);
 }
 svg.addEventListener('pointerdown', handleZoneDoublePointer, true);
@@ -2188,7 +2223,10 @@ svg.addEventListener('pointermove', e=>{
 svg.addEventListener('pointerup', ()=>{
   if(drag && isEditMode()){
     if(drag.type==='marquee') finishMarquee();
-    else render();
+    else {
+      if(drag.snapshot && drag.snapshot !== snapshotZones()) pushSnapshot(drag.snapshot);
+      render();
+    }
   }
   drag=null;
 });
@@ -3690,9 +3728,12 @@ function makeZone(shape){
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
   const z={id,name:'new_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
   if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
+  recordHistory();
   zones.push(z); setPrimarySelection(id); render();
 }
 q('addZoneBtn').onclick=()=>makeZone((q('shape') && q('shape').value) || 'rect');
+q('undoBtn').onclick=undo;
+updateUndoBtn();
 q('resetLocalBase').onclick=()=>{
   if(!confirm('Erase all data? This will clear local zones, imported data, and the current radar visual in this browser.')) return;
   zones=[];
@@ -3780,6 +3821,13 @@ q('backupImportFile').onchange=async e=>{
 };
 window.addEventListener('keydown', e=>{
   if(!isEditMode()) return;
+  if((e.ctrlKey||e.metaKey) && !e.shiftKey && !e.altKey && String(e.key||'').toLowerCase()==='z'){
+    const ae=document.activeElement;
+    if(ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable)) return;
+    e.preventDefault();
+    undo();
+    return;
+  }
   const z=zoneById(selectedId); if(!z) return;
   // Left/right when popup is open → navigate between filtered zones
   if(!q('editZonePopup').hidden && (e.key==='ArrowLeft' || e.key==='ArrowRight')){
@@ -3812,6 +3860,8 @@ window.addEventListener('keydown', e=>{
     if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
     e.preventDefault();
     const removeIds=new Set(selectedZoneList().map(zz=>zz.id));
+    if(!removeIds.size) return;
+    recordHistory();
     zones=zones.filter(item=>!removeIds.has(item.id));
     setPrimarySelection(zones[0] ? zones[0].id : null);
     render();
@@ -3820,6 +3870,9 @@ window.addEventListener('keydown', e=>{
   if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
   e.preventDefault();
   const moveGroup=selectedZoneList();
+  if(!moveGroup.length) return;
+  if(Date.now()-lastNudgeTime > 700) recordHistory();
+  lastNudgeTime=Date.now();
   let adx=dx, ady=dy;
   moveGroup.forEach(g=>{
     adx=clamp(adx, -g.x, IMG_W-g.w-g.x);
