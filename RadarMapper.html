@@ -2613,6 +2613,10 @@ function getDetectionConfig(){
 }
 function buildProjectJson(source, options={}){
   const includeImageData = options.includeImageData !== false;
+  const normalizedCoords = options.coordSpace==='normalized';
+  const ex = normalizedCoords
+    ? {z:{x:0.063,y:0.073,w:0.05,h:0.038}, p:{x:0.135,y:0.11,w:0.042,h:0.055, points:[{x:0.156,y:0.11},{x:0.177,y:0.137},{x:0.156,y:0.165},{x:0.135,y:0.137}]}}
+    : {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
   return {
     schema:'wavestone-radar-mapper-v1',
     source,
@@ -2624,16 +2628,22 @@ function buildProjectJson(source, options={}){
     imageAttachment:{
       required:true,
       expectedContent:'The same radar visual used to generate this JSON',
-      coordinateSystem:'Pixel coordinates in the image space, origin at top-left (0,0)'
+      coordinateSystem: normalizedCoords
+        ? 'Normalized coordinates in [0,1], origin at top-left (0,0): x and w are fractions of image width, y and h fractions of image height'
+        : 'Pixel coordinates in the image space, origin at top-left (0,0)'
     },
     config:getDetectionConfig(),
     llmInstructions:{
       goal:'Identify every item visible in the radar (company/product logos, or keyword/topic labels), match each zone to the correct name/text, and complete the fields without changing the schema.',
-      output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
+      output: normalizedCoords
+        ? 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are normalized fractions in [0,1] relative to the image (x and w by width; y and h by height).'
+        : 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
       zoneRules:[
         'id must remain stable if a zone already exists.',
         'shape is rect, diamond, circle or poly.',
-        'x, y, w, h describe the bounding box.',
+        normalizedCoords
+          ? 'x, y, w, h describe the bounding box as fractions in [0,1] (x and w relative to image width; y and h relative to image height).'
+          : 'x, y, w, h describe the bounding box.',
         'points is empty except for shape=poly, where it contains {x,y} objects.',
         'name is the company/product name or the keyword text read from the radar; url, logo and description are filled later during enrichment (url and logo apply to a company radar, description applies to both).',
         'llmFound is true if you read the name/text reliably (confidence >= 0.55 and name != zone_XXX), false otherwise.'
@@ -2647,10 +2657,10 @@ function buildProjectJson(source, options={}){
         logo:'',
         description:'Cryptographic algorithms designed to resist attacks from quantum computers.',
         shape:'rect',
-        x:120,
-        y:80,
-        w:96,
-        h:42,
+        x:ex.z.x,
+        y:ex.z.y,
+        w:ex.z.w,
+        h:ex.z.h,
         points:[],
         ocrCandidate:'Post Quantum Crypto',
         confidence:0.82,
@@ -2663,11 +2673,11 @@ function buildProjectJson(source, options={}){
         logo:'',
         description:'',
         shape:'poly',
-        x:260,
-        y:120,
-        w:80,
-        h:60,
-        points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}],
+        x:ex.p.x,
+        y:ex.p.y,
+        w:ex.p.w,
+        h:ex.p.h,
+        points:ex.p.points,
         ocrCandidate:'',
         confidence:0.1,
         llmFound:false
@@ -2704,12 +2714,15 @@ function buildProjectJson(source, options={}){
     zones
   };
 }
-async function importProjectJson(text){
+async function importProjectJson(text,options={}){
   const data=JSON.parse(text);
+  const normalizedCoords=options.coordSpace==='normalized';
   if(Array.isArray(data)){
+    if(normalizedCoords) data.forEach(denormalizeLlmZone);
     zones=data.map(normalizeImportedZone);
   } else {
     if(data.image && data.image.dataUrl && /^data:image\//.test(data.image.dataUrl)){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
+    if(normalizedCoords && Array.isArray(data.zones)) data.zones.forEach(denormalizeLlmZone);
     zones=Array.isArray(data.zones) ? data.zones.map(normalizeImportedZone) : [];
     // Legacy project files may include local-detection config values.
     // They are ignored because local detection is no longer used.
@@ -3008,13 +3021,13 @@ ${JSON.stringify(skeleton)}`;
 function externalLlmInstructions(){
   const extraInstructionsInput=q('llmExtraInstructions');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
-  return `${detectionInstructionsBody()}
+  return `${detectionInstructionsBody('normalized')}
 
 ${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
 The radar image and the radar_initialization.json file are attached separately. A dataset of known names (CSV/JSON) may also be attached, but it is optional. Use:
-- the radar image to detect every item and compute pixel coordinates;
+- the radar image to detect every item and compute normalized [0,1] coordinates;
 - the attached dataset (or the "startupRecords" field in the attached JSON), if provided, as the "knownEntities" list for name matching; if none is provided, build the list directly from the image;
-- the "image.width" and "image.height" from the attached JSON to validate coordinate bounds.
+- the "image.width" and "image.height" from the attached JSON as an aspect-ratio reference only; report coordinates as fractions, never as pixels.
 
 For item enrichment, use the separate "Copy enrichment prompt" button — it generates a dedicated prompt (official website for a company radar, or a short CISO-oriented description for a keyword radar).`;
 }
@@ -3383,7 +3396,6 @@ q('runAiMapping').onclick=async()=>{
     setDetectionProgress(80,'parsing JSON');
     const data=parseJsonFromText(text);
     if(!data || !Array.isArray(data.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
-    data.zones.forEach(denormalizeLlmZone);
     setDetectionProgress(90,'matching against CSV');
     const recordsByKey=new Map();
     (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
@@ -3413,7 +3425,7 @@ q('runAiMapping').onclick=async()=>{
     });
     appendLlmInAppTrace(`Local match: ${matchedCount}/${data.zones.length} zone(s) linked to a known entity.`);
     setDetectionProgress(95,'importing zones');
-    await importProjectJson(JSON.stringify(data));
+    await importProjectJson(JSON.stringify(data),{coordSpace:'normalized'});
     if(!Array.isArray(startupRecords) || !startupRecords.length){
       const seen=new Set(); const derived=[];
       zones.forEach(z=>{
@@ -3698,7 +3710,7 @@ q('radarPptxUpload').onchange=async e=>{
   }
 };
 q('exportInitJson').onclick=()=>{
-  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false});
+  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false,coordSpace:'normalized'});
   emptyProject.startupRecords=[];
   emptyProject.zones=[];
   download('radar_initialization.json', JSON.stringify(emptyProject,null,2), 'application/json');
@@ -3782,7 +3794,7 @@ q('importFile').onchange=async e=>{
     return;
   }
   try{
-    await importProjectJson(await f.text());
+    await importProjectJson(await f.text(),{coordSpace:'normalized'});
     setInitStatus(`Completed JSON imported successfully: ${f.name}. ${importSummaryLine()}`,'success');
   } catch(err){
     setInitStatus(`Completed JSON import failed: ${err.message}`,'error');
