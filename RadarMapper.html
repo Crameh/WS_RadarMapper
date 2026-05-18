@@ -2613,7 +2613,6 @@ function getDetectionConfig(){
 }
 function buildProjectJson(source, options={}){
   const includeImageData = options.includeImageData !== false;
-  const ex = {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
   return {
     schema:'wavestone-radar-mapper-v1',
     source,
@@ -2628,52 +2627,6 @@ function buildProjectJson(source, options={}){
       coordinateSystem:'Pixel coordinates in the image space, origin at top-left (0,0): x and w along the image width, y and h along the image height.'
     },
     config:getDetectionConfig(),
-    llmInstructions:{
-      goal:'Identify every item visible in the radar (company/product logos, or keyword/topic labels), match each zone to the correct name/text, and complete the fields without changing the schema.',
-      output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are integer pixels in the image coordinate system.',
-      zoneRules:[
-        'id is a unique zone identifier such as "z001".',
-        'shape is rect, diamond, circle or poly.',
-        'x, y, w, h describe the bounding box in image pixels (top-left origin).',
-        'points is empty except for shape=poly, where it contains {x,y} objects.',
-        'name is the company/product name or the keyword text read from the radar; url, logo and description are filled later during enrichment (url and logo apply to a company radar, description applies to both).',
-        'llmFound is true if you read the name/text reliably (confidence >= 0.55 and name != zone_XXX), false otherwise.'
-      ]
-    },
-    examples:{
-      zone:{
-        id:'z001',
-        name:'Post Quantum Crypto',
-        url:'',
-        logo:'',
-        description:'Cryptographic algorithms designed to resist attacks from quantum computers.',
-        shape:'rect',
-        x:ex.z.x,
-        y:ex.z.y,
-        w:ex.z.w,
-        h:ex.z.h,
-        points:[],
-        ocrCandidate:'Post Quantum Crypto',
-        confidence:0.82,
-        llmFound:true
-      },
-      polyZone:{
-        id:'z002',
-        name:'zone_042',
-        url:'',
-        logo:'',
-        description:'',
-        shape:'poly',
-        x:ex.p.x,
-        y:ex.p.y,
-        w:ex.p.w,
-        h:ex.p.h,
-        points:ex.p.points,
-        ocrCandidate:'',
-        confidence:0.1,
-        llmFound:false
-      }
-    },
     exportRender:getExportRenderConfig(),
     exportExperience:getExportExperience(),
     exportSettings:{
