@@ -2884,7 +2884,7 @@ function imagePayload(){
   const mediaType=(header.match(/data:([^;]+)/)||[])[1] || 'image/png';
   return {mediaType,data};
 }
-function detectionInstructionsBody(){
+function detectionInstructionsBody(external){
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
   const mode=effectiveRadarMode();
   const kindLine = mode==='entity'
@@ -2894,6 +2894,22 @@ function detectionInstructionsBody(){
   const nameLine = mode==='entity'
     ? 'the company or product name read from its logo/wordmark'
     : 'the keyword or term, copied exactly as written on the radar';
+  const outputHeader = external
+    ? `OUTPUT — fill the "zones" array of the provided JSON file
+You are given a radar_initialization.json file (see CONTEXT below). It already contains the full project structure with an empty "zones" array. Detect every item and add one zone object to that "zones" array. Do not create a new file structure and do not change any other field of the file.`
+    : `OUTPUT — return ONLY this JSON object, nothing else
+{"zones":[ {zone}, {zone}, ... ]}`;
+  const strictRules = external
+    ? `STRICT RULES
+- Use straight double quotes ("); never use trailing commas.
+- Each zone object includes only the seven fields listed above — RadarMapper fills url, logo and description itself.
+- Keep every other field of the provided file untouched; only populate its "zones" array.
+- Do NOT echo the CONTEXT or any input back.`
+    : `STRICT RULES
+- Return the raw JSON object only: no markdown code fences, no comments, no text before or after it.
+- Use straight double quotes ("); never use trailing commas.
+- Include only the seven fields listed above — RadarMapper fills url, logo and description itself.
+- Do NOT echo the CONTEXT or any input back.`;
   return `You read technology "radar" / "quadrant" diagrams and locate every item shown on them.
 
 RADAR TYPE
@@ -2909,8 +2925,7 @@ COORDINATE SYSTEM — read this carefully
 - Worked example: a logo whose top-left corner sits 230 px from the left and 90 px from the top, 180 px wide and 70 px tall, becomes x=230, y=90, w=180, h=70.
 - Always estimate against the full ${IMG_W}x${IMG_H} image, never against a thumbnail or preview size.
 
-OUTPUT — return ONLY this JSON object, nothing else
-{"zones":[ {zone}, {zone}, ... ]}
+${outputHeader}
 
 Each zone has EXACTLY these fields:
 - id: string "z001","z002",... numbered in reading order.
@@ -2933,11 +2948,7 @@ NAMING
 - If an item is not in that list, or no list is provided, output the name/text you read directly from the image.
 - Expected language for any human-readable text: ${language}.
 
-STRICT RULES
-- Return the raw JSON object only: no markdown code fences, no comments, no text before or after it.
-- Use straight double quotes ("); never use trailing commas.
-- Include only the seven fields listed above — RadarMapper fills url, logo and description itself.
-- Do NOT echo the CONTEXT or any input back.`;
+${strictRules}`;
 }
 function llmPrompt(){
   const extraInstructionsInput=q('llmExtraInstructions');
@@ -2950,7 +2961,7 @@ function llmPrompt(){
   });
   const skeleton={image:{width:IMG_W,height:IMG_H}};
   if(compactRecords.length) skeleton.knownEntities=compactRecords;
-  return `${detectionInstructionsBody()}
+  return `${detectionInstructionsBody(false)}
 
 ${extraInstructions ? `EXTRA USER INSTRUCTIONS\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo)
 ${JSON.stringify(skeleton)}`;
@@ -2958,12 +2969,17 @@ ${JSON.stringify(skeleton)}`;
 function externalLlmInstructions(){
   const extraInstructionsInput=q('llmExtraInstructions');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
-  return `${detectionInstructionsBody()}
+  return `${detectionInstructionsBody(true)}
 
 ${extraInstructions ? `EXTRA USER INSTRUCTIONS\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo)
 - The radar image is attached separately and is required.
-- A list of known names (a CSV/JSON file, or the radar_initialization.json export) may also be attached. If it is, use those names as the "knownEntities" list; if not, read every name straight from the image.
-Return only the {"zones":[...]} JSON object, then load it back into RadarMapper with "Import completed JSON".
+- The radar_initialization.json file is attached: it already holds the project structure with an empty "zones" array. Fill in THAT file — do not build a new one.
+- A list of known names (a CSV/JSON file) may also be attached. If it is, use those names as the "knownEntities" list; if not, read every name straight from the image.
+
+DELIVERY — how to return your answer
+- Populate the "zones" array of the attached radar_initialization.json with your detected zones, leaving every other field of the file unchanged.
+- Save the completed file as radar_completed.json and give me a download link for it. Do NOT paste the JSON into the chat.
+- Then load that file back into RadarMapper with "Import completed JSON".
 
 For item enrichment (official websites, descriptions), use the separate "Copy enrichment prompt" button instead.`;
 }
