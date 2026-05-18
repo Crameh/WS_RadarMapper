@@ -2930,12 +2930,22 @@ function imagePayload(){
   const mediaType=(header.match(/data:([^;]+)/)||[])[1] || 'image/png';
   return {mediaType,data};
 }
-function detectionInstructionsBody(){
+function detectionInstructionsBody(coordMode='pixel'){
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
   const mode=effectiveRadarMode();
   const kindLine = mode==='entity'
     ? 'Radar type: this radar plots companies/products. Each item is a company or product logo or wordmark.'
     : 'Radar type: this radar plots keywords/topics. Each item is a short keyword or term text label, not a company logo.';
+  const normalized = coordMode==='normalized';
+  const coordSpecLine = normalized
+    ? '- x,y,w,h: numbers in [0,1] normalized to the image (x and w as fractions of image width, y and h as fractions of image height; origin top-left). Must satisfy 0<=x, 0<=y, x+w<=1, y+h<=1.'
+    : `- x,y,w,h: integers in image pixel coordinates (origin top-left). Must satisfy 0<=x, 0<=y, x+w<=${IMG_W}, y+h<=${IMG_H}.`;
+  const pointsSpecLine = normalized
+    ? '- points: [] unless shape="poly", in which case [{"x":num,"y":num},...] with each value normalized to [0,1] (x by image width, y by image height).'
+    : '- points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.';
+  const coordRuleLine = normalized
+    ? '- Report every coordinate as a fraction of the image (0 = left/top edge, 1 = right/bottom edge), independent of pixel resolution; never output raw pixel values.'
+    : `- Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.`;
   return `Task: detect every visible item placed on the radar image and return a JSON list of zones.
 ${kindLine}
 Expected language for any human-readable text: ${language}.
@@ -2946,8 +2956,8 @@ Output (the ONLY thing you return):
 Each zone object has EXACTLY these fields:
 - id: string, sequential "z001","z002",... (or keep existing id if the zone matches a provided candidateZone)
 - shape: "rect" | "circle" | "diamond" | "poly"
-- x,y,w,h: integers in image pixel coordinates (origin top-left). Must satisfy 0<=x, 0<=y, x+w<=${IMG_W}, y+h<=${IMG_H}.
-- points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.
+${coordSpecLine}
+${pointsSpecLine}
 - name: the company/product name read from the logo, or the keyword/term text exactly as written. Use "zone_XXX" (matching the id number) only when the item is unreadable.
 - ocrCandidate: the raw text you read for that item (may equal name, or "" if no readable text).
 - confidence: number in [0,1] reflecting your certainty in the name/text.
@@ -2957,7 +2967,7 @@ Detection rules:
 - Ignore sector/category names, axis/ring labels, the radar title, legends, decorations, and publisher branding.
 - One zone per visible item; do not merge neighbours; do not duplicate.
 - Fit the bounding box tightly around the item, including text or wordmarks that wrap onto two or more lines for the same item. Use "rect" unless another shape clearly fits better.
-- Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.
+${coordRuleLine}
 
 Naming:
 - If a "knownEntities" list is provided in the CONTEXT below, prefer matching the visible item to one of those names (case/accents/punctuation insensitive). Output that canonical name in "name".
@@ -2981,14 +2991,16 @@ function llmPrompt(candidateZones=[]){
   });
   const skeleton={image:{width:IMG_W,height:IMG_H}};
   if(candidateZones && candidateZones.length){
+    const nx=v=>IMG_W?Math.round((Number(v)||0)/IMG_W*1e4)/1e4:0;
+    const ny=v=>IMG_H?Math.round((Number(v)||0)/IMG_H*1e4)/1e4:0;
     skeleton.candidateZones=candidateZones.map(z=>({
-      id:z.id, shape:z.shape, x:z.x, y:z.y, w:z.w, h:z.h,
-      points:Array.isArray(z.points)?z.points:[],
+      id:z.id, shape:z.shape, x:nx(z.x), y:ny(z.y), w:nx(z.w), h:ny(z.h),
+      points:Array.isArray(z.points)?z.points.map(p=>({x:nx(p&&p.x),y:ny(p&&p.y)})):[],
       name:z.name||'', ocrCandidate:z.ocrCandidate||''
     }));
   }
   if(compactRecords.length) skeleton.knownEntities=compactRecords;
-  return `${detectionInstructionsBody()}
+  return `${detectionInstructionsBody('normalized')}
 
 ${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
 ${JSON.stringify(skeleton)}`;
@@ -3320,6 +3332,17 @@ function setDetectionProgress(pct,label){
   if(bar){ bar.max=100; bar.value=Math.max(0,Math.min(100,pct)); }
   if(txt) txt.textContent=label ? `${Math.round(pct)}% — ${label}` : `${Math.round(pct)}%`;
 }
+function denormalizeLlmZone(z){
+  if(!z || typeof z!=='object') return z;
+  const vals=[z.x,z.y,z.w,z.h].map(v=>Number(v)||0);
+  // The LLM is asked for fractions in [0,1]; if it returned pixel values anyway, keep them as-is.
+  if(!vals.every(v=>v>=0 && v<=1.5)) return z;
+  const px=v=>Math.round((Number(v)||0)*IMG_W);
+  const py=v=>Math.round((Number(v)||0)*IMG_H);
+  z.x=px(z.x); z.y=py(z.y); z.w=px(z.w); z.h=py(z.h);
+  if(Array.isArray(z.points)) z.points=z.points.map(p=>({x:px(p&&p.x),y:py(p&&p.y)}));
+  return z;
+}
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
   if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure the provider, model and API key before launching LLM detection.'); return; }
@@ -3360,6 +3383,7 @@ q('runAiMapping').onclick=async()=>{
     setDetectionProgress(80,'parsing JSON');
     const data=parseJsonFromText(text);
     if(!data || !Array.isArray(data.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
+    data.zones.forEach(denormalizeLlmZone);
     setDetectionProgress(90,'matching against CSV');
     const recordsByKey=new Map();
     (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
