@@ -2957,7 +2957,7 @@ function detectionInstructionsBody(coordMode='pixel'){
     ? '- points: [] unless shape="poly", in which case [{"x":num,"y":num},...] with each value normalized to [0,1] (x by image width, y by image height).'
     : '- points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.';
   const coordRuleLine = normalized
-    ? '- Report every coordinate as a fraction of the image (0 = left/top edge, 1 = right/bottom edge), independent of pixel resolution; never output raw pixel values.'
+    ? '- Report every coordinate as a fraction of the image (0 = left/top edge, 1 = right/bottom edge), independent of pixel resolution; never output raw pixel values. Any width/height values in the CONTEXT are for aspect-ratio reference only and must NOT be used as a pixel scale.'
     : `- Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.`;
   return `Task: detect every visible item placed on the radar image and return a JSON list of zones.
 ${kindLine}
@@ -3002,7 +3002,7 @@ function llmPrompt(candidateZones=[]){
     if(r.category) o.category=r.category;
     return o;
   });
-  const skeleton={image:{width:IMG_W,height:IMG_H}};
+  const skeleton={};
   if(candidateZones && candidateZones.length){
     const nx=v=>IMG_W?Math.round((Number(v)||0)/IMG_W*1e4)/1e4:0;
     const ny=v=>IMG_H?Math.round((Number(v)||0)/IMG_H*1e4)/1e4:0;
