@@ -621,10 +621,16 @@
           <div class="prepStepNumber">1</div>
           <div>
             <div class="prepStepHeader">
-              <h3>Import sources</h3>
-              <p>Start with the radar image. Importing a dataset is optional — without one, the LLM reads the items directly from the image.</p>
+              <h3>Select a radar type and import sources</h3>
+              <p>Choose what this radar plots, then start with the radar image. Importing a dataset is optional — without one, the LLM reads the items directly from the image.</p>
             </div>
             <div class="prepStepBody">
+              <label for="radarMode">Radar type</label>
+              <select id="radarMode">
+                <option value="entity">Entities / Logos (companies, startups, vendors, products)</option>
+                <option value="keyword">Keywords (tech trends, topics, terms)</option>
+              </select>
+              <p class="actionNote">Entities mode reads logos and wordmarks and enriches each item with its official website. Keywords mode reads short text labels and writes a short CISO-oriented description of each term. This choice drives detection, enrichment, and export.</p>
               <div class="secondaryActions">
                 <button id="uploadRadarVisual" class="prepBtn" type="button">Radar image (any standard image format)</button>
                 <button id="uploadRadarPptx" class="prepBtn" type="button" hidden>Radar slide (PPTX Alpha)</button>
@@ -837,8 +843,8 @@
               <input id="cfgHtmlName" value="clickable_radar.html">
               <label>Exported title (CISO Keyword Radar 2025, ...)</label>
               <input id="cfgExportTitle" value="Clickable radar">
-              <label>Entity label in export (companies, keywords, topics...)</label>
-              <input id="cfgEntityLabel" value="Entity" placeholder="Entity, Company, Keyword, Topic...">
+              <label>Item label in export (defaults to the radar type — edit to override)</label>
+              <input id="cfgEntityLabel" value="Company" placeholder="Company, Vendor, Keyword, Topic...">
               <label>Hosted HTML URL (optional, only for iFrame snippet)</label>
               <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
               <div class="primaryAction">
@@ -968,13 +974,6 @@
           <option value="en">English</option>
           <option value="de">Deutsch</option>
         </select>
-        <label>Radar type</label>
-        <select id="radarMode">
-          <option value="auto">Auto-detect from the radar image</option>
-          <option value="entity">Entities (companies, startups, vendors)</option>
-          <option value="keyword">Keywords (tech trends, topics)</option>
-        </select>
-        <p class="settingsNote">Auto lets the LLM decide whether the radar plots companies/products or keywords/topics. Entity mode enriches each item with its official website; keyword mode writes a short CISO-oriented description of each term.</p>
         <div class="actions">
           <button id="saveAiConfig" class="primary">Save settings</button>
           <button id="testAiConfig">Test connection</button>
@@ -2721,7 +2720,10 @@ async function importProjectJson(text){
       if(es.mode && q('cfgExportMode')) q('cfgExportMode').value=es.mode;
       if(es.experience && q('cfgExportExperience')) q('cfgExportExperience').value=normalizeExportExperience(es.experience);
       if(typeof es.title==='string' && q('cfgExportTitle')) q('cfgExportTitle').value=es.title;
-      if(typeof es.entityLabel==='string' && q('cfgEntityLabel')) q('cfgEntityLabel').value=es.entityLabel;
+      if(typeof es.entityLabel==='string' && q('cfgEntityLabel')){
+        q('cfgEntityLabel').value=es.entityLabel;
+        if(es.entityLabel.trim()) q('cfgEntityLabel').dataset.userEdited='1';
+      }
       if(typeof es.htmlName==='string' && q('cfgHtmlName')) q('cfgHtmlName').value=es.htmlName;
       if(typeof es.hostedUrl==='string' && q('cfgHostedUrl')) q('cfgHostedUrl').value=es.hostedUrl;
     }
@@ -2730,7 +2732,7 @@ async function importProjectJson(text){
       if(a.provider && q('aiProvider')) q('aiProvider').value=a.provider;
       if(typeof a.model==='string' && q('aiModel')) q('aiModel').value=a.model;
       if(a.language && q('aiLanguage')) q('aiLanguage').value=a.language;
-      if(a.radarMode && q('radarMode')) q('radarMode').value=a.radarMode;
+      if(a.radarMode && q('radarMode')) q('radarMode').value=(a.radarMode==='keyword'?'keyword':'entity');
       if(typeof a.azureEndpoint==='string' && q('aiAzureEndpoint')) q('aiAzureEndpoint').value=a.azureEndpoint;
       if(typeof a.azureDeployment==='string' && q('aiAzureDeployment')) q('aiAzureDeployment').value=a.azureDeployment;
       if(typeof a.azureVersion==='string' && q('aiAzureVersion')) q('aiAzureVersion').value=a.azureVersion;
@@ -2785,14 +2787,11 @@ function getAiConfig(){
     azureDeployment:q('aiAzureDeployment').value.trim(),
     azureVersion:q('aiAzureVersion').value.trim() || '2024-12-01-preview',
     language:q('aiLanguage').value,
-    radarMode:(q('radarMode') && q('radarMode').value) || 'auto'
+    radarMode:(q('radarMode') && q('radarMode').value) || 'entity'
   };
 }
-let detectedRadarType='';
 function effectiveRadarMode(){
-  const m=(getAiConfig().radarMode) || 'auto';
-  if(m==='entity' || m==='keyword') return m;
-  return (detectedRadarType==='entity' || detectedRadarType==='keyword') ? detectedRadarType : 'auto';
+  return getAiConfig().radarMode==='keyword' ? 'keyword' : 'entity';
 }
 const AI_MODEL_CATALOG = {
   anthropic:[
@@ -2902,7 +2901,8 @@ function loadAiConfig(){
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
   q('aiLanguage').value=cfg.language||'en';
-  if(q('radarMode')) q('radarMode').value=cfg.radarMode||'auto';
+  if(q('radarMode')) q('radarMode').value=(cfg.radarMode==='keyword'?'keyword':'entity');
+  syncEntityLabelToRadarType();
   refreshModelOptions({preserve:true});
   refreshProviderFields();
   updatePptxImportVisibility(!!cfg.pptxAlphaEnabled);
@@ -2919,8 +2919,8 @@ function clearAiConfig(){
   q('aiAzureDeployment').value='';
   q('aiAzureVersion').value='2024-12-01-preview';
   q('aiLanguage').value='en';
-  if(q('radarMode')) q('radarMode').value='auto';
-  detectedRadarType='';
+  if(q('radarMode')) q('radarMode').value='entity';
+  syncEntityLabelToRadarType();
   refreshProviderFields();
   updatePptxImportVisibility(false);
   updateAiStatus();
@@ -2932,20 +2932,17 @@ function imagePayload(){
 }
 function detectionInstructionsBody(){
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
-  const mode=getAiConfig().radarMode || 'auto';
-  const isAuto=mode==='auto';
+  const mode=effectiveRadarMode();
   const kindLine = mode==='entity'
     ? 'Radar type: this radar plots companies/products. Each item is a company or product logo or wordmark.'
-    : mode==='keyword'
-    ? 'Radar type: this radar plots keywords/topics. Each item is a short keyword or term text label, not a company logo.'
-    : 'Radar type: AUTO. This radar plots EITHER companies/products (logos, wordmarks) OR keywords/topics (short text labels). Inspect the image, decide which kind it is, then detect every item accordingly.';
+    : 'Radar type: this radar plots keywords/topics. Each item is a short keyword or term text label, not a company logo.';
   return `Task: detect every visible item placed on the radar image and return a JSON list of zones.
 ${kindLine}
 Expected language for any human-readable text: ${language}.
 
 Output (the ONLY thing you return):
-${isAuto ? '{"radarType":"entity"|"keyword","zones":[ {zone}, {zone}, ... ]}' : '{"zones":[ {zone}, {zone}, ... ]}'}
-${isAuto ? '"radarType": "entity" if the radar plots companies/products, "keyword" if it plots keywords/topics.\n' : ''}
+{"zones":[ {zone}, {zone}, ... ]}
+
 Each zone object has EXACTLY these fields:
 - id: string, sequential "z001","z002",... (or keep existing id if the zone matches a provided candidateZone)
 - shape: "rect" | "circle" | "diamond" | "poly"
@@ -2968,8 +2965,8 @@ Naming:
 - If an item is clearly present but unreadable: name="zone_XXX" (matching id), ocrCandidate="", confidence in [0.05,0.25].
 
 Forbidden:
-- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above${isAuto ? ' (besides the single top-level "radarType")' : ''} (RadarMapper fills these locally).
-- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return ${isAuto ? '{"radarType":...,"zones":[...]}' : '{"zones":[...]}'}.
+- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above (RadarMapper fills these locally).
+- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return {"zones":[...]}.
 - Do NOT wrap JSON in markdown fences or add any prose before/after.
 - Do NOT include comments or trailing commas.`;
 }
@@ -3128,8 +3125,7 @@ Rules:
 
 ${list}`;
   }
-  if(mode==='entity'){
-    return `For each company/organization name below, use web search to verify it exists and find its official information.
+  return `For each company/organization name below, use web search to verify it exists and find its official information.
 
 Return ONLY this JSON (no prose, no markdown fences):
 {"enriched":[{"name":"<input name verbatim>","canonicalName":"<official name or empty>","url":"<official homepage HTTPS or empty>","description":"<one concise sentence in ${language} or empty>","logo":"<direct image URL of the logo or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
@@ -3141,19 +3137,6 @@ Rules:
 - Prefer the canonical homepage (https://...). Do NOT include tracking parameters.
 - "logo" must be a direct image URL ending in .png/.jpg/.svg/.webp when possible; empty otherwise.
 - "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the entity's domain, product type, technology, and market. Examples: "cloud security", "siem", "iam", "endpoint protection". No duplicates. [] if unknown.
-
-${list}`;
-  }
-  return `Each item below comes from a radar that may plot companies/products OR keywords/topics. For EACH item, first decide whether it is a company/product or a keyword/concept, then enrich it accordingly.
-
-Return ONLY this JSON (no prose, no markdown fences):
-{"enriched":[{"name":"<input name verbatim>","kind":"entity"|"keyword","canonicalName":"<official name or empty>","url":"<official HTTPS homepage or empty>","description":"<concise text in ${language}>","logo":"<direct logo image URL or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
-
-Rules:
-- One entry per input, in the SAME order, with "name" matching the input exactly.
-- If the item is a company/product ("kind":"entity"): use web search to find its official homepage (url), a one-sentence description, and a direct logo image URL. Leave a field empty rather than guessing; never fabricate URLs. "verified" is true only if web search confirmed it.
-- If the item is a keyword/concept ("kind":"keyword"): leave url and logo empty; "description" is 2 to 3 sentences in ${language} explaining what the term means and why it matters for a CISO. "verified" is true.
-- "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the domain and related themes. No duplicates. [] if unknown.
 
 ${list}`;
 }
@@ -3292,10 +3275,19 @@ function parseJsonFromText(text){
   return parsed;
 }
 q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
-['aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage','radarMode'].forEach(id=>{
+['aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
   q(id).addEventListener('input',updateAiStatus);
   q(id).addEventListener('change',updateAiStatus);
 });
+function syncEntityLabelToRadarType(){
+  const labelInput=q('cfgEntityLabel');
+  if(!labelInput || labelInput.dataset.userEdited==='1') return;
+  labelInput.value=effectiveRadarMode()==='keyword' ? 'Keyword' : 'Company';
+  if(typeof updateExportPreview==='function') updateExportPreview();
+}
+if(q('radarMode')){
+  q('radarMode').addEventListener('change',()=>{ updateAiStatus(); syncEntityLabelToRadarType(); });
+}
 q('enablePptxAlpha').addEventListener('change',()=>updatePptxImportVisibility(q('enablePptxAlpha').checked));
 q('saveAiConfig').onclick=saveAiConfig;
 q('testAiConfig').onclick=async()=>{
@@ -3368,11 +3360,6 @@ q('runAiMapping').onclick=async()=>{
     setDetectionProgress(80,'parsing JSON');
     const data=parseJsonFromText(text);
     if(!data || !Array.isArray(data.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
-    if((cfg.radarMode||'auto')==='auto' && (data.radarType==='entity' || data.radarType==='keyword')){
-      detectedRadarType=data.radarType;
-      logAnalysis(`Radar type auto-detected from the image: ${data.radarType}.`);
-      appendLlmInAppTrace(`Auto radar type detected: ${data.radarType}.`);
-    }
     setDetectionProgress(90,'matching against CSV');
     const recordsByKey=new Map();
     (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
@@ -4381,6 +4368,7 @@ function refreshExportRenderPreview(){
   q(id).addEventListener('input',updateExportPreview);
   q(id).addEventListener('change',updateExportPreview);
 });
+q('cfgEntityLabel').addEventListener('input',()=>{ q('cfgEntityLabel').dataset.userEdited='1'; });
 ['cfgHoverFill','cfgHoverOpacity','cfgHoverStroke','cfgHoverStrokeWidth','cfgPopupShape','cfgPopupPosition','cfgPopupBg','cfgPopupText','cfgPopupBorder','cfgPopupAccent','cfgPopupWidth','cfgPopupFontSize','cfgPopupShadow','cfgPopupLinkLabel','cfgPopupShowLogo','cfgPopupShowDescription','cfgPopupShowLink'].forEach(id=>{
   q(id).addEventListener('input',refreshExportRenderPreview);
   q(id).addEventListener('change',refreshExportRenderPreview);
