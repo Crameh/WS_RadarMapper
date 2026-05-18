@@ -5,8 +5,12 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 ## Fonctionnalités actuelles
 
 - Import visuel radar (`jpg/png/webp/...`).
-- Import d'organisations (`CSV/TSV/TXT/XLS/XLSX/JSON`) pour enrichir les zones.
-- Exemple préchargé avec un visuel radar, un jeu d'organisations et un mapping de zones par défaut.
+- Deux types de radar pris en charge, via le paramètre **Radar type** (menu Configuration) :
+  - **Entities** : entreprises / startups / éditeurs (enrichissement = site officiel + descriptif) ;
+  - **Keywords** : mots-clés / tendances tech (enrichissement = descriptif court orienté lecteur CISO) ;
+  - **Auto** (par défaut) : le LLM déduit le type à partir de l'image.
+- Import facultatif d'un jeu de données (`CSV/TSV/TXT/XLS/XLSX/JSON`). En l'absence de jeu de données, le LLM lit les éléments directement sur l'image et crée la liste automatiquement lors de la détection.
+- Exemple préchargé avec un visuel radar et un mapping de zones par défaut.
 - Import `PPTX` (option **Alpha** désactivée par défaut) :
   - extraction d'une image de slide (thumbnail/média),
   - tentative d'import des formes/images en zones éditables.
@@ -25,13 +29,14 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 
 1. **Prepare**
    - Importer le visuel radar (ou PPTX Alpha si activé).
-   - Importer le fichier d'organisations.
-   - Lancer le mapping LLM (intégré ou externe) puis importer le JSON complété si nécessaire.
+   - (Facultatif) choisir le type de radar dans Configuration ; sinon laisser **Auto**.
+   - (Facultatif) importer un jeu de données — sinon le LLM crée la liste à partir de l'image.
+   - Lancer la détection LLM (intégrée ou externe) puis importer le JSON complété si nécessaire.
+   - Lancer l'enrichissement LLM (site officiel pour un radar d'entreprises, descriptif CISO pour un radar de mots-clés).
 
 2. **Edit**
    - Ajuster les zones.
-   - Vérifier/compléter `name`, `url`, `logo`, `description`.
-   - Confirmer les liens zone ↔ organisation.
+   - Vérifier/compléter le nom et le descriptif (les champs `url`/`logo` restent disponibles mais ne sont pas affichés à l'export s'ils sont vides).
 
 3. **Export**
    - Choisir le format de sortie.
@@ -43,6 +48,7 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 - Le menu **Configuration** permet :
   - d'activer **PPTX import (Alpha)**,
   - de configurer le fournisseur LLM,
+  - de choisir le **Radar type** (Auto / Entities / Keywords),
   - de choisir un profil de prompt LLM (**Default (new)** par défaut, **Simple (archived)**, **Standard**, **Strict**),
   - de gérer l'auto-save.
 - Les clés API ne sont pas persistées dans `localStorage` (saisie à chaque session).

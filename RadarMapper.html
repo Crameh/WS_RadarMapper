@@ -548,7 +548,7 @@
           </div>
         </div>
       </div>
-      <div class="modeHintLine" id="modeHint">Import radar assets and organization data, then generate clickable zones.</div>
+      <div class="modeHintLine" id="modeHint">Import the radar image, then generate clickable zones.</div>
     </div>
     <div id="stage">
       <div id="stageScaler">
@@ -564,13 +564,13 @@
         </div>
         <label>Zone</label>
         <input id="editPopupId" disabled class="mono">
-        <label>Organization name</label>
+        <label>Name</label>
         <div class="suggestWrap">
-          <input id="editPopupName" autocomplete="off" placeholder="Organization name">
+          <input id="editPopupName" autocomplete="off" placeholder="Name">
           <div id="editPopupNameSuggestions" class="suggestList" role="listbox" hidden></div>
         </div>
-        <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Confirm organization link</button>
-        <p id="editPopupAssociationStatus" class="associationStatus">Organization link to confirm</p>
+        <button id="editPopupConfirmAssociation" class="confirmAssociationBtn" type="button">Confirm item link</button>
+        <p id="editPopupAssociationStatus" class="associationStatus">Item link to confirm</p>
         <label>URL</label>
         <input id="editPopupUrl" placeholder="https://..." inputmode="url">
         <label>Logo (URL or data URI)</label>
@@ -604,11 +604,11 @@
         <div class="sectionHeader">
           <div>
             <h2>Prepare a new radar</h2>
-            <p>Import your radar and organization data, then generate a first set of clickable zones.</p>
+            <p>Import your radar image, then generate a first set of clickable zones. Importing a dataset of names is optional — the LLM can build the list from the image.</p>
           </div>
           <span class="sectionKicker">Step 1</span>
         </div>
-        <p class="prepIntro">This step creates a first draft. You can then review and refine names, links, logos, descriptions, and zone positions in the Edit tab.</p>
+        <p class="prepIntro">This step creates a first draft. You can then review and refine names, descriptions, and zone positions in the Edit tab.</p>
       </div>
 
       <div class="prepSteps">
@@ -617,19 +617,19 @@
           <div>
             <div class="prepStepHeader">
               <h3>Import sources</h3>
-              <p>Start with the radar image, then import the organization dataset used for matching.</p>
+              <p>Start with the radar image. Importing a dataset is optional — without one, the LLM reads the items directly from the image.</p>
             </div>
             <div class="prepStepBody">
               <div class="secondaryActions">
                 <button id="uploadRadarVisual" class="prepBtn" type="button">Radar image (any standard image format)</button>
                 <button id="uploadRadarPptx" class="prepBtn" type="button" hidden>Radar slide (PPTX Alpha)</button>
-                <button id="uploadStructureData" class="prepBtn" type="button">Organization dataset (CSV, XLSX, JSON...)</button>
+                <button id="uploadStructureData" class="prepBtn" type="button">Dataset — companies or keywords (CSV, XLSX, JSON...) — optional</button>
               </div>
               <input id="radarUpload" type="file" accept="image/*" style="display:none">
               <input id="radarPptxUpload" type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" style="display:none">
               <input id="startupDataFile" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,application/json,text/csv,text/tab-separated-values" style="display:none">
-              <p class="actionNote">Supported radar file: image file (<code>jpg</code>, <code>png</code>, <code>webp</code>, etc.). Supported dataset files: <code>csv</code>, <code>tsv</code>, <code>txt</code>, <code>xls</code>, <code>xlsx</code>, <code>json</code>. Required column: <code>name</code> or <code>startup</code>. Recommended columns: <code>url</code>, <code>description</code>, <code>logo</code>, keywords/tags.</p>
-              <p id="startupImportStatus" class="startupImportStatus">No organization dataset file imported.</p>
+              <p class="actionNote">Supported radar file: image file (<code>jpg</code>, <code>png</code>, <code>webp</code>, etc.). Optional dataset files: <code>csv</code>, <code>tsv</code>, <code>txt</code>, <code>xls</code>, <code>xlsx</code>, <code>json</code>. Required column: <code>name</code>. Recommended columns: <code>description</code>, and <code>url</code>/<code>logo</code> for a company radar.</p>
+              <p id="startupImportStatus" class="startupImportStatus">No dataset imported (optional — the LLM can build the list from the radar image).</p>
               <div id="initStatusLine" class="initStatus">Waiting for imports.</div>
             </div>
           </div>
@@ -652,7 +652,7 @@
                     <button id="copyEnrichPrompt" class="prepBtn" type="button">Copy LLM Prompt for data enrichment</button>
                     <button id="exportInitJson" class="prepBtn" type="button">Download Empty Database (JSON)</button>
                   </div>
-                  <p class="actionNote">Files to provide to your LLM: 1) exported initialization JSON, 2) radar image, 3) organization dataset file. Then import the completed JSON below.</p>
+                  <p class="actionNote">Files to provide to your LLM: 1) exported initialization JSON, 2) radar image, 3) optional dataset file. Then import the completed JSON below.</p>
                   <div class="secondaryActions">
                     <button id="importBtn" class="prepBtn" type="button">Import completed JSON</button>
                   </div>
@@ -683,7 +683,7 @@
                     <span id="llmDetectionProgressText" class="enrichProgressText">0%</span>
                   </div>
                   <hr class="prepChoiceDivider">
-                  <p class="actionNote">Run a separate LLM pass with web search to verify each entity in the dataset and fill missing url, description, logo, keywords. Operates only on the dataset — does not change the radar or any zone. Requires Anthropic or OpenAI (not Azure).</p>
+                  <p class="actionNote">Run a separate LLM pass to complete each item: official website and description for a company radar, or a short CISO-oriented description for a keyword radar. Operates only on the list. Run detection first if no dataset was imported, so the list is built from the radar image. Requires Anthropic or OpenAI (not Azure).</p>
                   <div class="primaryAction">
                     <button id="enrichCsvBtn" class="prepBtn primary" type="button">Launch built-in LLM enrichment</button>
                   </div>
@@ -745,12 +745,12 @@
         <div class="sectionHeader">
           <div>
             <h2>Edit zone content</h2>
-            <p>Adjust zone geometry, then confirm each zone is linked to the right organization.</p>
+            <p>Adjust zone geometry, then confirm each zone is linked to the right item.</p>
           </div>
           <span class="sectionKicker">Step 2</span>
         </div>
         <div class="editStatsGrid" aria-label="Edit statistics">
-          <div class="editStatCard"><strong>Organizations:</strong> <span id="statsStructures">0</span> total | <span id="statsStructuresUnassigned">0</span> unassigned</div>
+          <div class="editStatCard"><strong>Items:</strong> <span id="statsStructures">0</span> total | <span id="statsStructuresUnassigned">0</span> unassigned</div>
           <div class="editStatCard"><strong>Zones:</strong> <span id="statsZones">0</span> total | <span id="statsZonesUnassigned">0</span> unassigned | <span id="statsZonesMultiAssigned">0</span> multi-assigned</div>
         </div>
       </div>
@@ -759,19 +759,19 @@
         <div class="prepStep editFlowStep">
           <div>
             <div class="prepStepBody">
-              <div class="editTaskLine"><div class="prepStepNumber">1</div><span>Find unassigned organization and create the zone</span></div>
-              <p class="groupLabel" style="margin-top:10px">Unassigned organizations</p>
-              <p class="small">If you cannot find a logo on the radar, check <strong>No logo</strong>. Marked organizations are moved to the bottom of the list.</p>
-              <p id="pendingCsvCount" class="small">0 unassigned organization(s).</p>
+              <div class="editTaskLine"><div class="prepStepNumber">1</div><span>Find unassigned item and create the zone</span></div>
+              <p class="groupLabel" style="margin-top:10px">Unassigned items</p>
+              <p class="small">If you cannot find the item on the radar, check <strong>No logo</strong>. Marked items are moved to the bottom of the list.</p>
+              <p id="pendingCsvCount" class="small">0 unassigned item(s).</p>
               <div id="pendingCsvList" class="pendingCsvList"></div>
               <div class="editTaskLine"><div class="prepStepNumber">2</div><span>Correct duplicate zones</span></div>
-              <p class="groupLabel" style="margin-top:10px">Duplicate organization links</p>
-              <p id="duplicateAssocCount" class="small">0 organization linked to multiple zones.</p>
+              <p class="groupLabel" style="margin-top:10px">Duplicate item links</p>
+              <p id="duplicateAssocCount" class="small">0 item linked to multiple zones.</p>
               <div id="duplicateAssocList" class="duplicateAssocList"></div>
-              <div class="editTaskLine"><div class="prepStepNumber">3</div><span>Search an organization</span></div>
-              <p class="groupLabel" style="margin-top:10px">Search organization</p>
-              <input id="structureSearchInput" list="startupSuggestions" placeholder="Type an organization name">
-              <p id="structureSearchCount" class="small">No organization selected.</p>
+              <div class="editTaskLine"><div class="prepStepNumber">3</div><span>Search an item</span></div>
+              <p class="groupLabel" style="margin-top:10px">Search item</p>
+              <input id="structureSearchInput" list="startupSuggestions" placeholder="Type an item name">
+              <p id="structureSearchCount" class="small">No item selected.</p>
               <div id="structureSearchZoneList" class="pendingCsvList"></div>
             </div>
           </div>
@@ -825,22 +825,22 @@
               <label>Exported experience (with or without search, with or without category filtering...)</label>
               <select id="cfgExportExperience">
                 <option value="basic">Basic: radar + popups</option>
-                <option value="simple">Simple: radar + popups + search (organization name or description)</option>
+                <option value="simple">Simple: radar + popups + search (name or description)</option>
                 <option value="advanced">Advanced: radar + popups + search and filtering</option>
               </select>
               <label>HTML export filename</label>
               <input id="cfgHtmlName" value="clickable_radar.html">
-              <label>Exported title (Cyber Startup Radar 2026, ...)</label>
+              <label>Exported title (CISO Keyword Radar 2025, ...)</label>
               <input id="cfgExportTitle" value="Clickable radar">
-              <label>Organization label in export (startups, editors, products...)</label>
-              <input id="cfgEntityLabel" value="Organization" placeholder="Organization, Startup, Scale-up, Editor, Supplier...">
+              <label>Entity label in export (companies, keywords, topics...)</label>
+              <input id="cfgEntityLabel" value="Entity" placeholder="Entity, Company, Keyword, Topic...">
               <label>Hosted HTML URL (optional, only for iFrame snippet)</label>
               <input id="cfgHostedUrl" placeholder="https://www.example.com/path/clickable_radar.html">
               <div class="primaryAction">
                 <button id="exportHtml" class="primary" type="button">Export clickable radar</button>
               </div>
               <hr class="prepChoiceDivider">
-              <label>Organization dataset</label>
+              <label>Dataset</label>
               <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file.</p>
               <div class="secondaryActions">
                 <button id="exportCsv" class="prepBtn" type="button">Export dataset as CSV</button>
@@ -963,6 +963,13 @@
           <option value="en">English</option>
           <option value="de">Deutsch</option>
         </select>
+        <label>Radar type</label>
+        <select id="radarMode">
+          <option value="auto">Auto-detect from the radar image</option>
+          <option value="entity">Entities (companies, startups, vendors)</option>
+          <option value="keyword">Keywords (tech trends, topics)</option>
+        </select>
+        <p class="settingsNote">Auto lets the LLM decide whether the radar plots companies/products or keywords/topics. Entity mode enriches each item with its official website; keyword mode writes a short CISO-oriented description of each term.</p>
         <div class="actions">
           <button id="saveAiConfig" class="primary">Save settings</button>
           <button id="testAiConfig">Test connection</button>
@@ -1101,7 +1108,7 @@ const q = id => document.getElementById(id);
 radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
-  initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import radar assets and organization data, then generate clickable zones.'},
+  initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import the radar image, then generate clickable zones.'},
   editPanel:{label:'Edit', title:'Zone editing', hint:'First correct zone geometry, add or remove zones, then edit zone content by double-clicking)'},
   exportPanel:{label:'Export', title:'Export the clickable radar', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
@@ -1262,10 +1269,10 @@ function fillForm(z){
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
-  if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Organization link confirmed';
+  if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Item link confirmed';
   else if(z.llmPrevalidated && z.llmFound===false) q('associationStatus').textContent='Not identified by LLM (no match found)';
   else if(z.llmPrevalidated) q('associationStatus').textContent='Pre-validated by LLM (to confirm)';
-  else q('associationStatus').textContent='Organization link to confirm';
+  else q('associationStatus').textContent='Item link to confirm';
 }
 function fillEditPopup(z){
   q('editPopupId').value=z.id;
@@ -1280,10 +1287,10 @@ function fillEditPopup(z){
   q('editPopupH').value=fmt(z.h);
   q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('editPopupPoints').disabled = z.shape !== 'poly';
-  if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Organization link confirmed';
+  if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Item link confirmed';
   else if(z.llmPrevalidated && z.llmFound===false) q('editPopupAssociationStatus').textContent='Not identified by LLM (no match found)';
   else if(z.llmPrevalidated) q('editPopupAssociationStatus').textContent='Pre-validated by LLM (to confirm)';
-  else q('editPopupAssociationStatus').textContent='Organization link to confirm';
+  else q('editPopupAssociationStatus').textContent='Item link to confirm';
 }
 function updateEditLogoZoom(){
   const zoom=q('editLogoZoom');
@@ -1481,12 +1488,12 @@ function renderStructureSearchSelection(){
   const raw=input.value.trim();
   container.innerHTML='';
   if(!raw){
-    count.textContent='No organization selected.';
+    count.textContent='No item selected.';
     return;
   }
   const record=findStartupRecord(raw);
   if(!record){
-    count.textContent='No exact organization match.';
+    count.textContent='No exact item match.';
     return;
   }
   const linked=zonesLinkedToRecord(record);
@@ -1494,7 +1501,7 @@ function renderStructureSearchSelection(){
   if(!linked.length){
     const row=document.createElement('div');
     row.className='pendingCsvItem';
-    row.textContent='No zone linked to this organization yet.';
+    row.textContent='No zone linked to this item yet.';
     container.appendChild(row);
     return;
   }
@@ -1524,12 +1531,12 @@ function renderPendingCsvList(){
       if(aMarked!==bMarked) return aMarked-bMarked;
       return a.name.localeCompare(b.name);
     });
-  count.textContent=`${pending.length} unassigned organization(s).`;
+  count.textContent=`${pending.length} unassigned item(s).`;
   container.innerHTML='';
   if(!pending.length){
     const done=document.createElement('div');
     done.className='pendingCsvItem';
-    done.textContent='All organizations from the dataset are linked.';
+    done.textContent='All items from the dataset are linked.';
     container.appendChild(done);
     return;
   }
@@ -1579,8 +1586,8 @@ function renderDuplicateAssociations(){
   const duplicates=duplicateAssociations();
   const zoneTotal=duplicates.reduce((sum,group)=>sum+group.zones.length,0);
   count.textContent=duplicates.length
-    ? `${duplicates.length} organization(s) linked to ${zoneTotal} zone(s).`
-    : '0 organizations linked to multiple zones.';
+    ? `${duplicates.length} item(s) linked to ${zoneTotal} zone(s).`
+    : '0 items linked to multiple zones.';
   container.innerHTML='';
   if(!duplicates.length){
     const done=document.createElement('div');
@@ -1735,7 +1742,7 @@ function refreshStartupSuggestions(){
 function updateStartupImportStatus(text){
   const el=q('startupImportStatus');
   if(!el) return;
-  el.textContent = text || (startupRecords.length ? `${startupRecords.length} organization record(s) available for enrichment and autocomplete.` : 'No organization dataset imported yet.');
+  el.textContent = text || (startupRecords.length ? `${startupRecords.length} record(s) available for enrichment and autocomplete.` : 'No dataset imported (optional — the LLM can build the list from the radar image).');
 }
 function findStartupRecord(value){
   const wanted=normalizeName(value);
@@ -1934,7 +1941,7 @@ function exportPopupShape(shape){
 }
 function getExportEntityLabelRaw(){
   const input=q('cfgEntityLabel');
-  return String((input && input.value) || 'Organization').trim() || 'Organization';
+  return String((input && input.value) || 'Entity').trim() || 'Entity';
 }
 function getExportEntityLabels(){
   const singular=getExportEntityLabelRaw();
@@ -2032,7 +2039,7 @@ function applyExportRenderConfig(){
 }
 function popupHtmlForZone(z, cfg=getExportRenderConfig()){
   const url=safeUrl(z && z.url);
-  return `${cfg.showLogo && z && z.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}" onerror="this.hidden=true">` : ''}<strong>${escapeHtml((z && (z.name || z.id)) || 'Zone')}</strong>${cfg.showDescription && z && z.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink ? (url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : '<br><span>URL not set</span>') : ''}`;
+  return `${cfg.showLogo && z && z.logo ? `<img class="popup-logo" src="${escapeHtml(z.logo)}" alt="Logo ${escapeHtml(z.name||z.id)}" onerror="this.hidden=true">` : ''}<strong>${escapeHtml((z && (z.name || z.id)) || 'Zone')}</strong>${cfg.showDescription && z && z.description ? `<p>${escapeHtml(z.description)}</p>` : ''}${cfg.showLink && url ? `<br><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(cfg.popupLinkLabel)}</a>` : ''}`;
 }
 function placePopup(popup, event, cfg=getExportRenderConfig()){
   popup.hidden=false;
@@ -2223,13 +2230,13 @@ q('startupDataFile').onchange=async e=>{
     refreshStartupSuggestions();
     const linked=linkStartupRecordsToZones();
     render();
-    updateStartupImportStatus(`${startupRecords.length} organization record(s) imported. ${linked} zone(s) auto-enriched. Missing logos are skipped.`);
-    setInitStatus(`Organization dataset imported successfully (${startupRecords.length} rows). ${importSummaryLine()}`,'success');
-    logAnalysis(`Organization dataset imported: ${startupRecords.length} record(s), ${linked} zone(s) enriched.`);
+    updateStartupImportStatus(`${startupRecords.length} record(s) imported. ${linked} zone(s) auto-enriched.`);
+    setInitStatus(`Dataset imported successfully (${startupRecords.length} rows). ${importSummaryLine()}`,'success');
+    logAnalysis(`Dataset imported: ${startupRecords.length} record(s), ${linked} zone(s) enriched.`);
   } catch(err){
     updateStartupImportStatus(`Import failed: ${err.message}`);
-    setInitStatus(`Organization data import failed: ${err.message}`,'error');
-    alert(`Organization data import failed: ${err.message}`);
+    setInitStatus(`Dataset import failed: ${err.message}`,'error');
+    alert(`Dataset import failed: ${err.message}`);
   } finally {
     e.target.value='';
   }
@@ -2244,7 +2251,7 @@ if(q('clearStartupData')) q('clearStartupData').onclick=()=>{
   if(q('structureSearchInput')) q('structureSearchInput').value='';
   updateStartupImportStatus();
   render();
-  setInitStatus('Organization dataset cleared from local workspace.','success');
+  setInitStatus('Dataset cleared from local workspace.','success');
 };
 if(q('structureSearchInput')){
   q('structureSearchInput').addEventListener('input',()=>{
@@ -2416,7 +2423,7 @@ function mappedAssociationCount(){
   return zones.filter(z=>!!findStartupRecord(z.name)).length;
 }
 function importSummaryLine(){
-  return `Zones detected: ${zones.length} | Organizations detected: ${startupRecords.length} | Organization links already set: ${mappedAssociationCount()}`;
+  return `Zones detected: ${zones.length} | Items detected: ${startupRecords.length} | Item links already set: ${mappedAssociationCount()}`;
 }
 function updateSaveStatus(text){ const el=q('saveStatusText'); if(el) el.textContent=text; }
 function persistZones({silent=false, reason='manual'} = {}){
@@ -2487,31 +2494,31 @@ function buildProjectJson(source, options={}){
     },
     config:getDetectionConfig(),
     llmInstructions:{
-      goal:'Identify organizations/logos visible in the radar, match each zone to the correct name, and complete the fields without changing the schema.',
+      goal:'Identify every item visible in the radar (company/product logos, or keyword/topic labels), match each zone to the correct name/text, and complete the fields without changing the schema.',
       output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
       zoneRules:[
         'id must remain stable if a zone already exists.',
         'shape is rect, diamond, circle or poly.',
         'x, y, w, h describe the bounding box.',
         'points is empty except for shape=poly, where it contains {x,y} objects.',
-        'name is the recognized public name, url its official website if known, logo an optional URL or data URI, description a short sentence.',
-        'llmFound is true if you identified a reliable name (confidence >= 0.55 and name != zone_XXX), false otherwise.'
+        'name is the company/product name or the keyword text read from the radar; url, logo and description are filled later during enrichment (url and logo apply to a company radar, description applies to both).',
+        'llmFound is true if you read the name/text reliably (confidence >= 0.55 and name != zone_XXX), false otherwise.'
       ]
     },
     examples:{
       zone:{
         id:'z001',
-        name:'Example Security',
-        url:'https://www.example-security.com',
-        logo:'https://www.example-security.com/logo.png',
-        description:'Publisher specializing in application security.',
+        name:'Post Quantum Crypto',
+        url:'',
+        logo:'',
+        description:'Cryptographic algorithms designed to resist attacks from quantum computers.',
         shape:'rect',
         x:120,
         y:80,
         w:96,
         h:42,
         points:[],
-        ocrCandidate:'Example Security',
+        ocrCandidate:'Post Quantum Crypto',
         confidence:0.82,
         llmFound:true
       },
@@ -2548,6 +2555,7 @@ function buildProjectJson(source, options={}){
         provider:a.provider,
         model:a.model,
         language:a.language,
+        radarMode:a.radarMode,
         azureEndpoint:a.azureEndpoint,
         azureDeployment:a.azureDeployment,
         azureVersion:a.azureVersion,
@@ -2587,6 +2595,7 @@ async function importProjectJson(text){
       if(a.provider && q('aiProvider')) q('aiProvider').value=a.provider;
       if(typeof a.model==='string' && q('aiModel')) q('aiModel').value=a.model;
       if(a.language && q('aiLanguage')) q('aiLanguage').value=a.language;
+      if(a.radarMode && q('radarMode')) q('radarMode').value=a.radarMode;
       if(typeof a.azureEndpoint==='string' && q('aiAzureEndpoint')) q('aiAzureEndpoint').value=a.azureEndpoint;
       if(typeof a.azureDeployment==='string' && q('aiAzureDeployment')) q('aiAzureDeployment').value=a.azureDeployment;
       if(typeof a.azureVersion==='string' && q('aiAzureVersion')) q('aiAzureVersion').value=a.azureVersion;
@@ -2629,7 +2638,7 @@ async function importProjectJson(text){
   selectedId=zones[0] ? zones[0].id : null;
   render();
   logAnalysis(`JSON imported: ${zones.length} zone(s).`);
-  if(linked) logAnalysis(`${linked} zone(s) enriched from imported startup data.`);
+  if(linked) logAnalysis(`${linked} zone(s) enriched from the imported dataset.`);
 }
 function getAiConfig(){
   return {
@@ -2640,8 +2649,15 @@ function getAiConfig(){
     azureEndpoint:q('aiAzureEndpoint').value.trim().replace(/\/$/,''),
     azureDeployment:q('aiAzureDeployment').value.trim(),
     azureVersion:q('aiAzureVersion').value.trim() || '2024-12-01-preview',
-    language:q('aiLanguage').value
+    language:q('aiLanguage').value,
+    radarMode:(q('radarMode') && q('radarMode').value) || 'auto'
   };
+}
+let detectedRadarType='';
+function effectiveRadarMode(){
+  const m=(getAiConfig().radarMode) || 'auto';
+  if(m==='entity' || m==='keyword') return m;
+  return (detectedRadarType==='entity' || detectedRadarType==='keyword') ? detectedRadarType : 'auto';
 }
 const AI_MODEL_CATALOG = {
   anthropic:[
@@ -2751,6 +2767,7 @@ function loadAiConfig(){
   q('aiAzureDeployment').value=cfg.azureDeployment||'';
   q('aiAzureVersion').value=cfg.azureVersion||'2024-12-01-preview';
   q('aiLanguage').value=cfg.language||'en';
+  if(q('radarMode')) q('radarMode').value=cfg.radarMode||'auto';
   refreshModelOptions({preserve:true});
   refreshProviderFields();
   updatePptxImportVisibility(!!cfg.pptxAlphaEnabled);
@@ -2767,6 +2784,8 @@ function clearAiConfig(){
   q('aiAzureDeployment').value='';
   q('aiAzureVersion').value='2024-12-01-preview';
   q('aiLanguage').value='en';
+  if(q('radarMode')) q('radarMode').value='auto';
+  detectedRadarType='';
   refreshProviderFields();
   updatePptxImportVisibility(false);
   updateAiStatus();
@@ -2778,36 +2797,44 @@ function imagePayload(){
 }
 function detectionInstructionsBody(){
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
-  return `Task: detect every visible company/product logo in the radar image and return a JSON list of zones.
+  const mode=getAiConfig().radarMode || 'auto';
+  const isAuto=mode==='auto';
+  const kindLine = mode==='entity'
+    ? 'Radar type: this radar plots companies/products. Each item is a company or product logo or wordmark.'
+    : mode==='keyword'
+    ? 'Radar type: this radar plots keywords/topics. Each item is a short keyword or term text label, not a company logo.'
+    : 'Radar type: AUTO. This radar plots EITHER companies/products (logos, wordmarks) OR keywords/topics (short text labels). Inspect the image, decide which kind it is, then detect every item accordingly.';
+  return `Task: detect every visible item placed on the radar image and return a JSON list of zones.
+${kindLine}
 Expected language for any human-readable text: ${language}.
 
 Output (the ONLY thing you return):
-{"zones":[ {zone}, {zone}, ... ]}
-
+${isAuto ? '{"radarType":"entity"|"keyword","zones":[ {zone}, {zone}, ... ]}' : '{"zones":[ {zone}, {zone}, ... ]}'}
+${isAuto ? '"radarType": "entity" if the radar plots companies/products, "keyword" if it plots keywords/topics.\n' : ''}
 Each zone object has EXACTLY these fields:
 - id: string, sequential "z001","z002",... (or keep existing id if the zone matches a provided candidateZone)
 - shape: "rect" | "circle" | "diamond" | "poly"
 - x,y,w,h: integers in image pixel coordinates (origin top-left). Must satisfy 0<=x, 0<=y, x+w<=${IMG_W}, y+h<=${IMG_H}.
 - points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.
-- name: the recognized organization/product name from the logo. Use "zone_XXX" (matching the id number) only when the logo is unreadable.
-- ocrCandidate: the raw text you read from the logo (may equal name, or "" if no readable text).
-- confidence: number in [0,1] reflecting your certainty in the name.
+- name: the company/product name read from the logo, or the keyword/term text exactly as written. Use "zone_XXX" (matching the id number) only when the item is unreadable.
+- ocrCandidate: the raw text you read for that item (may equal name, or "" if no readable text).
+- confidence: number in [0,1] reflecting your certainty in the name/text.
 
 Detection rules:
-- Detect each individual company/product logo or wordmark, including those in side bands (scale-ups, unicorns, etc.).
-- Ignore category labels, axis/ring labels, titles, legends, decorations, and publisher branding.
-- One zone per visible logo; do not merge neighbours; do not duplicate.
-- Fit the bounding box tightly to the logo + its wordmark when both belong to the same brand block. Choose the shape that best matches (rect for wordmarks, circle/diamond for compact marks, poly only if materially better).
+- Detect each individual item placed on the radar: logos/wordmarks for a company radar, or short text labels for a keyword radar.
+- Ignore sector/category names, axis/ring labels, the radar title, legends, decorations, and publisher branding.
+- One zone per visible item; do not merge neighbours; do not duplicate.
+- Fit the bounding box tightly around the item, including text or wordmarks that wrap onto two or more lines for the same item. Use "rect" unless another shape clearly fits better.
 - Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.
 
 Naming:
-- If a "knownEntities" list is provided in the CONTEXT below, prefer matching the visible logo to one of those names (case/accents/punctuation insensitive). Output that canonical name in "name".
-- Otherwise, use the visible name you can read.
-- If the logo is clearly present but unreadable: name="zone_XXX" (matching id), ocrCandidate="", confidence in [0.05,0.25].
+- If a "knownEntities" list is provided in the CONTEXT below, prefer matching the visible item to one of those names (case/accents/punctuation insensitive). Output that canonical name in "name".
+- Otherwise, no list is provided: read every item directly from the image and build the list yourself, using the visible name/text as "name".
+- If an item is clearly present but unreadable: name="zone_XXX" (matching id), ocrCandidate="", confidence in [0.05,0.25].
 
 Forbidden:
-- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above (RadarMapper fills these locally).
-- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return {"zones":[...]}.
+- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above${isAuto ? ' (besides the single top-level "radarType")' : ''} (RadarMapper fills these locally).
+- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return ${isAuto ? '{"radarType":...,"zones":[...]}' : '{"zones":[...]}'}.
 - Do NOT wrap JSON in markdown fences or add any prose before/after.
 - Do NOT include comments or trailing commas.`;
 }
@@ -2840,12 +2867,12 @@ function externalLlmInstructions(){
   return `${detectionInstructionsBody()}
 
 ${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
-The radar image, the organization dataset (CSV/JSON) and the radar_initialization.json file are attached separately. Use:
-- the radar image to detect logos and compute pixel coordinates;
-- the organization dataset (or the "startupRecords" field in the attached JSON) as the "knownEntities" list for name matching;
+The radar image and the radar_initialization.json file are attached separately. A dataset of known names (CSV/JSON) may also be attached, but it is optional. Use:
+- the radar image to detect every item and compute pixel coordinates;
+- the attached dataset (or the "startupRecords" field in the attached JSON), if provided, as the "knownEntities" list for name matching; if none is provided, build the list directly from the image;
 - the "image.width" and "image.height" from the attached JSON to validate coordinate bounds.
 
-For dataset enrichment (URLs, descriptions, logos, keywords), use the separate "Copy enrichment prompt" button — it generates a dedicated web-search prompt.`;
+For item enrichment, use the separate "Copy enrichment prompt" button — it generates a dedicated prompt (official website for a company radar, or a short CISO-oriented description for a keyword radar).`;
 }
 async function extractApiError(res){
   const text=await res.text();
@@ -2948,10 +2975,29 @@ async function testAnthropic(cfg){
   return res.json();
 }
 function enrichBatchPrompt(names){
-  return `For each company/organization name below, use web search to verify it exists and find its official information.
+  const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
+  const mode=effectiveRadarMode();
+  const list=`Items (${names.length}):\n${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}`;
+  if(mode==='keyword'){
+    return `For each cybersecurity keyword/term below, write a short description of what it means, written for a CISO (Chief Information Security Officer) audience.
 
 Return ONLY this JSON (no prose, no markdown fences):
-{"enriched":[{"name":"<input name verbatim>","canonicalName":"<official name or empty>","url":"<official homepage HTTPS or empty>","description":"<one concise sentence in English or empty>","logo":"<direct image URL of the logo or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
+{"enriched":[{"name":"<input name verbatim>","description":"<2-3 concise sentences in ${language}>","keywords":["<short tag>", ...],"verified":true}]}
+
+Rules:
+- One entry per input, in the SAME order, with "name" matching the input exactly.
+- "description": 2 to 3 sentences written in ${language}. Explain what the keyword/term means and why it matters from a CISO / security strategy standpoint. Keep it factual, vendor-neutral, with no marketing language.
+- You may use web search to confirm the meaning of an unfamiliar or recent term; never fabricate.
+- "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the domain and related themes of the term. Examples: "cloud security", "siem", "iam", "endpoint protection". No duplicates. [] if unknown.
+- "verified" is always true.
+
+${list}`;
+  }
+  if(mode==='entity'){
+    return `For each company/organization name below, use web search to verify it exists and find its official information.
+
+Return ONLY this JSON (no prose, no markdown fences):
+{"enriched":[{"name":"<input name verbatim>","canonicalName":"<official name or empty>","url":"<official homepage HTTPS or empty>","description":"<one concise sentence in ${language} or empty>","logo":"<direct image URL of the logo or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
 
 Rules:
 - One entry per input, in the SAME order, with "name" matching the input exactly.
@@ -2961,8 +3007,20 @@ Rules:
 - "logo" must be a direct image URL ending in .png/.jpg/.svg/.webp when possible; empty otherwise.
 - "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the entity's domain, product type, technology, and market. Examples: "cloud security", "siem", "iam", "endpoint protection". No duplicates. [] if unknown.
 
-Names (${names.length}):
-${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}`;
+${list}`;
+  }
+  return `Each item below comes from a radar that may plot companies/products OR keywords/topics. For EACH item, first decide whether it is a company/product or a keyword/concept, then enrich it accordingly.
+
+Return ONLY this JSON (no prose, no markdown fences):
+{"enriched":[{"name":"<input name verbatim>","kind":"entity"|"keyword","canonicalName":"<official name or empty>","url":"<official HTTPS homepage or empty>","description":"<concise text in ${language}>","logo":"<direct logo image URL or empty>","keywords":["<short tag>", ...],"verified":<true|false>}]}
+
+Rules:
+- One entry per input, in the SAME order, with "name" matching the input exactly.
+- If the item is a company/product ("kind":"entity"): use web search to find its official homepage (url), a one-sentence description, and a direct logo image URL. Leave a field empty rather than guessing; never fabricate URLs. "verified" is true only if web search confirmed it.
+- If the item is a keyword/concept ("kind":"keyword"): leave url and logo empty; "description" is 2 to 3 sentences in ${language} explaining what the term means and why it matters for a CISO. "verified" is true.
+- "keywords": 3 to 8 short tags (1-3 words each), lowercase, describing the domain and related themes. No duplicates. [] if unknown.
+
+${list}`;
 }
 async function callOpenAiEnrichBatch(cfg,names){
   const prompt=enrichBatchPrompt(names);
@@ -3093,7 +3151,7 @@ function parseJsonFromText(text){
   return parsed;
 }
 q('aiProvider').onchange=()=>{ refreshModelOptions({preserve:false}); refreshProviderFields(); };
-['aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage'].forEach(id=>{
+['aiModel','aiApiKey','aiAzureEndpoint','aiAzureDeployment','aiAzureVersion','aiLanguage','radarMode'].forEach(id=>{
   q(id).addEventListener('input',updateAiStatus);
   q(id).addEventListener('change',updateAiStatus);
 });
@@ -3154,7 +3212,7 @@ q('runAiMapping').onclick=async()=>{
       appendLlmInAppTrace(`Candidate zones provided: ${candidateZones.length}`);
     } else {
       appendLlmInAppTrace('No candidate zones provided. LLM must detect and create zones from scratch.');
-      logAnalysis('No existing zones: LLM will create zones from image and startup dataset.');
+      logAnalysis('No existing zones: LLM will create zones from the radar image.');
     }
     logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
@@ -3169,6 +3227,11 @@ q('runAiMapping').onclick=async()=>{
     setDetectionProgress(80,'parsing JSON');
     const data=parseJsonFromText(text);
     if(!data || !Array.isArray(data.zones) || !data.zones.length) throw new Error('LLM response contains no usable zones.');
+    if((cfg.radarMode||'auto')==='auto' && (data.radarType==='entity' || data.radarType==='keyword')){
+      detectedRadarType=data.radarType;
+      logAnalysis(`Radar type auto-detected from the image: ${data.radarType}.`);
+      appendLlmInAppTrace(`Auto radar type detected: ${data.radarType}.`);
+    }
     setDetectionProgress(90,'matching against CSV');
     const recordsByKey=new Map();
     (Array.isArray(startupRecords)?startupRecords:[]).forEach(r=>{
@@ -3199,6 +3262,27 @@ q('runAiMapping').onclick=async()=>{
     appendLlmInAppTrace(`Local match: ${matchedCount}/${data.zones.length} zone(s) linked to a known entity.`);
     setDetectionProgress(95,'importing zones');
     await importProjectJson(JSON.stringify(data));
+    if(!Array.isArray(startupRecords) || !startupRecords.length){
+      const seen=new Set(); const derived=[];
+      zones.forEach(z=>{
+        if(!z.name || isGenericZoneName(z.name)) return;
+        const k=normalizeName(z.name);
+        if(!k || seen.has(k)) return;
+        seen.add(k);
+        const record=startupRecordFromObject({name:z.name});
+        if(record) derived.push(record);
+      });
+      if(derived.length){
+        startupRecords=derived;
+        persistStartupRecords();
+        refreshStartupSuggestions();
+        renderPendingCsvList();
+        const itemLabel=effectiveRadarMode()==='entity' ? 'entities' : 'keywords';
+        updateStartupImportStatus(`${derived.length} ${itemLabel} auto-created from the radar image. Run enrichment to complete their details.`);
+        logAnalysis(`No list imported: ${derived.length} ${itemLabel} auto-created from the detected zones.`);
+        appendLlmInAppTrace(`Auto-created list from detection: ${derived.length} ${itemLabel}.`);
+      }
+    }
     setDetectionProgress(100,'done');
     setLlmInAppHint('completed successfully');
     setLlmInAppStatus(`LLM status: completed successfully. ${importSummaryLine()}`,'success');
@@ -3519,7 +3603,7 @@ q('resetLocalBase').onclick=()=>{
   persistStartupRecords();
   safeStorageRemove(noLogoStorageKey);
   refreshStartupSuggestions();
-  updateStartupImportStatus('No organization dataset file imported.');
+  updateStartupImportStatus('No dataset imported (optional — the LLM can build the list from the radar image).');
   if(q('structureSearchInput')) q('structureSearchInput').value='';
   if(q('editPopupName')) q('editPopupName').value='';
   q('radarUpload').value='';
@@ -3777,7 +3861,7 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
   const show=(hotspot,event)=>{
     const url=hotspot.dataset.url||'';
     if(!popup) return;
-    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'" onerror="this.hidden=true">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink ? (url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Visit website')+'</a>' : '<br><span>URL not set</span>') : '');
+    popup.innerHTML=(cfg.showLogo && hotspot.dataset.logo ? '<img class="popup-logo" src="'+esc(hotspot.dataset.logo)+'" alt="Logo '+esc(hotspot.dataset.name||'Zone')+'" onerror="this.hidden=true">' : '')+'<strong>'+esc(hotspot.dataset.name||'Zone')+'</strong>'+(cfg.showDescription && hotspot.dataset.description ? '<p>'+esc(hotspot.dataset.description)+'</p>' : '')+(cfg.showLink && url ? '<br><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(cfg.popupLinkLabel||'Visit website')+'</a>' : '');
     popup.hidden=false;
     const rect=root.getBoundingClientRect();
     if(cfg.popupPosition==='center'){
@@ -3852,7 +3936,7 @@ function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClas
   const canvasSelector=`.${containerClass} .rm-canvas`;
   return `<style>${css}${responsiveCss}</style><div class="${containerClass}" data-radarmapper-embed data-radarmapper-interface>${controlsHtml}<div class="rm-canvas"><img src="${IMAGE_DATA}" alt="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${svgMarkupForCms('rm')}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div>${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rm-hotspot', cfg)+exportInterfaceScript(rootSelector, '.rm-hotspot', experience) : ''}`;
 }
-function exportReallyNiceScript(rootSelector, hotspotSelector='.rrn-hotspot', entityLabel='Organization'){
+function exportReallyNiceScript(rootSelector, hotspotSelector='.rrn-hotspot', entityLabel='Entity'){
   return `<scr${''}ipt>
 (function(){
   const entityLabel=${safeScriptJson(entityLabel)};
@@ -3971,7 +4055,8 @@ function buildReallyReallyNiceSnippet(containerClass='radarmapper-wow', layerCla
     return `<g class="rrn-hotspot" ${zoneDataAttributes(z)} tabindex="0" role="button" aria-label="${dataName}">${zoneShapeMarkup(z,'rrn-zone')}</g>`;
   }).join('\n');
   const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
-  const body=`<div class="${containerClass}" data-radarmapper-embed><div class="rrn-shell"><div class="rrn-head"><div><h2 class="rrn-title">${title}</h2><p class="rrn-sub">Search with <kbd>/</kbd>, filter by category, and jump directly to any ${escapeHtml(entity.lower)}.</p></div><div class="rrn-kpis"><div class="rrn-kpi"><b data-rrn-visible>0</b><span>Visible</span></div><div class="rrn-kpi"><b data-rrn-total>0</b><span>Total zones</span></div><div class="rrn-kpi"><b data-rrn-with-url>0</b><span>With URL</span></div></div></div><div class="rrn-main"><aside class="rrn-panel"><div class="rrn-tools"><input class="rrn-search" type="search" data-rrn-search placeholder="Search ${escapeHtml(entity.lower)}, description, category, keywords..."><div class="rrn-row"><label class="rrn-toggle"><input data-rrn-url-only type="checkbox"> Only with URL</label><button class="rrn-btn" data-rrn-reset type="button">Reset</button></div><div class="rrn-facetbox"><label>Categories</label><div class="rrn-chiprow" data-rrn-categories></div></div><div class="rrn-selected">Category: <strong data-rrn-selected-category>All</strong></div><div class="rrn-results" data-rrn-results></div></div></aside><div class="rrn-canvas"><img src="${IMAGE_DATA}" alt="${title}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${spots}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div></div></div>`;
+  const hasAnyUrl=zones.some(z=>z && z.url);
+  const body=`<div class="${containerClass}" data-radarmapper-embed><div class="rrn-shell"><div class="rrn-head"><div><h2 class="rrn-title">${title}</h2><p class="rrn-sub">Search with <kbd>/</kbd>, filter by category, and jump directly to any ${escapeHtml(entity.lower)}.</p></div><div class="rrn-kpis"><div class="rrn-kpi"><b data-rrn-visible>0</b><span>Visible</span></div><div class="rrn-kpi"><b data-rrn-total>0</b><span>Total zones</span></div>${hasAnyUrl?'<div class="rrn-kpi"><b data-rrn-with-url>0</b><span>With URL</span></div>':''}</div></div><div class="rrn-main"><aside class="rrn-panel"><div class="rrn-tools"><input class="rrn-search" type="search" data-rrn-search placeholder="Search ${escapeHtml(entity.lower)}, description, category, keywords..."><div class="rrn-row">${hasAnyUrl?'<label class="rrn-toggle"><input data-rrn-url-only type="checkbox"> Only with URL</label>':''}<button class="rrn-btn" data-rrn-reset type="button">Reset</button></div><div class="rrn-facetbox"><label>Categories</label><div class="rrn-chiprow" data-rrn-categories></div></div><div class="rrn-selected">Category: <strong data-rrn-selected-category>All</strong></div><div class="rrn-results" data-rrn-results></div></div></aside><div class="rrn-canvas"><img src="${IMAGE_DATA}" alt="${title}"><svg class="${layerClass}" viewBox="0 0 ${IMG_W} ${IMG_H}" preserveAspectRatio="none">${spots}</svg><div id="${popupId}" class="rm-popup" hidden></div></div></div></div></div>`;
   return `<style>${css}</style>${body}${includeScript ? exportPopupScript(canvasSelector, `#${popupId}`, '.rrn-hotspot', cfg)+exportReallyNiceScript(rootSelector, '.rrn-hotspot', entity.singular) : ''}`;
 }
 function buildCmsSnippet(containerClass='rm-radar', layerClass='rm-layer', includeScript=true){
@@ -4069,7 +4154,7 @@ q('enrichCsvBtn').onclick=async()=>{
   if(!cfg.apiKey || !cfg.model){ setEnrichStatus('missing provider/model/API key.'); alert('Configure the LLM provider, model and API key first.'); return; }
   if(cfg.provider==='azure'){ setEnrichStatus('Azure OpenAI does not expose web search.'); alert('Dataset enrichment requires Anthropic or OpenAI (direct). Azure OpenAI does not expose a standard web_search tool.'); return; }
   if(cfg.provider!=='anthropic' && cfg.provider!=='openai'){ setEnrichStatus(`provider "${cfg.provider}" not supported.`); alert(`Dataset enrichment requires Anthropic or OpenAI. Current provider: ${cfg.provider}.`); return; }
-  if(!Array.isArray(startupRecords) || !startupRecords.length){ setEnrichStatus('no dataset loaded.'); alert('Import a CSV/JSON dataset first.'); return; }
+  if(!Array.isArray(startupRecords) || !startupRecords.length){ setEnrichStatus('no dataset available.'); alert('No dataset available yet. Import one, or run LLM detection first so the list is built from the radar image.'); return; }
   try{
     q('enrichCsvBtn').disabled=true;
     q('enrichCsvBtn').textContent='Enriching...';
