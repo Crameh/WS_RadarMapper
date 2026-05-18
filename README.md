@@ -5,10 +5,10 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 ## Fonctionnalités actuelles
 
 - Import visuel radar (`jpg/png/webp/...`).
-- Deux types de radar pris en charge, via le paramètre **Radar type** (menu Configuration) :
-  - **Entities** : entreprises / startups / éditeurs (enrichissement = site officiel + descriptif) ;
-  - **Keywords** : mots-clés / tendances tech (enrichissement = descriptif court orienté lecteur CISO) ;
-  - **Auto** (par défaut) : le LLM déduit le type à partir de l'image.
+- Deux types de radar pris en charge, choisis explicitement via le sélecteur **Radar type** de l'onglet Prepare (étape 1) :
+  - **Entities / Logos** : entreprises / startups / éditeurs / produits (enrichissement = site officiel + descriptif) ;
+  - **Keywords** : mots-clés / tendances tech (enrichissement = descriptif court orienté lecteur CISO).
+  - Ce choix pilote la détection, l'enrichissement et le libellé d'export.
 - Import facultatif d'un jeu de données (`CSV/TSV/TXT/XLS/XLSX/JSON`). En l'absence de jeu de données, le LLM lit les éléments directement sur l'image et crée la liste automatiquement lors de la détection.
 - Exemple préchargé avec un visuel radar et un mapping de zones par défaut.
 - Import `PPTX` (option **Alpha** désactivée par défaut) :
@@ -28,8 +28,8 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 ## Workflow recommandé
 
 1. **Prepare**
+   - Choisir le **Radar type** (Entities / Logos ou Keywords) à l'étape 1.
    - Importer le visuel radar (ou PPTX Alpha si activé).
-   - (Facultatif) choisir le type de radar dans Configuration ; sinon laisser **Auto**.
    - (Facultatif) importer un jeu de données — sinon le LLM crée la liste à partir de l'image.
    - Lancer la détection LLM (intégrée ou externe) puis importer le JSON complété si nécessaire.
    - Lancer l'enrichissement LLM (site officiel pour un radar d'entreprises, descriptif CISO pour un radar de mots-clés).
@@ -45,10 +45,10 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
 
 ## Configuration
 
+- Le **Radar type** (Entities / Logos ou Keywords) se choisit directement dans l'onglet Prepare, étape 1.
 - Le menu **Configuration** permet :
   - d'activer **PPTX import (Alpha)**,
   - de configurer le fournisseur LLM,
-  - de choisir le **Radar type** (Auto / Entities / Keywords),
   - de choisir un profil de prompt LLM (**Default (new)** par défaut, **Simple (archived)**, **Standard**, **Strict**),
   - de gérer l'auto-save.
 - Les clés API ne sont pas persistées dans `localStorage` (saisie à chaque session).
