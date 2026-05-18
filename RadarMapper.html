@@ -2613,10 +2613,7 @@ function getDetectionConfig(){
 }
 function buildProjectJson(source, options={}){
   const includeImageData = options.includeImageData !== false;
-  const normalizedCoords = options.coordSpace==='normalized';
-  const ex = normalizedCoords
-    ? {z:{x:0.063,y:0.073,w:0.05,h:0.038}, p:{x:0.135,y:0.11,w:0.042,h:0.055, points:[{x:0.156,y:0.11},{x:0.177,y:0.137},{x:0.156,y:0.165},{x:0.135,y:0.137}]}}
-    : {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
+  const ex = {z:{x:120,y:80,w:96,h:42}, p:{x:260,y:120,w:80,h:60, points:[{x:300,y:120},{x:340,y:150},{x:300,y:180},{x:260,y:150}]}};
   return {
     schema:'wavestone-radar-mapper-v1',
     source,
@@ -2628,22 +2625,16 @@ function buildProjectJson(source, options={}){
     imageAttachment:{
       required:true,
       expectedContent:'The same radar visual used to generate this JSON',
-      coordinateSystem: normalizedCoords
-        ? 'Normalized coordinates in [0,1], origin at top-left (0,0): x and w are fractions of image width, y and h fractions of image height'
-        : 'Pixel coordinates in the image space, origin at top-left (0,0)'
+      coordinateSystem:'Pixel coordinates in the image space, origin at top-left (0,0): x and w along the image width, y and h along the image height.'
     },
     config:getDetectionConfig(),
     llmInstructions:{
       goal:'Identify every item visible in the radar (company/product logos, or keyword/topic labels), match each zone to the correct name/text, and complete the fields without changing the schema.',
-      output: normalizedCoords
-        ? 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are normalized fractions in [0,1] relative to the image (x and w by width; y and h by height).'
-        : 'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are in pixels in the image coordinate system.',
+      output:'Return only valid JSON. Keep image.width, image.height, config and zones. Coordinates are integer pixels in the image coordinate system.',
       zoneRules:[
-        'id must remain stable if a zone already exists.',
+        'id is a unique zone identifier such as "z001".',
         'shape is rect, diamond, circle or poly.',
-        normalizedCoords
-          ? 'x, y, w, h describe the bounding box as fractions in [0,1] (x and w relative to image width; y and h relative to image height).'
-          : 'x, y, w, h describe the bounding box.',
+        'x, y, w, h describe the bounding box in image pixels (top-left origin).',
         'points is empty except for shape=poly, where it contains {x,y} objects.',
         'name is the company/product name or the keyword text read from the radar; url, logo and description are filled later during enrichment (url and logo apply to a company radar, description applies to both).',
         'llmFound is true if you read the name/text reliably (confidence >= 0.55 and name != zone_XXX), false otherwise.'
@@ -2714,15 +2705,12 @@ function buildProjectJson(source, options={}){
     zones
   };
 }
-async function importProjectJson(text,options={}){
+async function importProjectJson(text){
   const data=JSON.parse(text);
-  const normalizedCoords=options.coordSpace==='normalized';
   if(Array.isArray(data)){
-    if(normalizedCoords) data.forEach(denormalizeLlmZone);
     zones=data.map(normalizeImportedZone);
   } else {
     if(data.image && data.image.dataUrl && /^data:image\//.test(data.image.dataUrl)){ setRadarImage(data.image.dataUrl, data.image.width||IMG_W, data.image.height||IMG_H); }
-    if(normalizedCoords && Array.isArray(data.zones)) data.zones.forEach(denormalizeLlmZone);
     zones=Array.isArray(data.zones) ? data.zones.map(normalizeImportedZone) : [];
     // Legacy project files may include local-detection config values.
     // They are ignored because local detection is no longer used.
@@ -2943,57 +2931,62 @@ function imagePayload(){
   const mediaType=(header.match(/data:([^;]+)/)||[])[1] || 'image/png';
   return {mediaType,data};
 }
-function detectionInstructionsBody(coordMode='pixel'){
+function detectionInstructionsBody(){
   const language={fr:'French',de:'German'}[getAiConfig().language] || 'English';
   const mode=effectiveRadarMode();
   const kindLine = mode==='entity'
-    ? 'Radar type: this radar plots companies/products. Each item is a company or product logo or wordmark.'
-    : 'Radar type: this radar plots keywords/topics. Each item is a short keyword or term text label, not a company logo.';
-  const normalized = coordMode==='normalized';
-  const coordSpecLine = normalized
-    ? '- x,y,w,h: numbers in [0,1] normalized to the image (x and w as fractions of image width, y and h as fractions of image height; origin top-left). Must satisfy 0<=x, 0<=y, x+w<=1, y+h<=1.'
-    : `- x,y,w,h: integers in image pixel coordinates (origin top-left). Must satisfy 0<=x, 0<=y, x+w<=${IMG_W}, y+h<=${IMG_H}.`;
-  const pointsSpecLine = normalized
-    ? '- points: [] unless shape="poly", in which case [{"x":num,"y":num},...] with each value normalized to [0,1] (x by image width, y by image height).'
-    : '- points: [] unless shape="poly", in which case [{"x":int,"y":int},...] in absolute image pixels.';
-  const coordRuleLine = normalized
-    ? '- Report every coordinate as a fraction of the image (0 = left/top edge, 1 = right/bottom edge), independent of pixel resolution; never output raw pixel values.'
-    : `- Use the actual image dimensions ${IMG_W}x${IMG_H}, not any rendered preview size.`;
-  return `Task: detect every visible item placed on the radar image and return a JSON list of zones.
-${kindLine}
-Expected language for any human-readable text: ${language}.
+    ? 'This radar plots COMPANIES or PRODUCTS. Every item on it is a company/product logo or wordmark.'
+    : 'This radar plots KEYWORDS or TOPICS. Every item on it is a short keyword or term written as plain text (not a company logo).';
+  const itemWord = mode==='entity' ? 'company/product logo or wordmark' : 'keyword/topic label';
+  const nameLine = mode==='entity'
+    ? 'the company or product name read from its logo/wordmark'
+    : 'the keyword or term, copied exactly as written on the radar';
+  return `You read technology "radar" / "quadrant" diagrams and locate every item shown on them.
 
-Output (the ONLY thing you return):
+RADAR TYPE
+${kindLine}
+
+GOAL
+Look at the attached radar image and return one zone (a bounding box) for every ${itemWord} placed on the radar.
+
+COORDINATE SYSTEM — read this carefully
+- The radar image is exactly ${IMG_W} pixels wide and ${IMG_H} pixels tall. The origin (0,0) is its top-left corner; x grows to the right, y grows downward.
+- Give every position in pixels of THIS image. For each item the bounding box is: x,y = its top-left corner; w,h = its width and height.
+- Keep whole integers and stay inside the image: 0 <= x, 0 <= y, x+w <= ${IMG_W}, y+h <= ${IMG_H}.
+- Worked example: a logo whose top-left corner sits 230 px from the left and 90 px from the top, 180 px wide and 70 px tall, becomes x=230, y=90, w=180, h=70.
+- Always estimate against the full ${IMG_W}x${IMG_H} image, never against a thumbnail or preview size.
+
+OUTPUT — return ONLY this JSON object, nothing else
 {"zones":[ {zone}, {zone}, ... ]}
 
-Each zone object has EXACTLY these fields:
-- id: string, sequential "z001","z002",... (or keep existing id if the zone matches a provided candidateZone)
-- shape: "rect" | "circle" | "diamond" | "poly"
-${coordSpecLine}
-${pointsSpecLine}
-- name: the company/product name read from the logo, or the keyword/term text exactly as written. Use "zone_XXX" (matching the id number) only when the item is unreadable.
-- ocrCandidate: the raw text you read for that item (may equal name, or "" if no readable text).
-- confidence: number in [0,1] reflecting your certainty in the name/text.
+Each zone has EXACTLY these fields:
+- id: string "z001","z002",... numbered in reading order.
+- shape: "rect" | "circle" | "diamond" | "poly" — use "rect" unless another shape clearly fits the item better.
+- x, y, w, h: integer pixel coordinates in the image (see COORDINATE SYSTEM above).
+- points: [] for every shape except "poly"; for "poly" give [{"x":int,"y":int},...] as image pixels.
+- name: ${nameLine}. Use "zone_001","zone_002",... (matching the id number) ONLY when the item is genuinely unreadable.
+- ocrCandidate: the raw text you actually read for this item ("" when there is no readable text).
+- confidence: number 0..1 — how sure you are about "name".
 
-Detection rules:
-- Detect each individual item placed on the radar: logos/wordmarks for a company radar, or short text labels for a keyword radar.
-- Ignore sector/category names, axis/ring labels, the radar title, legends, decorations, and publisher branding.
-- One zone per visible item; do not merge neighbours; do not duplicate.
-- Fit the bounding box tightly around the item, including text or wordmarks that wrap onto two or more lines for the same item. Use "rect" unless another shape clearly fits better.
-${coordRuleLine}
+HOW TO DETECT
+- Scan the image methodically (left-to-right, top-to-bottom, ring by ring) so you miss nothing, including small, faint or rotated items.
+- Output exactly one zone per visible item. Never merge two neighbouring items into one box, and never list the same item twice.
+- Fit each box TIGHTLY around the item, including text or a wordmark that wraps onto several lines for that same item.
+- IGNORE anything that is not an item: the radar title, axis / ring / quadrant labels, sector or category names, legends, arrows, decorations and the publisher's own branding.
+- If an item is clearly present but unreadable: name="zone_NNN" (matching its id), ocrCandidate="", confidence between 0.05 and 0.25.
 
-Naming:
-- If a "knownEntities" list is provided in the CONTEXT below, prefer matching the visible item to one of those names (case/accents/punctuation insensitive). Output that canonical name in "name".
-- Otherwise, no list is provided: read every item directly from the image and build the list yourself, using the visible name/text as "name".
-- If an item is clearly present but unreadable: name="zone_XXX" (matching id), ocrCandidate="", confidence in [0.05,0.25].
+NAMING
+- If a "knownEntities" list is provided in the CONTEXT below, match each item to the closest entry, ignoring case, accents and punctuation, and output that entry's exact name.
+- If an item is not in that list, or no list is provided, output the name/text you read directly from the image.
+- Expected language for any human-readable text: ${language}.
 
-Forbidden:
-- Do NOT include url, logo, description, llmFound or any other field beyond the seven listed above (RadarMapper fills these locally).
-- Do NOT echo the CONTEXT JSON or any input field at the top level. Only return {"zones":[...]}.
-- Do NOT wrap JSON in markdown fences or add any prose before/after.
-- Do NOT include comments or trailing commas.`;
+STRICT RULES
+- Return the raw JSON object only: no markdown code fences, no comments, no text before or after it.
+- Use straight double quotes ("); never use trailing commas.
+- Include only the seven fields listed above — RadarMapper fills url, logo and description itself.
+- Do NOT echo the CONTEXT or any input back.`;
 }
-function llmPrompt(candidateZones=[]){
+function llmPrompt(){
   const extraInstructionsInput=q('llmExtraInstructions');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
   const records=Array.isArray(startupRecords) ? startupRecords : [];
@@ -3003,33 +2996,23 @@ function llmPrompt(candidateZones=[]){
     return o;
   });
   const skeleton={image:{width:IMG_W,height:IMG_H}};
-  if(candidateZones && candidateZones.length){
-    const nx=v=>IMG_W?Math.round((Number(v)||0)/IMG_W*1e4)/1e4:0;
-    const ny=v=>IMG_H?Math.round((Number(v)||0)/IMG_H*1e4)/1e4:0;
-    skeleton.candidateZones=candidateZones.map(z=>({
-      id:z.id, shape:z.shape, x:nx(z.x), y:ny(z.y), w:nx(z.w), h:ny(z.h),
-      points:Array.isArray(z.points)?z.points.map(p=>({x:nx(p&&p.x),y:ny(p&&p.y)})):[],
-      name:z.name||'', ocrCandidate:z.ocrCandidate||''
-    }));
-  }
   if(compactRecords.length) skeleton.knownEntities=compactRecords;
-  return `${detectionInstructionsBody('normalized')}
+  return `${detectionInstructionsBody()}
 
-${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
+${extraInstructions ? `EXTRA USER INSTRUCTIONS\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo)
 ${JSON.stringify(skeleton)}`;
 }
 function externalLlmInstructions(){
   const extraInstructionsInput=q('llmExtraInstructions');
   const extraInstructions=((extraInstructionsInput && extraInstructionsInput.value) || '').trim();
-  return `${detectionInstructionsBody('normalized')}
+  return `${detectionInstructionsBody()}
 
-${extraInstructions ? `User instructions:\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo):
-The radar image and the radar_initialization.json file are attached separately. A dataset of known names (CSV/JSON) may also be attached, but it is optional. Use:
-- the radar image to detect every item and compute normalized [0,1] coordinates;
-- the attached dataset (or the "startupRecords" field in the attached JSON), if provided, as the "knownEntities" list for name matching; if none is provided, build the list directly from the image;
-- the "image.width" and "image.height" from the attached JSON as an aspect-ratio reference only; report coordinates as fractions, never as pixels.
+${extraInstructions ? `EXTRA USER INSTRUCTIONS\n${extraInstructions}\n\n` : ''}CONTEXT (input only - do NOT echo)
+- The radar image is attached separately and is required.
+- A list of known names (a CSV/JSON file, or the radar_initialization.json export) may also be attached. If it is, use those names as the "knownEntities" list; if not, read every name straight from the image.
+Return only the {"zones":[...]} JSON object, then load it back into RadarMapper with "Import completed JSON".
 
-For item enrichment, use the separate "Copy enrichment prompt" button — it generates a dedicated prompt (official website for a company radar, or a short CISO-oriented description for a keyword radar).`;
+For item enrichment (official websites, descriptions), use the separate "Copy enrichment prompt" button instead.`;
 }
 async function extractApiError(res){
   const text=await res.text();
@@ -3345,17 +3328,6 @@ function setDetectionProgress(pct,label){
   if(bar){ bar.max=100; bar.value=Math.max(0,Math.min(100,pct)); }
   if(txt) txt.textContent=label ? `${Math.round(pct)}% — ${label}` : `${Math.round(pct)}%`;
 }
-function denormalizeLlmZone(z){
-  if(!z || typeof z!=='object') return z;
-  const vals=[z.x,z.y,z.w,z.h].map(v=>Number(v)||0);
-  // The LLM is asked for fractions in [0,1]; if it returned pixel values anyway, keep them as-is.
-  if(!vals.every(v=>v>=0 && v<=1.5)) return z;
-  const px=v=>Math.round((Number(v)||0)*IMG_W);
-  const py=v=>Math.round((Number(v)||0)*IMG_H);
-  z.x=px(z.x); z.y=py(z.y); z.w=px(z.w); z.h=py(z.h);
-  if(Array.isArray(z.points)) z.points=z.points.map(p=>({x:px(p&&p.x),y:py(p&&p.y)}));
-  return z;
-}
 q('runAiMapping').onclick=async()=>{
   const cfg=getAiConfig();
   if(!cfg.apiKey || !cfg.model){ setLlmInAppStatus('LLM status: missing provider/model/API key.','error'); alert('Configure the provider, model and API key before launching LLM detection.'); return; }
@@ -3372,20 +3344,10 @@ q('runAiMapping').onclick=async()=>{
     showDetectionProgress(true);
     setDetectionProgress(5,'preparing payload');
     setLlmInAppStatus('LLM status: running analysis...','success');
-    const candidateZones=zones.length ? deepClone(zones) : [];
-    if(candidateZones.length){
-      zones=candidateZones;
-      setPrimarySelection(zones[0] ? zones[0].id : null);
-      render();
-      logAnalysis(`${candidateZones.length} existing zone(s) sent to LLM as editable candidates.`);
-      appendLlmInAppTrace(`Candidate zones provided: ${candidateZones.length}`);
-    } else {
-      appendLlmInAppTrace('No candidate zones provided. LLM must detect and create zones from scratch.');
-      logAnalysis('No existing zones: LLM will create zones from the radar image.');
-    }
+    appendLlmInAppTrace('LLM will detect and create every zone from the radar image.');
     logAnalysis(`LLM analysis started with ${cfg.provider}.`);
     setLlmInAppHint('sending prompt and files to LLM');
-    const prompt=llmPrompt(candidateZones);
+    const prompt=llmPrompt();
     appendLlmInAppTrace(`Prompt size: ${prompt.length} chars`);
     setDetectionProgress(20,'sending to LLM');
     const text=cfg.provider==='anthropic' ? await callAnthropic(cfg,prompt) : await callOpenAiLike(cfg,prompt);
@@ -3425,7 +3387,7 @@ q('runAiMapping').onclick=async()=>{
     });
     appendLlmInAppTrace(`Local match: ${matchedCount}/${data.zones.length} zone(s) linked to a known entity.`);
     setDetectionProgress(95,'importing zones');
-    await importProjectJson(JSON.stringify(data),{coordSpace:'normalized'});
+    await importProjectJson(JSON.stringify(data));
     if(!Array.isArray(startupRecords) || !startupRecords.length){
       const seen=new Set(); const derived=[];
       zones.forEach(z=>{
@@ -3710,7 +3672,7 @@ q('radarPptxUpload').onchange=async e=>{
   }
 };
 q('exportInitJson').onclick=()=>{
-  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false,coordSpace:'normalized'});
+  const emptyProject=buildProjectJson('initialisation_empty',{includeImageData:false});
   emptyProject.startupRecords=[];
   emptyProject.zones=[];
   download('radar_initialization.json', JSON.stringify(emptyProject,null,2), 'application/json');
@@ -3794,7 +3756,7 @@ q('importFile').onchange=async e=>{
     return;
   }
   try{
-    await importProjectJson(await f.text(),{coordSpace:'normalized'});
+    await importProjectJson(await f.text());
     setInitStatus(`Completed JSON imported successfully: ${f.name}. ${importSummaryLine()}`,'success');
   } catch(err){
     setInitStatus(`Completed JSON import failed: ${err.message}`,'error');
