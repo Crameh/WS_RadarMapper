@@ -170,6 +170,7 @@
   .zone.zone-filtered-out { fill:transparent !important; stroke:transparent !important; pointer-events:none; }
   .handle { fill:#fff; stroke:#2ed39b; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
   .vertex { fill:#fff; stroke:#1699a8; stroke-width:2; cursor:grab; vector-effect:non-scaling-stroke; }
+  .marquee { fill:rgba(54,121,230,.12); stroke:#3679e6; stroke-width:1; stroke-dasharray:4 3; vector-effect:non-scaling-stroke; pointer-events:none; }
   aside { border:1px solid #e6f0f4; border-radius:14px; background:rgba(255,255,255,.92); overflow:auto; padding:20px; box-shadow:var(--shadow); }
   label { display:block; font-size:12px; font-weight:800; margin-top:10px; margin-bottom:4px; color:#243d55; }
   input, select, textarea, button { font:inherit; }
@@ -1096,8 +1097,39 @@ function hasNoLogoFlag(structureName){
   return !!(key && noLogoStructures[key]);
 }
 let selectedId = zones[0] ? zones[0].id : null;
+let selectedIds = new Set(selectedId ? [selectedId] : []);
 let drag = null;
+let marqueeEl = null;
 let lastZonePointer = {id:null, time:0};
+function isAdditiveSelect(e){
+  return !!(e && (e.shiftKey || (typeof e.getModifierState==='function' && e.getModifierState('CapsLock'))));
+}
+function setPrimarySelection(id){
+  selectedId = id || null;
+  selectedIds = id ? new Set([String(id)]) : new Set();
+}
+function toggleZoneSelection(id){
+  id = String(id);
+  if(selectedIds.has(id)){
+    selectedIds.delete(id);
+    if(selectedId===id) selectedId = selectedIds.size ? Array.from(selectedIds)[selectedIds.size-1] : null;
+  } else {
+    selectedIds.add(id);
+    selectedId = id;
+  }
+}
+function selectedZoneList(){
+  const ids = selectedIds.size ? Array.from(selectedIds) : (selectedId ? [selectedId] : []);
+  return ids.map(zoneById).filter(Boolean);
+}
+function zonesInRect(rx,ry,rw,rh){
+  const out=[];
+  zones.forEach(z=>{
+    if((isEditMode()||isExportMode()) && !zoneMatchesFilter(z)) return;
+    if(z.x < rx+rw && z.x+z.w > rx && z.y < ry+rh && z.y+z.h > ry) out.push(z.id);
+  });
+  return out;
+}
 let editPopupSuggestIndex = -1;
 let editPopupSuggestions = [];
 const svg = document.getElementById('overlay');
@@ -1109,7 +1141,7 @@ radarImg.src = IMAGE_DATA;
 
 const MODE_COPY = {
   initPanel:{label:'Prepare', title:'Radar and Zones', hint:'Import the radar image, then generate clickable zones.'},
-  editPanel:{label:'Edit', title:'Zone editing', hint:'First correct zone geometry, add or remove zones, then edit zone content by double-clicking)'},
+  editPanel:{label:'Edit', title:'Zone editing', hint:'Correct zone geometry, add or remove zones, then edit content by double-clicking. Select several zones with a drag (rubber-band) or Caps Lock + click, and move them together by dragging one or with the arrow keys.'},
   exportPanel:{label:'Export', title:'Export the clickable radar', hint:'Export: choose simple or filterable mode, tweak style, then generate output.'}
 };
 let activeTab = 'initPanel';
@@ -1181,7 +1213,7 @@ function shapeEl(z){
   if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound===false) el.classList.add('unmatched');
   if(duplicateZoneIdsCache.has(z.id) && !(z.dataConfirmed || z.associationConfirmed)) el.classList.add('multiassigned');
   if(!z.url) el.classList.add('noUrl');
-  if(z.id === selectedId) el.classList.add('selected');
+  if(selectedIds.has(z.id)) el.classList.add('selected');
   if(!q('showFill').checked) el.classList.add('hiddenFill');
   if((isEditMode() || isExportMode()) && !zoneMatchesFilter(z)) el.classList.add('zone-filtered-out');
   el.dataset.id = z.id;
@@ -1189,7 +1221,8 @@ function shapeEl(z){
   el.addEventListener('dblclick', showEditZonePopup);
   el.addEventListener('focus', ()=>{
     if(isEditMode()){
-      selectedId=z.id;
+      if(selectedIds.has(z.id)) selectedId=z.id;
+      else setPrimarySelection(z.id);
       refreshZoneSelectionStyles();
       const current=zoneById(selectedId);
       if(current) fillForm(current);
@@ -1222,10 +1255,12 @@ function render(){
   applyExportRenderConfig();
   duplicateZoneIdsCache=duplicateZoneIdSet();
   svg.innerHTML = '';
+  Array.from(selectedIds).forEach(id=>{ if(!zoneById(id)) selectedIds.delete(id); });
+  if(selectedId && !zoneById(selectedId)) selectedId = selectedIds.size ? Array.from(selectedIds)[0] : null;
   zones.forEach(z => svg.appendChild(shapeEl(z)));
   const z = zoneById(selectedId);
   if(z){
-    if(isEditMode()) renderHandles(z);
+    if(isEditMode() && selectedIds.size<=1) renderHandles(z);
     fillForm(z);
     if(!q('editZonePopup').hidden) fillEditPopup(z);
   }
@@ -1234,7 +1269,7 @@ function render(){
   updateExportPreview();
 }
 function refreshZoneSelectionStyles(){
-  svg.querySelectorAll('.zone').forEach(el=>el.classList.toggle('selected', el.dataset.id === selectedId));
+  svg.querySelectorAll('.zone').forEach(el=>el.classList.toggle('selected', selectedIds.has(el.dataset.id)));
 }
 function blinkZone(zoneId){
   const el=svg.querySelector(`.zone[data-id="${CSS.escape(String(zoneId||''))}"]`);
@@ -1352,7 +1387,7 @@ function showEditZonePopup(event){
   const hasCurrentZone=event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.id;
   const zoneEl=hasCurrentZone ? event.currentTarget : closestElement(event.target, '.zone');
   if(!zoneEl) return;
-  selectedId=zoneEl.dataset.id;
+  setPrimarySelection(zoneEl.dataset.id);
   const z=zoneById(selectedId);
   if(!z) return;
   fillEditPopup(z);
@@ -1477,7 +1512,7 @@ function setStructureSearchSelection(value){
     return;
   }
   structureSearchActiveZoneIds=new Set(linked.map(z=>z.id));
-  selectedId=linked[0].id;
+  setPrimarySelection(linked[0].id);
   render();
 }
 function renderStructureSearchSelection(){
@@ -1511,7 +1546,7 @@ function renderStructureSearchSelection(){
     row.className='pendingCsvItem';
     row.textContent=`${z.id} - ${z.name || 'Unnamed zone'}`;
     row.addEventListener('click',()=>{
-      selectedId=z.id;
+      setPrimarySelection(z.id);
       render();
     });
     container.appendChild(row);
@@ -1608,10 +1643,10 @@ function renderDuplicateAssociations(){
     group.zones.forEach(z=>{
       const btn=document.createElement('button');
       btn.type='button';
-      btn.className=z.id===selectedId ? 'active' : '';
+      btn.className=selectedIds.has(z.id) ? 'active' : '';
       btn.textContent=`${z.id} - ${z.name || 'unnamed'}`;
       btn.onclick=()=>{
-        selectedId=z.id;
+        setPrimarySelection(z.id);
         render();
         blinkZone(z.id);
       };
@@ -1867,7 +1902,7 @@ function validateAndAdvance({preferSuggestion=false}={}){
   }
   persistZones({silent:true, reason:'auto'});
   if(willAdvance){
-    selectedId=nextId;
+    setPrimarySelection(nextId);
     render(); fillEditPopup(zoneById(selectedId)); renderList();
     setTimeout(()=>{ updateEditLogoZoom(); q('editPopupName').focus(); q('editPopupName').select(); },0);
   } else {
@@ -2057,7 +2092,7 @@ function placePopup(popup, event, cfg=getExportRenderConfig()){
 function showExportLivePopup(event){
   if(!isExportMode()) return;
   event.preventDefault();
-  selectedId=event.currentTarget.dataset.id;
+  setPrimarySelection(event.currentTarget.dataset.id);
   const z=zoneById(selectedId);
   if(!z) return;
   const popup=q('exportLivePopup');
@@ -2086,9 +2121,22 @@ function closestElement(node, selector, stopAt=document){
 function startMove(e){
   if(!isEditMode()) return;
   const zoneId=e.currentTarget.dataset.id;
-  e.preventDefault(); selectedId=zoneId; const z=zoneById(selectedId); const p=pointerPos(e);
-  drag={type:'move', id:selectedId, sx:p.x, sy:p.y, ox:z.x, oy:z.y, pts:(z.points||[]).map(p=>Object.assign({}, p))};
-  svg.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  if(isAdditiveSelect(e)){
+    toggleZoneSelection(zoneId);
+    render();
+    return;
+  }
+  if(!selectedIds.has(zoneId)) setPrimarySelection(zoneId);
+  else selectedId=zoneId;
+  const p=pointerPos(e);
+  const group=[];
+  selectedIds.forEach(id=>{
+    const gz=zoneById(id);
+    if(gz) group.push({id, ox:gz.x, oy:gz.y, ow:gz.w, oh:gz.h, pts:(gz.points||[]).map(pt=>({x:pt.x,y:pt.y}))});
+  });
+  drag={type:'move', sx:p.x, sy:p.y, group};
+  try{ svg.setPointerCapture(e.pointerId); }catch(_){}
   refreshZoneSelectionStyles();
   renderList();
   updateShapeButtons();
@@ -2107,11 +2155,24 @@ function startVertex(e){
 }
 svg.addEventListener('pointerdown', handleZoneDoublePointer, true);
 svg.addEventListener('pointermove', e=>{
-  if(!isEditMode() || !drag) return; const z=zoneById(selectedId); const p=pointerPos(e); const dx=p.x-drag.sx, dy=p.y-drag.sy;
+  if(!isEditMode() || !drag) return;
+  const p=pointerPos(e);
+  if(drag.type==='marquee'){ updateMarquee(p); return; }
+  const z=zoneById(selectedId); const dx=p.x-drag.sx, dy=p.y-drag.sy;
   if(drag.type==='move'){
-    z.x=clamp(drag.ox+dx,0,IMG_W-z.w); z.y=clamp(drag.oy+dy,0,IMG_H-z.h);
-    if(z.shape==='poly' && drag.pts){ z.points=drag.pts.map(pt=>({x:clamp(pt.x+dx,0,IMG_W),y:clamp(pt.y+dy,0,IMG_H)})); Object.assign(z,boundsFromPoints(z.points)); }
+    let adx=dx, ady=dy;
+    drag.group.forEach(g=>{
+      adx=clamp(adx, -g.ox, IMG_W-g.ow-g.ox);
+      ady=clamp(ady, -g.oy, IMG_H-g.oh-g.oy);
+    });
+    drag.group.forEach(g=>{
+      const gz=zoneById(g.id);
+      if(!gz) return;
+      gz.x=g.ox+adx; gz.y=g.oy+ady;
+      if(gz.shape==='poly' && g.pts){ gz.points=g.pts.map(pt=>({x:pt.x+adx,y:pt.y+ady})); Object.assign(gz,boundsFromPoints(gz.points)); }
+    });
   } else if(drag.type==='resize'){
+    if(!z) return;
     let x=drag.x,y=drag.y,w=drag.w,h=drag.h;
     if(drag.corner.includes('e')) w=clamp(drag.w+dx,4,IMG_W-x);
     if(drag.corner.includes('s')) h=clamp(drag.h+dy,4,IMG_H-y);
@@ -2119,16 +2180,52 @@ svg.addEventListener('pointermove', e=>{
     if(drag.corner.includes('n')) { y=clamp(drag.y+dy,0,drag.y+drag.h-4); h=drag.y+drag.h-y; }
     Object.assign(z,{x,y,w,h}); if(z.shape==='poly'){ z.points=[]; ensurePoly(z); }
   } else if(drag.type==='vertex'){
+    if(!z) return;
     ensurePoly(z); z.points[drag.idx]={x:p.x,y:p.y}; Object.assign(z,boundsFromPoints(z.points));
   }
   render();
 });
 svg.addEventListener('pointerup', ()=>{
-  if(drag && isEditMode()) render();
+  if(drag && isEditMode()){
+    if(drag.type==='marquee') finishMarquee();
+    else render();
+  }
   drag=null;
 });
-svg.addEventListener('pointercancel', ()=>{ drag=null; });
-svg.addEventListener('pointerdown', e=>{ if(isEditMode() && e.target===svg){ selectedId=null; render(); } });
+svg.addEventListener('pointercancel', ()=>{ if(marqueeEl){ marqueeEl.remove(); marqueeEl=null; } drag=null; });
+svg.addEventListener('pointerdown', e=>{
+  if(!isEditMode() || e.target!==svg || drag) return;
+  const p=pointerPos(e);
+  const additive=isAdditiveSelect(e);
+  drag={type:'marquee', sx:p.x, sy:p.y, additive, base:additive?new Set(selectedIds):new Set(), moved:false};
+  marqueeEl=document.createElementNS('http://www.w3.org/2000/svg','rect');
+  marqueeEl.setAttribute('class','marquee');
+  marqueeEl.setAttribute('x',p.x); marqueeEl.setAttribute('y',p.y);
+  marqueeEl.setAttribute('width',0); marqueeEl.setAttribute('height',0);
+  svg.appendChild(marqueeEl);
+  try{ svg.setPointerCapture(e.pointerId); }catch(_){}
+});
+function updateMarquee(p){
+  if(!drag || drag.type!=='marquee') return;
+  const x=Math.min(drag.sx,p.x), y=Math.min(drag.sy,p.y);
+  const w=Math.abs(p.x-drag.sx), h=Math.abs(p.y-drag.sy);
+  if(w>3||h>3) drag.moved=true;
+  if(marqueeEl){
+    marqueeEl.setAttribute('x',x); marqueeEl.setAttribute('y',y);
+    marqueeEl.setAttribute('width',w); marqueeEl.setAttribute('height',h);
+  }
+  const next=new Set(drag.base);
+  zonesInRect(x,y,w,h).forEach(id=>next.add(id));
+  selectedIds=next;
+  selectedId = selectedIds.has(selectedId) ? selectedId : (selectedIds.size ? Array.from(selectedIds)[0] : null);
+  refreshZoneSelectionStyles();
+}
+function finishMarquee(){
+  if(marqueeEl){ marqueeEl.remove(); marqueeEl=null; }
+  if(drag && !drag.moved && !drag.additive) setPrimarySelection(null);
+  else selectedId = selectedIds.size ? (selectedIds.has(selectedId)?selectedId:Array.from(selectedIds)[0]) : null;
+  render();
+}
 stage.addEventListener('pointerdown', e=>{
   if(!isExportMode() || !exportPopupOpen) return;
   const popup=q('exportLivePopup');
@@ -2153,7 +2250,7 @@ stage.addEventListener('click', e=>{
   const zoneEl=closestElement(e.target, '.zone', stage);
   if(zoneEl){
     e.preventDefault();
-    selectedId=zoneEl.dataset.id;
+    setPrimarySelection(zoneEl.dataset.id);
     const z=zoneById(selectedId);
     if(!z) return;
     popup.innerHTML=popupHtmlForZone(z);
@@ -2635,7 +2732,7 @@ async function importProjectJson(text){
     }
   });
   const linked=startupRecords.length ? linkStartupRecordsToZones() : 0;
-  selectedId=zones[0] ? zones[0].id : null;
+  setPrimarySelection(zones[0] ? zones[0].id : null);
   render();
   logAnalysis(`JSON imported: ${zones.length} zone(s).`);
   if(linked) logAnalysis(`${linked} zone(s) enriched from the imported dataset.`);
@@ -3212,7 +3309,7 @@ q('runAiMapping').onclick=async()=>{
     const candidateZones=zones.length ? deepClone(zones) : [];
     if(candidateZones.length){
       zones=candidateZones;
-      selectedId=zones[0] ? zones[0].id : null;
+      setPrimarySelection(zones[0] ? zones[0].id : null);
       render();
       logAnalysis(`${candidateZones.length} existing zone(s) sent to LLM as editable candidates.`);
       appendLlmInAppTrace(`Candidate zones provided: ${candidateZones.length}`);
@@ -3521,7 +3618,7 @@ q('radarUpload').onchange=async e=>{
     const dataUrl=await fileToDataUrl(file);
     const img=await loadImage(dataUrl);
     setRadarImage(dataUrl,img.naturalWidth,img.naturalHeight);
-    zones=[]; selectedId=null; render();
+    zones=[]; setPrimarySelection(null); render();
     q('analysisLog').value='';
     setInitStatus(`Radar visual imported successfully: ${file.name} (${IMG_W}x${IMG_H}). ${importSummaryLine()}`,'success');
     logAnalysis(`Radar image loaded: ${file.name} (${IMG_W}x${IMG_H}).`);
@@ -3538,7 +3635,7 @@ q('radarPptxUpload').onchange=async e=>{
     const extracted=await extractRadarFromPptx(file);
     setRadarImage(extracted.dataUrl, extracted.width, extracted.height);
     zones=Array.isArray(extracted.zones) ? extracted.zones : [];
-    selectedId=zones[0] ? zones[0].id : null;
+    setPrimarySelection(zones[0] ? zones[0].id : null);
     render();
     q('analysisLog').value='';
     setInitStatus(`PPTX imported successfully: ${file.name} (${IMG_W}x${IMG_H}, image: ${extracted.source}, zones: ${zones.length}). ${importSummaryLine()}`,'success');
@@ -3593,13 +3690,13 @@ function makeZone(shape){
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
   const z={id,name:'new_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
   if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
-  zones.push(z); selectedId=id; render();
+  zones.push(z); setPrimarySelection(id); render();
 }
 q('addZoneBtn').onclick=()=>makeZone((q('shape') && q('shape').value) || 'rect');
 q('resetLocalBase').onclick=()=>{
   if(!confirm('Erase all data? This will clear local zones, imported data, and the current radar visual in this browser.')) return;
   zones=[];
-  selectedId=null;
+  setPrimarySelection(null);
   structureSearchActiveZoneIds=null;
   startupRecords=[];
   noLogoStructures={};
@@ -3694,7 +3791,7 @@ window.addEventListener('keydown', e=>{
     if(filtered.length<2) return;
     const idx=filtered.findIndex(fz=>fz.id===selectedId);
     const next=e.key==='ArrowRight' ? (idx+1)%filtered.length : (idx-1+filtered.length)%filtered.length;
-    selectedId=filtered[next].id;
+    setPrimarySelection(filtered[next].id);
     fillEditPopup(zoneById(selectedId));
     setTimeout(updateEditLogoZoom,0);
     renderList(); render();
@@ -3714,13 +3811,25 @@ window.addEventListener('keydown', e=>{
   else if(e.key==='Delete' || e.key==='Backspace'){
     if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
     e.preventDefault();
-    zones=zones.filter(item=>item.id!==selectedId);
-    selectedId=zones[0] ? zones[0].id : null;
+    const removeIds=new Set(selectedZoneList().map(zz=>zz.id));
+    zones=zones.filter(item=>!removeIds.has(item.id));
+    setPrimarySelection(zones[0] ? zones[0].id : null);
     render();
     return;
   } else return;
   if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
-  e.preventDefault(); z.x=clamp(z.x+dx,0,IMG_W-z.w); z.y=clamp(z.y+dy,0,IMG_H-z.h); if(z.points) z.points=z.points.map(p=>({x:clamp(p.x+dx,0,IMG_W),y:clamp(p.y+dy,0,IMG_H)})); render();
+  e.preventDefault();
+  const moveGroup=selectedZoneList();
+  let adx=dx, ady=dy;
+  moveGroup.forEach(g=>{
+    adx=clamp(adx, -g.x, IMG_W-g.w-g.x);
+    ady=clamp(ady, -g.y, IMG_H-g.h-g.y);
+  });
+  moveGroup.forEach(g=>{
+    g.x=g.x+adx; g.y=g.y+ady;
+    if(g.points) g.points=g.points.map(p=>({x:p.x+adx,y:p.y+ady}));
+  });
+  render();
 });
 document.addEventListener('keydown', e=>{
   if(!(e.ctrlKey || e.metaKey)) return;
