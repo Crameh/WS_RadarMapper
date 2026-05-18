@@ -3136,8 +3136,14 @@ async function enrichCsvViaWebSearch(cfg,onProgress){
   if(typeof onProgress==='function') onProgress({batch:totalBatches,totalBatches,done:records.length,total:records.length});
   return {updated,verified,total:records.length};
 }
+function sanitizeLlmJson(text){
+  // Replace curly/smart quotes with straight equivalents so JSON.parse succeeds
+  return text
+    .replace(/[‘’‚‛′‵]/g,"'")
+    .replace(/[“”„‟″‶]/g,'"');
+}
 function parseJsonFromText(text){
-  const trimmed=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim();
+  const trimmed=sanitizeLlmJson(text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```$/,'').trim());
   let parsed;
   try{ parsed=JSON.parse(trimmed); } catch(_err){
     const oStart=trimmed.indexOf('{'), oEnd=trimmed.lastIndexOf('}');
