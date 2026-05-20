@@ -52,3 +52,11 @@ RadarMapper est un éditeur HTML/JavaScript autonome pour produire un radar cliq
   - de choisir un profil de prompt LLM (**Default (new)** par défaut, **Simple (archived)**, **Standard**, **Strict**),
   - de gérer l'auto-save.
 - Les clés API ne sont pas persistées dans `localStorage` (saisie à chaque session).
+
+## Prévisualiser sur GitHub Pages
+
+Un workflow GitHub Actions est fourni dans `.github/workflows/deploy-pages.yml`.
+
+1. Pousser la branche (`work` ou `main`) sur GitHub.
+2. Dans **Settings → Pages**, sélectionner **Build and deployment: GitHub Actions**.
+3. Le site sera déployé automatiquement et servira `index.html` (redirigé vers `RadarMapper.html`).
