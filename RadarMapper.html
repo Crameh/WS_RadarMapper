@@ -3869,18 +3869,110 @@ async function extractPptxMedia(zip){
   const allowed=/\.(png|jpe?g|svg|emf|wmf|gif|webp)$/i;
   return Object.values(zip.files).filter(f=>!f.dir && /^ppt\/media\//i.test(f.name) && allowed.test(f.name)).map(f=>f);
 }
+async function extractPptxLogoPositionsXml(zip){
+  if(!zip) return '';
+  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const entries=[];
+  const slideFiles=Object.values(zip.files).filter(f=>!f.dir && /^ppt\/slides\/slide\d+\.xml$/i.test(f.name));
+  for(const slideFile of slideFiles){
+    const relPath=slideFile.name.replace(/slides\/(slide\d+\.xml)$/i,'slides/_rels/$1.rels');
+    const relFile=zip.file(relPath);
+    if(!relFile) continue;
+    const relDoc=new DOMParser().parseFromString(await relFile.async('text'),'application/xml');
+    const relMap=new Map();
+    Array.from(relDoc.querySelectorAll('Relationship')).forEach(r=>{
+      const id=r.getAttribute('Id'); const target=r.getAttribute('Target')||'';
+      if(!id || !target) return;
+      const clean=target.replace(/^(\.\.\/)+/,'');
+      if(/^media\//i.test(clean)) relMap.set(id,`ppt/${clean}`);
+    });
+    if(!relMap.size) continue;
+    const slideDoc=new DOMParser().parseFromString(await slideFile.async('text'),'application/xml');
+    const pics=Array.from(slideDoc.querySelectorAll('p\\:pic,pic'));
+    for(const pic of pics){
+      const blip=pic.querySelector('a\\:blip,blip');
+      const rid=blip && (blip.getAttribute('r:embed')||blip.getAttribute('embed'));
+      if(!rid || !relMap.has(rid)) continue;
+      const xfrm=pic.querySelector('a\\:xfrm,xfrm');
+      const off=xfrm && xfrm.querySelector('a\\:off,off');
+      const ext=xfrm && xfrm.querySelector('a\\:ext,ext');
+      entries.push({
+        slide:slideFile.name,
+        media:relMap.get(rid),
+        x:off ? Number(off.getAttribute('x')||0) : 0,
+        y:off ? Number(off.getAttribute('y')||0) : 0,
+        cx:ext ? Number(ext.getAttribute('cx')||0) : 0,
+        cy:ext ? Number(ext.getAttribute('cy')||0) : 0
+      });
+    }
+  }
+  const body=entries.map((e,i)=>`  <logo id="logo_${String(i+1).padStart(3,'0')}" slide="${esc(e.slide)}" media="${esc(e.media)}" x="${e.x}" y="${e.y}" cx="${e.cx}" cy="${e.cy}" />`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<logoPositions>\n${body}\n</logoPositions>\n`;
+}
 function buildAiPrompt(cropPlan){ return AI_CROP_PROMPT_TEMPLATE.replace('{{CROP_PLAN_JSON}}', JSON.stringify(cropPlan,null,2)); }
 async function buildCropZip(cropImages,cropPlan){ const JSZip=await ensureJsZip(); const zip=new JSZip(); Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob)); zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); return zip.generateAsync({type:'blob'}); }
-async function buildLogosZip(mediaFiles){ const JSZip=await ensureJsZip(); const zip=new JSZip(); const used=new Set(); for(const f of mediaFiles){ const base=f.name.split('/').pop(); const dot=base.lastIndexOf('.'); const name=dot>0?base.slice(0,dot):base; const ext=dot>0?base.slice(dot):''; let final=`${name}${ext}`; let i=1; while(used.has(final)){ final=`${name}_${i}${ext}`; i++; } used.add(final); zip.file(final,await f.async('arraybuffer')); } return zip.generateAsync({type:'blob'}); }
-async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownEntitiesFile){
+async function buildLogosZip(mediaFiles,logosPositionXml=''){ const JSZip=await ensureJsZip(); const zip=new JSZip(); const used=new Set(); for(const f of mediaFiles){ const base=f.name.split('/').pop(); const dot=base.lastIndexOf('.'); const name=dot>0?base.slice(0,dot):base; const ext=dot>0?base.slice(dot):''; let final=`${name}${ext}`; let i=1; while(used.has(final)){ final=`${name}_${i}${ext}`; i++; } used.add(final); zip.file(final,await f.async('arraybuffer')); } if(logosPositionXml) zip.file('logo_positions.xml',logosPositionXml); return zip.generateAsync({type:'blob'}); }
+async function buildKnownEntitiesNamesXlsx(file){
+  if(!file) return null;
+  const records=await parseStartupRecordsFromFile(file);
+  if(!records.length) return null;
+  const XLSX=await ensureSheetJs();
+  const rows=records.map(r=>({name:String(r.name||'').trim()})).filter(r=>r.name);
+  if(!rows.length) return null;
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'companies');
+  const arrayBuffer=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  return new Blob([arrayBuffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownEntitiesFile,sourceRadarImageFile,knownEntitiesNamesXlsxBlob){
   const JSZip=await ensureJsZip(); const zip=new JSZip();
   Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob));
   zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); zip.file('prompt/ai_radar_analysis_prompt.txt',promptText);
   if(logosZipBlob) zip.file('logos/logos_from_ppt_media.zip',logosZipBlob);
   if(knownEntitiesFile) zip.file(`known_entities/${knownEntitiesFile.name.toLowerCase().endsWith('.csv')?'startups.csv':'startups.xlsx'}`,knownEntitiesFile);
+  if(knownEntitiesNamesXlsxBlob) zip.file('known_entities/company_names.xlsx',knownEntitiesNamesXlsxBlob);
+  if(sourceRadarImageFile){
+    const safeName=(sourceRadarImageFile.name||'radar_image.png').replace(/[\\/:*?"<>|]+/g,'_');
+    zip.file(`source_image/${safeName}`,sourceRadarImageFile);
+  }
   return zip.generateAsync({type:'blob'});
 }
 function updateAiCropDownloads(){ ['downloadAiRadarPackage','downloadRadarCropsZip','downloadAiPromptTxt','downloadCropPlanJson'].forEach(id=>q(id).disabled=!(aiCropState.finalZipBlob||id==='downloadRadarCropsZip'&&aiCropState.cropZipBlob||id==='downloadAiPromptTxt'&&aiCropState.promptText||id==='downloadCropPlanJson'&&aiCropState.cropPlan)); q('downloadLogosZip').disabled=!aiCropState.logosZipBlob; }
+async function rebuildAiCropPackage(){
+  if(!aiCropState.imageFile || !aiCropState.cropPlan || !Object.keys(aiCropState.crops||{}).length){
+    setAiCropStatus('Waiting for radar image upload…');
+    updateAiCropDownloads();
+    return;
+  }
+  setAiCropStatus('Reading optional PowerPoint media…');
+  aiCropState.logosZipBlob=null;
+  if(aiCropState.pptxFile){
+    const zip=await readPptxAsZip(aiCropState.pptxFile);
+    setAiCropStatus('Extracting logos from PPTX media…');
+    const media=await extractPptxMedia(zip);
+    if(media.length){
+      setAiCropStatus('Extracting logo positions XML…');
+      const logoPositionsXml=await extractPptxLogoPositionsXml(zip);
+      setAiCropStatus('Building logos ZIP…');
+      aiCropState.logosZipBlob=await buildLogosZip(media,logoPositionsXml);
+    } else {
+      setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.');
+    }
+  }
+  setAiCropStatus('Building AI prompt…');
+  aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
+  let knownEntitiesNamesXlsxBlob=null;
+  if(aiCropState.knownEntitiesFile){
+    setAiCropStatus('Building companies Excel file…');
+    knownEntitiesNamesXlsxBlob=await buildKnownEntitiesNamesXlsx(aiCropState.knownEntitiesFile);
+  }
+  setAiCropStatus('Creating output ZIP…');
+  aiCropState.cropZipBlob=await buildCropZip(aiCropState.crops,aiCropState.cropPlan);
+  aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile,aiCropState.imageFile,knownEntitiesNamesXlsxBlob);
+  setAiCropStatus('Done');
+  updateAiCropDownloads();
+}
 
 q('radarUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
@@ -3902,7 +3994,7 @@ q('radarUpload').onchange=async e=>{
 q('uploadRadarCropImage').onclick=()=>q('radarCropImageUpload').click();
 q('uploadCropPptx').onclick=()=>q('radarCropPptxUpload').click();
 q('uploadKnownEntities').onclick=()=>q('radarKnownEntitiesUpload').click();
-q('radarCropPptxUpload').onchange=e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.pptx$/i.test(f.name)){ alert('Only .pptx accepted.'); e.target.value=''; return; } aiCropState.pptxFile=f; setAiCropStatus(`Optional PPTX loaded: ${f.name}`); };
+q('radarCropPptxUpload').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.pptx$/i.test(f.name)){ alert('Only .pptx accepted.'); e.target.value=''; return; } aiCropState.pptxFile=f; setAiCropStatus(`Optional PPTX loaded: ${f.name}`); try{ await rebuildAiCropPackage(); }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); } finally { e.target.value=''; } };
 q('radarKnownEntitiesUpload').onchange=e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.(csv|xlsx|xls)$/i.test(f.name)){ alert('Only CSV/XLSX accepted for known entities.'); e.target.value=''; return; } aiCropState.knownEntitiesFile=f; setAiCropStatus(`Optional known entities loaded: ${f.name}`); };
 q('radarCropImageUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
@@ -3916,17 +4008,8 @@ q('radarCropImageUpload').onchange=async e=>{
     aiCropState.cropPlan=generateCropPlan(loaded.width,loaded.height); aiCropState.crops=await createCropImages(loaded.image,aiCropState.cropPlan);
     const previews=q('aiCropPreviews'); previews.innerHTML=''; ['top_left','top_right','bottom_left','bottom_right'].forEach(name=>{ const img=document.createElement('img'); img.src=aiCropState.crops[name].dataUrl; img.alt=name; img.style.maxWidth='100%'; img.style.border='1px solid #cbdde6'; img.style.borderRadius='6px'; previews.appendChild(img); });
     q('aiCropPlanPreview').value=JSON.stringify(aiCropState.cropPlan,null,2);
-    setAiCropStatus('Reading optional PowerPoint media…');
-    aiCropState.logosZipBlob=null;
-    if(aiCropState.pptxFile){ const zip=await readPptxAsZip(aiCropState.pptxFile); const media=await extractPptxMedia(zip); if(media.length){ aiCropState.logosZipBlob=await buildLogosZip(media); } else { setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.'); } }
-    setAiCropStatus('Building AI prompt…');
-    aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
-    setAiCropStatus('Creating output ZIP…');
-    aiCropState.cropZipBlob=await buildCropZip(aiCropState.crops,aiCropState.cropPlan);
-    aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
-    setAiCropStatus('Done');
+    await rebuildAiCropPackage();
   }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); }
-  updateAiCropDownloads();
 };
 q('downloadRadarCropsZip').onclick=()=>{ if(aiCropState.cropZipBlob) download('radar_crops.zip', aiCropState.cropZipBlob, 'application/zip'); };
 q('downloadAiRadarPackage').onclick=()=>{ if(aiCropState.finalZipBlob) download('ai_radar_analysis_package.zip', aiCropState.finalZipBlob, 'application/zip'); };
