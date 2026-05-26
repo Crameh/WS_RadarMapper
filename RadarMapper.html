@@ -712,6 +712,41 @@
                     </div>
                   </details>
                 </div>
+
+                <div class="prepChoice">
+                  <h4>Generate AI crop package from radar image</h4>
+                  <p>Create 4 overlapping crops, a crop plan JSON, and an AI-ready ZIP package from an exported radar slide image.</p>
+                  <p class="actionNote">Please export the radar slide from PowerPoint as a high-resolution PNG, then upload it here. For best results, use PNG rather than JPG, and avoid screenshots or compressed images.</p>
+                  <div class="secondaryActions">
+                    <button id="uploadRadarCropImage" class="prepBtn" type="button">Upload exported radar image</button>
+                    <button id="uploadCropPptx" class="prepBtn" type="button">Optional PPTX for logos/media</button>
+                    <button id="uploadKnownEntities" class="prepBtn" type="button">Optional known entities file (CSV/XLSX)</button>
+                  </div>
+                  <input id="radarCropImageUpload" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" style="display:none">
+                  <input id="radarCropPptxUpload" type="file" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" style="display:none">
+                  <input id="radarKnownEntitiesUpload" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:none">
+                  <p id="aiCropPackageStatus" class="actionNote">Status: idle.</p>
+                  <p id="aiCropPackageWarning" class="actionNote dangerNote" hidden></p>
+                  <div class="secondaryActions">
+                    <button id="downloadAiRadarPackage" class="prepBtn" type="button" disabled>Download final package ZIP</button>
+                    <button id="downloadRadarCropsZip" class="prepBtn" type="button" disabled>Download crop ZIP only</button>
+                    <button id="downloadLogosZip" class="prepBtn" type="button" disabled>Download logos ZIP only</button>
+                    <button id="downloadAiPromptTxt" class="prepBtn" type="button" disabled>Download AI prompt text</button>
+                    <button id="downloadCropPlanJson" class="prepBtn" type="button" disabled>Download crop plan JSON</button>
+                  </div>
+                  <details class="advancedGroup">
+                    <summary>Preview generated files</summary>
+                    <div class="advancedBody">
+                      <p class="small" id="aiCropImageMeta">No radar image loaded.</p>
+                      <img id="aiCropUploadedPreview" alt="Uploaded radar preview" style="max-width:100%;border:1px solid #cbdde6;border-radius:8px;display:none">
+                      <div id="aiCropPreviews" class="row" style="margin-top:8px"></div>
+                      <label>crop_plan.json preview</label>
+                      <textarea id="aiCropPlanPreview" rows="8" class="mono" readonly></textarea>
+                      <label>ai_radar_analysis_prompt.txt preview</label>
+                      <textarea id="aiPromptPreview" rows="8" class="mono" readonly></textarea>
+                    </div>
+                  </details>
+                </div>
               </div>
             </div>
           </div>
@@ -3604,6 +3639,210 @@ async function extractZonesFromPptx(zip){
 function loadImage(dataUrl){
   return new Promise((resolve,reject)=>{ const img=new Image(); img.onload=()=>resolve(img); img.onerror=reject; img.src=dataUrl; });
 }
+const AI_CROP_PROMPT_TEMPLATE=`You are analyzing a technology radar / startup landscape image.
+
+The full radar image has already been split into 4 overlapping crops by the web application.
+
+You will receive:
+
+1. Four cropped images:
+   - top_left.png
+   - top_right.png
+   - bottom_left.png
+   - bottom_right.png
+
+2. A crop plan JSON:
+   - crop_plan.json
+
+3. Optionally, a ZIP file containing media files extracted from the original PowerPoint:
+   - logos_from_ppt_media.zip
+
+4. Optionally, an Excel or CSV file containing the known list of startups/entities that may appear in the radar:
+   - startups.xlsx
+   - startups.csv
+
+5. Internet access, if available, to verify ambiguous logos, names, or visual identities.
+
+Your task has two stages:
+
+STAGE 1 — Analyze each crop separately
+
+For each crop image, produce one crop-level JSON file:
+
+- top_left.json
+- top_right.json
+- bottom_left.json
+- bottom_right.json
+
+Each crop-level JSON must contain detections for that crop only.
+
+Important:
+- The crop images overlap.
+- Some logos may appear in more than one crop.
+- Do not remove duplicates across different crops during Stage 1.
+- Do not merge detections across crops during Stage 1.
+- Analyze each crop as an independent image.
+
+For each visible item in each crop:
+- estimate the bounding box in local crop coordinates first;
+- then convert it to full-image coordinates using the crop offsets from crop_plan.json;
+- output only full-image coordinates in the JSON.
+
+Coordinate conversion:
+
+globalX = localX + offsetX
+globalY = localY + offsetY
+globalW = localW
+globalH = localH
+
+STAGE 2 — Merge crop-level JSON files
+
+After producing the 4 crop-level JSON files, merge them into one final JSON file:
+
+- final_radar_mapping.json
+
+The final JSON must:
+- combine all zones from the 4 crop-level JSON files;
+- remove duplicates caused by crop overlaps;
+- keep all coordinates in the full original image coordinate system;
+- renumber all final zones as z001, z002, z003, etc.;
+- sort zones in reading order.
+
+Use these sources in priority order:
+
+1. The visible text/logo in the crop image.
+2. The optional extracted PowerPoint media ZIP, if provided.
+3. The optional Excel/CSV known-entities list, if provided.
+4. Internet search, only when the logo or text is ambiguous.
+
+Coordinate system:
+- Origin is the top-left corner of the full original image.
+- x increases to the right.
+- y increases downward.
+- Coordinates are in pixels.
+- Use full-image coordinates in all JSON files.
+
+Crop metadata:
+Use this crop plan:
+
+{{CROP_PLAN_JSON}}
+
+Ignore:
+- radar title;
+- axis labels;
+- ring labels;
+- quadrant labels;
+- legends;
+- category names;
+- arrows;
+- decorations;
+- publisher branding;
+- slide footers;
+- page numbers;
+- generic PowerPoint elements.
+
+Detect only:
+- company logos;
+- startup names;
+- product names;
+- readable company/product wordmarks.
+
+Naming rules:
+- Use the Excel/CSV file as the authoritative known-entities list when provided.
+- Match detected names against the known-entities list while ignoring:
+  - case;
+  - accents;
+  - punctuation;
+  - hyphens;
+  - spacing;
+  - minor OCR errors.
+- If a detected logo or text strongly matches a known entity, output the exact entity name from the known-entities file.
+- If the logo is ambiguous and the PowerPoint media ZIP is provided, compare it with the extracted media files.
+- If still ambiguous, use internet research to verify the company or product identity.
+- Do not invent names.
+- If an item is genuinely unreadable, use:
+  - name = zone_NNN
+  - ocrCandidate = 
+  - confidence between 0.05 and 0.25
+
+Expected outputs from the AI:
+1. top_left.json
+2. top_right.json
+3. bottom_left.json
+4. bottom_right.json
+5. final_radar_mapping.json
+
+Strict JSON rules:
+- Every JSON file must be valid JSON.
+- No Markdown in JSON files.
+- No code fences in JSON files.
+- No explanations inside JSON files.
+- No comments.
+- No trailing commas.
+- Use straight double quotes only.`
+const aiCropState={imageFile:null,imageDataUrl:'',imageWidth:0,imageHeight:0,cropPlan:null,crops:{},pptxFile:null,knownEntitiesFile:null,logosZipBlob:null,cropZipBlob:null,finalZipBlob:null,promptText:''};
+function setAiCropStatus(message){ const el=q('aiCropPackageStatus'); if(el) el.textContent=`Status: ${message}`; }
+function setAiCropWarning(message=''){ const el=q('aiCropPackageWarning'); if(!el) return; el.textContent=message; el.hidden=!message; }
+function validateRadarImageFile(file){ return !!(file && /\.(png|jpe?g|webp)$/i.test(file.name||'')); }
+async function loadRadarImage(file){ if(!validateRadarImageFile(file)) throw new Error('Unsupported image file. Use PNG, JPG, JPEG, or WEBP.'); const dataUrl=await fileToDataUrl(file); const image=await loadImage(dataUrl); return {image,dataUrl,width:image.naturalWidth,height:image.naturalHeight}; }
+function generateCropPlan(imageWidth,imageHeight){
+  const horizontalOverlap=Math.round(imageWidth*0.08), verticalOverlap=Math.round(imageHeight*0.08), midX=Math.round(imageWidth/2), midY=Math.round(imageHeight/2);
+  const make=(name,x0,y0,x1,y1)=>({name,x0,y0,x1,y1,cropWidth:x1-x0,cropHeight:y1-y0,offsetX:x0,offsetY:y0});
+  return {imageWidth,imageHeight,horizontalOverlap,verticalOverlap,midX,midY,crops:[
+    make('top_left',0,0,Math.min(imageWidth,midX+horizontalOverlap),Math.min(imageHeight,midY+verticalOverlap)),
+    make('top_right',Math.max(0,midX-horizontalOverlap),0,imageWidth,Math.min(imageHeight,midY+verticalOverlap)),
+    make('bottom_left',0,Math.max(0,midY-verticalOverlap),Math.min(imageWidth,midX+horizontalOverlap),imageHeight),
+    make('bottom_right',Math.max(0,midX-horizontalOverlap),Math.max(0,midY-verticalOverlap),imageWidth,imageHeight)
+  ]};
+}
+async function createCropImages(image,cropPlan){
+  const crops={};
+  for(const crop of cropPlan.crops){
+    const canvas=document.createElement('canvas'); canvas.width=crop.cropWidth; canvas.height=crop.cropHeight;
+    canvas.getContext('2d').drawImage(image,crop.x0,crop.y0,crop.cropWidth,crop.cropHeight,0,0,crop.cropWidth,crop.cropHeight);
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    crops[crop.name]={blob,dataUrl:URL.createObjectURL(blob)};
+  }
+  return crops;
+}
+async function readPptxAsZip(file){ if(!file) return null; if(!/\.pptx$/i.test(file.name||'')) throw new Error('Unsupported PPTX file.'); const JSZip=await ensureJsZip(); return JSZip.loadAsync(file); }
+async function extractPptxMedia(zip){
+  if(!zip) return [];
+  const allowed=/\.(png|jpe?g|svg|emf|wmf|gif|webp)$/i;
+  return Object.values(zip.files).filter(f=>!f.dir && /^(\/)?ppt\/media\//i.test(String(f.name||'')) && allowed.test(f.name)).map(f=>f);
+}
+function buildAiPrompt(cropPlan){ return AI_CROP_PROMPT_TEMPLATE.replace('{{CROP_PLAN_JSON}}', JSON.stringify(cropPlan,null,2)); }
+async function buildCropZip(cropImages,cropPlan){ const JSZip=await ensureJsZip(); const zip=new JSZip(); Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob)); zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); return zip.generateAsync({type:'blob'}); }
+async function buildLogosZip(mediaFiles){ const JSZip=await ensureJsZip(); const zip=new JSZip(); const used=new Set(); for(const f of mediaFiles){ const base=f.name.split('/').pop(); const dot=base.lastIndexOf('.'); const name=dot>0?base.slice(0,dot):base; const ext=dot>0?base.slice(dot):''; let final=`${name}${ext}`; let i=1; while(used.has(final)){ final=`${name}_${i}${ext}`; i++; } used.add(final); zip.file(final,await f.async('arraybuffer')); } return zip.generateAsync({type:'blob'}); }
+async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownEntitiesFile){
+  const JSZip=await ensureJsZip(); const zip=new JSZip();
+  Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob));
+  zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); zip.file('prompt/ai_radar_analysis_prompt.txt',promptText);
+  if(logosZipBlob) zip.file('logos/logos_from_ppt_media.zip',logosZipBlob);
+  if(knownEntitiesFile) zip.file(`known_entities/${knownEntitiesFile.name.toLowerCase().endsWith('.csv')?'startups.csv':'startups.xlsx'}`,knownEntitiesFile);
+  return zip.generateAsync({type:'blob'});
+}
+function updateAiCropDownloads(){ ['downloadAiRadarPackage','downloadRadarCropsZip','downloadAiPromptTxt','downloadCropPlanJson'].forEach(id=>q(id).disabled=!(aiCropState.finalZipBlob||id==='downloadRadarCropsZip'&&aiCropState.cropZipBlob||id==='downloadAiPromptTxt'&&aiCropState.promptText||id==='downloadCropPlanJson'&&aiCropState.cropPlan)); q('downloadLogosZip').disabled=!aiCropState.logosZipBlob; }
+async function refreshAiCropOptionalArtifacts(){
+  if(!aiCropState.cropPlan || !aiCropState.crops || !aiCropState.promptText) return;
+  setAiCropStatus('Reading optional PowerPoint media…');
+  aiCropState.logosZipBlob=null;
+  setAiCropWarning('');
+  if(aiCropState.pptxFile){
+    const zip=await readPptxAsZip(aiCropState.pptxFile);
+    const media=await extractPptxMedia(zip);
+    if(media.length){
+      aiCropState.logosZipBlob=await buildLogosZip(media);
+    } else {
+      setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.');
+    }
+  }
+  setAiCropStatus('Creating output ZIP…');
+  aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
+  setAiCropStatus('Done');
+  updateAiCropDownloads();
+}
+
 q('radarUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
   try{
@@ -3621,6 +3860,66 @@ q('radarUpload').onchange=async e=>{
     e.target.value='';
   }
 };
+q('uploadRadarCropImage').onclick=()=>q('radarCropImageUpload').click();
+q('uploadCropPptx').onclick=()=>q('radarCropPptxUpload').click();
+q('uploadKnownEntities').onclick=()=>q('radarKnownEntitiesUpload').click();
+q('radarCropPptxUpload').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(!/\.pptx$/i.test(f.name)){ alert('Only .pptx files are accepted for logo extraction.'); e.target.value=''; return; }
+  aiCropState.pptxFile=f;
+  setAiCropStatus(`Optional PPTX loaded: ${f.name}. Processing media…`);
+  try{
+    await refreshAiCropOptionalArtifacts();
+    if(aiCropState.logosZipBlob){
+      setAiCropStatus(`Done (logos extracted from ${f.name}).`);
+    }
+  } catch(err){
+    setAiCropStatus(`Error: ${err.message}`);
+    alert(err.message);
+  }
+};
+q('radarKnownEntitiesUpload').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(!/\.(csv|xlsx|xls)$/i.test(f.name)){ alert('Only CSV/XLSX accepted for known entities.'); e.target.value=''; return; }
+  aiCropState.knownEntitiesFile=f;
+  setAiCropStatus(`Optional known entities loaded: ${f.name}`);
+  try{
+    if(aiCropState.cropPlan && aiCropState.crops && aiCropState.promptText){
+      setAiCropStatus('Creating output ZIP…');
+      aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
+      setAiCropStatus('Done');
+      updateAiCropDownloads();
+    }
+  } catch(err){
+    setAiCropStatus(`Error: ${err.message}`);
+    alert(err.message);
+  }
+};
+q('radarCropImageUpload').onchange=async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{
+    setAiCropStatus('Loading radar image…');
+    const loaded=await loadRadarImage(file); aiCropState.imageFile=file; aiCropState.imageDataUrl=loaded.dataUrl; aiCropState.imageWidth=loaded.width; aiCropState.imageHeight=loaded.height;
+    q('aiCropUploadedPreview').src=loaded.dataUrl; q('aiCropUploadedPreview').style.display='block'; q('aiCropImageMeta').textContent=`${file.name} — ${loaded.width}x${loaded.height}px`;
+    setAiCropStatus('Reading image dimensions…');
+    if(loaded.width<1200 || loaded.height<700) setAiCropWarning('The uploaded radar image may be too small for reliable logo detection. Please export the slide at a higher resolution if possible.'); else setAiCropWarning('');
+    setAiCropStatus('Generating crops…');
+    aiCropState.cropPlan=generateCropPlan(loaded.width,loaded.height); aiCropState.crops=await createCropImages(loaded.image,aiCropState.cropPlan);
+    const previews=q('aiCropPreviews'); previews.innerHTML=''; ['top_left','top_right','bottom_left','bottom_right'].forEach(name=>{ const img=document.createElement('img'); img.src=aiCropState.crops[name].dataUrl; img.alt=name; img.style.maxWidth='100%'; img.style.border='1px solid #cbdde6'; img.style.borderRadius='6px'; previews.appendChild(img); });
+    q('aiCropPlanPreview').value=JSON.stringify(aiCropState.cropPlan,null,2);
+    setAiCropStatus('Building AI prompt…');
+    aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
+    setAiCropStatus('Creating output ZIP…');
+    aiCropState.cropZipBlob=await buildCropZip(aiCropState.crops,aiCropState.cropPlan);
+    await refreshAiCropOptionalArtifacts();
+  }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); }
+  updateAiCropDownloads();
+};
+q('downloadRadarCropsZip').onclick=()=>{ if(aiCropState.cropZipBlob) download('radar_crops.zip', aiCropState.cropZipBlob, 'application/zip'); };
+q('downloadAiRadarPackage').onclick=()=>{ if(aiCropState.finalZipBlob) download('ai_radar_analysis_package.zip', aiCropState.finalZipBlob, 'application/zip'); };
+q('downloadLogosZip').onclick=()=>{ if(aiCropState.logosZipBlob) download('logos_from_ppt_media.zip', aiCropState.logosZipBlob, 'application/zip'); };
+q('downloadAiPromptTxt').onclick=()=>{ if(aiCropState.promptText) download('ai_radar_analysis_prompt.txt', aiCropState.promptText, 'text/plain;charset=utf-8'); };
+q('downloadCropPlanJson').onclick=()=>{ if(aiCropState.cropPlan) download('crop_plan.json', JSON.stringify(aiCropState.cropPlan,null,2), 'application/json'); };
 q('radarPptxUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
   try{
