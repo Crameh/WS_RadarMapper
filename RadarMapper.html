@@ -2189,6 +2189,21 @@ function startVertex(e){
   svg.setPointerCapture(e.pointerId);
 }
 svg.addEventListener('pointerdown', handleZoneDoublePointer, true);
+svg.addEventListener('dblclick', e=>{
+  if(!isEditMode()) return;
+  const zoneEl=closestElement(e.target, '.zone', svg);
+  if(!zoneEl) return;
+  e.preventDefault();
+  e.stopPropagation();
+  showEditZonePopup({
+    currentTarget:zoneEl,
+    target:zoneEl,
+    clientX:e.clientX,
+    clientY:e.clientY,
+    preventDefault:()=>{},
+    stopPropagation:()=>{}
+  });
+}, true);
 svg.addEventListener('pointermove', e=>{
   if(!isEditMode() || !drag) return;
   const p=pointerPos(e);
@@ -3989,12 +4004,14 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
     popup.style.left=Math.min(Math.max(event.clientX-rect.left+12,8), Math.max(root.clientWidth-popup.offsetWidth-8,8))+'px';
     popup.style.top=Math.min(Math.max(event.clientY-rect.top+12,8), Math.max(root.clientHeight-popup.offsetHeight-8,8))+'px';
   };
+  const openPopup=(hotspot,event)=>{
+    event.preventDefault();
+    event.stopPropagation();
+    show(hotspot,event);
+  };
   root.querySelectorAll('${hotspotSelector}').forEach(hotspot=>{
-    hotspot.addEventListener('click',event=>{
-      event.preventDefault();
-      event.stopPropagation();
-      show(hotspot,event);
-    });
+    hotspot.addEventListener('click',event=>openPopup(hotspot,event));
+    hotspot.addEventListener('dblclick',event=>openPopup(hotspot,event));
     hotspot.addEventListener('keydown',event=>{
       if(event.key==='Enter' || event.key===' '){
         event.preventDefault();
