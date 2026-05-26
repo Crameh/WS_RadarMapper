@@ -3844,7 +3844,7 @@ function setAiCropWarning(message=''){ const el=q('aiCropPackageWarning'); if(!e
 function validateRadarImageFile(file){ return !!(file && /\.(png|jpe?g|webp)$/i.test(file.name||'')); }
 async function loadRadarImage(file){ if(!validateRadarImageFile(file)) throw new Error('Unsupported image file. Use PNG, JPG, JPEG, or WEBP.'); const dataUrl=await fileToDataUrl(file); const image=await loadImage(dataUrl); return {image,dataUrl,width:image.naturalWidth,height:image.naturalHeight}; }
 function generateCropPlan(imageWidth,imageHeight){
-  const horizontalOverlap=Math.round(imageWidth*0.06), verticalOverlap=Math.round(imageHeight*0.06), midX=Math.round(imageWidth/2), midY=Math.round(imageHeight/2);
+  const horizontalOverlap=Math.round(imageWidth*0.04), verticalOverlap=Math.round(imageHeight*0.04), midX=Math.round(imageWidth/2), midY=Math.round(imageHeight/2);
   const make=(name,x0,y0,x1,y1)=>({name,x0,y0,x1,y1,cropWidth:x1-x0,cropHeight:y1-y0,offsetX:x0,offsetY:y0});
   return {imageWidth,imageHeight,horizontalOverlap,verticalOverlap,midX,midY,crops:[
     make('top_left',0,0,Math.min(imageWidth,midX+horizontalOverlap),Math.min(imageHeight,midY+verticalOverlap)),
