@@ -3985,7 +3985,15 @@ q('radarCropImageUpload').onchange=async e=>{
     aiCropState.cropPlan=generateCropPlan(loaded.width,loaded.height); aiCropState.crops=await createCropImages(loaded.image,aiCropState.cropPlan);
     const previews=q('aiCropPreviews'); previews.innerHTML=''; ['top_left','top_right','bottom_left','bottom_right'].forEach(name=>{ const img=document.createElement('img'); img.src=aiCropState.crops[name].dataUrl; img.alt=name; img.style.maxWidth='100%'; img.style.border='1px solid #cbdde6'; img.style.borderRadius='6px'; previews.appendChild(img); });
     q('aiCropPlanPreview').value=JSON.stringify(aiCropState.cropPlan,null,2);
-    await rebuildAiCropPackage();
+    setAiCropStatus('Reading optional PowerPoint media…');
+    aiCropState.logosZipBlob=null;
+    if(aiCropState.pptxFile){ const zip=await readPptxAsZip(aiCropState.pptxFile); const media=await extractPptxMedia(zip); if(media.length){ const logoPositionsXml=await extractPptxLogoPositionsXml(zip); aiCropState.logosZipBlob=await buildLogosZip(media,logoPositionsXml); } else { setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.'); } }
+    setAiCropStatus('Building AI prompt…');
+    aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
+    setAiCropStatus('Creating output ZIP…');
+    aiCropState.cropZipBlob=await buildCropZip(aiCropState.crops,aiCropState.cropPlan);
+    aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
+    setAiCropStatus('Done');
   }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); }
 };
 q('downloadRadarCropsZip').onclick=()=>{ if(aiCropState.cropZipBlob) download('radar_crops.zip', aiCropState.cropZipBlob, 'application/zip'); };
