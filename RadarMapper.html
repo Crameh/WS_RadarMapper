@@ -3918,6 +3918,11 @@ async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownE
   zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); zip.file('prompt/ai_radar_analysis_prompt.txt',promptText);
   if(logosZipBlob) zip.file('logos/logos_from_ppt_media.zip',logosZipBlob);
   if(knownEntitiesFile) zip.file(`known_entities/${knownEntitiesFile.name.toLowerCase().endsWith('.csv')?'startups.csv':'startups.xlsx'}`,knownEntitiesFile);
+  if(knownEntitiesNamesXlsxBlob) zip.file('known_entities/company_names.xlsx',knownEntitiesNamesXlsxBlob);
+  if(sourceRadarImageFile){
+    const safeName=(sourceRadarImageFile.name||'radar_image.png').replace(/[\\/:*?"<>|]+/g,'_');
+    zip.file(`source_image/${safeName}`,sourceRadarImageFile);
+  }
   return zip.generateAsync({type:'blob'});
 }
 function updateAiCropDownloads(){ ['downloadAiRadarPackage','downloadRadarCropsZip','downloadAiPromptTxt','downloadCropPlanJson'].forEach(id=>q(id).disabled=!(aiCropState.finalZipBlob||id==='downloadRadarCropsZip'&&aiCropState.cropZipBlob||id==='downloadAiPromptTxt'&&aiCropState.promptText||id==='downloadCropPlanJson'&&aiCropState.cropPlan)); q('downloadLogosZip').disabled=!aiCropState.logosZipBlob; }
