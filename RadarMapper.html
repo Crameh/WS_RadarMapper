@@ -3921,6 +3921,35 @@ async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownE
   return zip.generateAsync({type:'blob'});
 }
 function updateAiCropDownloads(){ ['downloadAiRadarPackage','downloadRadarCropsZip','downloadAiPromptTxt','downloadCropPlanJson'].forEach(id=>q(id).disabled=!(aiCropState.finalZipBlob||id==='downloadRadarCropsZip'&&aiCropState.cropZipBlob||id==='downloadAiPromptTxt'&&aiCropState.promptText||id==='downloadCropPlanJson'&&aiCropState.cropPlan)); q('downloadLogosZip').disabled=!aiCropState.logosZipBlob; }
+async function rebuildAiCropPackage(){
+  if(!aiCropState.imageFile || !aiCropState.cropPlan || !Object.keys(aiCropState.crops||{}).length){
+    setAiCropStatus('Waiting for radar image upload…');
+    updateAiCropDownloads();
+    return;
+  }
+  setAiCropStatus('Reading optional PowerPoint media…');
+  aiCropState.logosZipBlob=null;
+  if(aiCropState.pptxFile){
+    const zip=await readPptxAsZip(aiCropState.pptxFile);
+    setAiCropStatus('Extracting logos from PPTX media…');
+    const media=await extractPptxMedia(zip);
+    if(media.length){
+      setAiCropStatus('Extracting logo positions XML…');
+      const logoPositionsXml=await extractPptxLogoPositionsXml(zip);
+      setAiCropStatus('Building logos ZIP…');
+      aiCropState.logosZipBlob=await buildLogosZip(media,logoPositionsXml);
+    } else {
+      setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.');
+    }
+  }
+  setAiCropStatus('Building AI prompt…');
+  aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
+  setAiCropStatus('Creating output ZIP…');
+  aiCropState.cropZipBlob=await buildCropZip(aiCropState.crops,aiCropState.cropPlan);
+  aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
+  setAiCropStatus('Done');
+  updateAiCropDownloads();
+}
 
 q('radarUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
@@ -3942,7 +3971,7 @@ q('radarUpload').onchange=async e=>{
 q('uploadRadarCropImage').onclick=()=>q('radarCropImageUpload').click();
 q('uploadCropPptx').onclick=()=>q('radarCropPptxUpload').click();
 q('uploadKnownEntities').onclick=()=>q('radarKnownEntitiesUpload').click();
-q('radarCropPptxUpload').onchange=e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.pptx$/i.test(f.name)){ alert('Only .pptx accepted.'); e.target.value=''; return; } aiCropState.pptxFile=f; setAiCropStatus(`Optional PPTX loaded: ${f.name}`); };
+q('radarCropPptxUpload').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.pptx$/i.test(f.name)){ alert('Only .pptx accepted.'); e.target.value=''; return; } aiCropState.pptxFile=f; setAiCropStatus(`Optional PPTX loaded: ${f.name}`); try{ await rebuildAiCropPackage(); }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); } finally { e.target.value=''; } };
 q('radarKnownEntitiesUpload').onchange=e=>{ const f=e.target.files[0]; if(!f) return; if(!/\.(csv|xlsx|xls)$/i.test(f.name)){ alert('Only CSV/XLSX accepted for known entities.'); e.target.value=''; return; } aiCropState.knownEntitiesFile=f; setAiCropStatus(`Optional known entities loaded: ${f.name}`); };
 q('radarCropImageUpload').onchange=async e=>{
   const file=e.target.files[0]; if(!file) return;
@@ -3966,7 +3995,6 @@ q('radarCropImageUpload').onchange=async e=>{
     aiCropState.finalZipBlob=await buildOutputZip(aiCropState.crops,aiCropState.cropPlan,aiCropState.promptText,aiCropState.logosZipBlob,aiCropState.knownEntitiesFile);
     setAiCropStatus('Done');
   }catch(err){ setAiCropStatus(`Error: ${err.message}`); alert(err.message); }
-  updateAiCropDownloads();
 };
 q('downloadRadarCropsZip').onclick=()=>{ if(aiCropState.cropZipBlob) download('radar_crops.zip', aiCropState.cropZipBlob, 'application/zip'); };
 q('downloadAiRadarPackage').onclick=()=>{ if(aiCropState.finalZipBlob) download('ai_radar_analysis_package.zip', aiCropState.finalZipBlob, 'application/zip'); };
