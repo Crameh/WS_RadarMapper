@@ -3869,9 +3869,49 @@ async function extractPptxMedia(zip){
   const allowed=/\.(png|jpe?g|svg|emf|wmf|gif|webp)$/i;
   return Object.values(zip.files).filter(f=>!f.dir && /^ppt\/media\//i.test(f.name) && allowed.test(f.name)).map(f=>f);
 }
+async function extractPptxLogoPositionsXml(zip){
+  if(!zip) return '';
+  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const entries=[];
+  const slideFiles=Object.values(zip.files).filter(f=>!f.dir && /^ppt\/slides\/slide\d+\.xml$/i.test(f.name));
+  for(const slideFile of slideFiles){
+    const relPath=slideFile.name.replace(/slides\/(slide\d+\.xml)$/i,'slides/_rels/$1.rels');
+    const relFile=zip.file(relPath);
+    if(!relFile) continue;
+    const relDoc=new DOMParser().parseFromString(await relFile.async('text'),'application/xml');
+    const relMap=new Map();
+    Array.from(relDoc.querySelectorAll('Relationship')).forEach(r=>{
+      const id=r.getAttribute('Id'); const target=r.getAttribute('Target')||'';
+      if(!id || !target) return;
+      const clean=target.replace(/^(\.\.\/)+/,'');
+      if(/^media\//i.test(clean)) relMap.set(id,`ppt/${clean}`);
+    });
+    if(!relMap.size) continue;
+    const slideDoc=new DOMParser().parseFromString(await slideFile.async('text'),'application/xml');
+    const pics=Array.from(slideDoc.querySelectorAll('p\\:pic,pic'));
+    for(const pic of pics){
+      const blip=pic.querySelector('a\\:blip,blip');
+      const rid=blip && (blip.getAttribute('r:embed')||blip.getAttribute('embed'));
+      if(!rid || !relMap.has(rid)) continue;
+      const xfrm=pic.querySelector('a\\:xfrm,xfrm');
+      const off=xfrm && xfrm.querySelector('a\\:off,off');
+      const ext=xfrm && xfrm.querySelector('a\\:ext,ext');
+      entries.push({
+        slide:slideFile.name,
+        media:relMap.get(rid),
+        x:off ? Number(off.getAttribute('x')||0) : 0,
+        y:off ? Number(off.getAttribute('y')||0) : 0,
+        cx:ext ? Number(ext.getAttribute('cx')||0) : 0,
+        cy:ext ? Number(ext.getAttribute('cy')||0) : 0
+      });
+    }
+  }
+  const body=entries.map((e,i)=>`  <logo id="logo_${String(i+1).padStart(3,'0')}" slide="${esc(e.slide)}" media="${esc(e.media)}" x="${e.x}" y="${e.y}" cx="${e.cx}" cy="${e.cy}" />`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<logoPositions>\n${body}\n</logoPositions>\n`;
+}
 function buildAiPrompt(cropPlan){ return AI_CROP_PROMPT_TEMPLATE.replace('{{CROP_PLAN_JSON}}', JSON.stringify(cropPlan,null,2)); }
 async function buildCropZip(cropImages,cropPlan){ const JSZip=await ensureJsZip(); const zip=new JSZip(); Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob)); zip.file('metadata/crop_plan.json',JSON.stringify(cropPlan,null,2)); return zip.generateAsync({type:'blob'}); }
-async function buildLogosZip(mediaFiles){ const JSZip=await ensureJsZip(); const zip=new JSZip(); const used=new Set(); for(const f of mediaFiles){ const base=f.name.split('/').pop(); const dot=base.lastIndexOf('.'); const name=dot>0?base.slice(0,dot):base; const ext=dot>0?base.slice(dot):''; let final=`${name}${ext}`; let i=1; while(used.has(final)){ final=`${name}_${i}${ext}`; i++; } used.add(final); zip.file(final,await f.async('arraybuffer')); } return zip.generateAsync({type:'blob'}); }
+async function buildLogosZip(mediaFiles,logosPositionXml=''){ const JSZip=await ensureJsZip(); const zip=new JSZip(); const used=new Set(); for(const f of mediaFiles){ const base=f.name.split('/').pop(); const dot=base.lastIndexOf('.'); const name=dot>0?base.slice(0,dot):base; const ext=dot>0?base.slice(dot):''; let final=`${name}${ext}`; let i=1; while(used.has(final)){ final=`${name}_${i}${ext}`; i++; } used.add(final); zip.file(final,await f.async('arraybuffer')); } if(logosPositionXml) zip.file('logo_positions.xml',logosPositionXml); return zip.generateAsync({type:'blob'}); }
 async function buildOutputZip(cropImages,cropPlan,promptText,logosZipBlob,knownEntitiesFile){
   const JSZip=await ensureJsZip(); const zip=new JSZip();
   Object.entries(cropImages).forEach(([n,c])=>zip.file(`crops/${n}.png`,c.blob));
@@ -3918,7 +3958,7 @@ q('radarCropImageUpload').onchange=async e=>{
     q('aiCropPlanPreview').value=JSON.stringify(aiCropState.cropPlan,null,2);
     setAiCropStatus('Reading optional PowerPoint media…');
     aiCropState.logosZipBlob=null;
-    if(aiCropState.pptxFile){ const zip=await readPptxAsZip(aiCropState.pptxFile); const media=await extractPptxMedia(zip); if(media.length){ aiCropState.logosZipBlob=await buildLogosZip(media); } else { setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.'); } }
+    if(aiCropState.pptxFile){ const zip=await readPptxAsZip(aiCropState.pptxFile); const media=await extractPptxMedia(zip); if(media.length){ const logoPositionsXml=await extractPptxLogoPositionsXml(zip); aiCropState.logosZipBlob=await buildLogosZip(media,logoPositionsXml); } else { setAiCropWarning('No /ppt/media files found in optional PPTX. Continuing without logos ZIP.'); } }
     setAiCropStatus('Building AI prompt…');
     aiCropState.promptText=buildAiPrompt(aiCropState.cropPlan); q('aiPromptPreview').value=aiCropState.promptText;
     setAiCropStatus('Creating output ZIP…');
