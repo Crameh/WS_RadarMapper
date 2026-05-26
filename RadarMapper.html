@@ -3663,83 +3663,73 @@ You will receive:
 
 5. Internet access, if available, to verify ambiguous logos, names, or visual identities.
 
-Your task has two stages:
+TASK
 
-STAGE 1 — Analyze each crop separately
-
-For each crop image, produce one crop-level JSON file:
-
-- top_left.json
-- top_right.json
-- bottom_left.json
-- bottom_right.json
-
-Each crop-level JSON must contain detections for that crop only.
+Analyze the 4 crop images and return one final JSON object containing all detected company/product items.
 
 Important:
 - The crop images overlap.
 - Some logos may appear in more than one crop.
-- Do not remove duplicates across different crops during Stage 1.
-- Do not merge detections across crops during Stage 1.
-- Analyze each crop as an independent image.
+- Analyze all 4 crops.
+- Convert detections from crop-local coordinates to full-image coordinates.
+- Merge duplicate detections caused by overlaps.
+- Return only the final merged JSON object.
+
+COORDINATE SYSTEM
+
+The final output must use the full original image coordinate system.
+
+- Origin is the top-left corner of the full original image.
+- x increases to the right.
+- y increases downward.
+- Coordinates are in pixels.
+- Use full-image coordinates only in the final JSON.
+
+CROP COORDINATE CONVERSION
 
 For each visible item in each crop:
-- estimate the bounding box in local crop coordinates first;
-- then convert it to full-image coordinates using the crop offsets from crop_plan.json;
-- output only full-image coordinates in the JSON.
 
-Coordinate conversion:
+1. Estimate the bounding box in local crop coordinates.
+2. Convert it to full-image coordinates using the crop offsets from crop_plan.json.
+
+Formula:
 
 globalX = localX + offsetX
 globalY = localY + offsetY
 globalW = localW
 globalH = localH
 
-STAGE 2 — Merge crop-level JSON files
-
-After producing the 4 crop-level JSON files, merge them into one final JSON file:
-
-- final_radar_mapping.json
-
-The final JSON must:
-- combine all zones from the 4 crop-level JSON files;
-- remove duplicates caused by crop overlaps;
-- keep all coordinates in the full original image coordinate system;
-- renumber all final zones as z001, z002, z003, etc.;
-- sort zones in reading order.
-
-Use these sources in priority order:
-
-1. The visible text/logo in the crop image.
-2. The optional extracted PowerPoint media ZIP, if provided.
-3. The optional Excel/CSV known-entities list, if provided.
-4. Internet search, only when the logo or text is ambiguous.
-
-Coordinate system:
-- Origin is the top-left corner of the full original image.
-- x increases to the right.
-- y increases downward.
-- Coordinates are in pixels.
-- Use full-image coordinates in all JSON files.
-
-Crop metadata:
 Use this crop plan:
 
 {{CROP_PLAN_JSON}}
 
-Ignore:
-- radar title;
-- axis labels;
-- ring labels;
-- quadrant labels;
-- legends;
-- category names;
-- arrows;
-- decorations;
-- publisher branding;
-- slide footers;
-- page numbers;
-- generic PowerPoint elements.
+HOW TO DETECT
+
+- Scan each crop methodically left-to-right, top-to-bottom, ring by ring, so you miss nothing, including small, faint, or rotated items.
+- Output exactly one final zone per visible company/product item.
+- Never merge two neighbouring items into one box.
+- Never list the same item twice in the final output.
+- Fit each box tightly around the item, including text or a wordmark that wraps onto several lines for that same item.
+- Include partially cut-off items if they are identifiable.
+- Ignore anything that is not a company/product item:
+  - radar title;
+  - axis labels;
+  - ring labels;
+  - quadrant labels;
+  - sector or category names;
+  - legends;
+  - arrows;
+  - decorations;
+  - publisher branding;
+  - slide footers;
+  - page numbers;
+  - generic PowerPoint elements.
+- If an item is clearly present but unreadable:
+  - name = zone_NNN, matching its final id number;
+  - ocrCandidate = ;
+  - confidence between 0.05 and 0.25.
+
+DETECT ONLY
 
 Detect only:
 - company logos;
@@ -3747,39 +3737,107 @@ Detect only:
 - product names;
 - readable company/product wordmarks.
 
-Naming rules:
-- Use the Excel/CSV file as the authoritative known-entities list when provided.
-- Match detected names against the known-entities list while ignoring:
-  - case;
-  - accents;
-  - punctuation;
-  - hyphens;
-  - spacing;
-  - minor OCR errors.
-- If a detected logo or text strongly matches a known entity, output the exact entity name from the known-entities file.
+NAMING
+
+- If a knownEntities list is provided, match each item to the closest entry, ignoring case, accents, punctuation, hyphens, spacing, and minor OCR errors.
+- If a detected item strongly matches a known entity, output that known entity’s exact name.
+- If an item is not in that list, or if no knownEntities list is provided, output the name/text read directly from the image.
+- Expected language for human-readable text is English.
 - If the logo is ambiguous and the PowerPoint media ZIP is provided, compare it with the extracted media files.
 - If still ambiguous, use internet research to verify the company or product identity.
 - Do not invent names.
-- If an item is genuinely unreadable, use:
-  - name = zone_NNN
-  - ocrCandidate = 
-  - confidence between 0.05 and 0.25
+- Use zone_001, zone_002, etc. only when the item is genuinely unreadable.
 
-Expected outputs from the AI:
-1. top_left.json
-2. top_right.json
-3. bottom_left.json
-4. bottom_right.json
-5. final_radar_mapping.json
+DUPLICATE HANDLING
 
-Strict JSON rules:
-- Every JSON file must be valid JSON.
-- No Markdown in JSON files.
-- No code fences in JSON files.
-- No explanations inside JSON files.
+Because the 4 crops overlap, the same item may be detected in more than one crop.
+
+Two detections are likely duplicates if:
+- their names are identical or very similar; and
+- their boxes overlap significantly; or
+- their centers are very close.
+
+Use these rules where possible:
+
+- same or similar name and IoU >= 0.25;
+- or same or similar name and center distance <= max(25 px, 0.03 * imageDiagonal);
+- or one box mostly contains the other and the names are similar.
+
+If duplicates are found:
+- keep the higher-confidence detection;
+- merge boxes if both detections are partial;
+- keep the cleanest normalized name;
+- keep the most faithful raw OCR value;
+- do not artificially increase confidence unless the merge clearly improves reliability.
+
+OUTPUT — return ONLY this JSON object, nothing else
+
+{
+  zones: [
+    {
+      id: z001,
+      shape: rect,
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 50,
+      points: [],
+      name: Example Company,
+      ocrCandidate: Example Company,
+      confidence: 0.95
+    }
+  ]
+}
+
+Each zone has EXACTLY these fields:
+
+- id: string z001, z002, etc., numbered in reading order.
+- shape: rect | circle | diamond | poly. Use rect unless another shape clearly fits the item better.
+- x, y, w, h: integer pixel coordinates in the full original image coordinate system.
+- points: [] for every shape except poly; for poly, give [{x: int, y: int}, ...] as full-image pixels.
+- name: the company or product name read from its logo/wordmark. Use zone_001, zone_002, etc., matching the id number, ONLY when the item is genuinely unreadable.
+- ocrCandidate: the raw text actually read for this item. Use  when there is no readable text.
+- confidence: number 0..1 indicating how sure you are about name.
+
+Reading order:
+- Number zones top-to-bottom.
+- Within the same visual row, number left-to-right.
+- If the radar has rings and sectors, still use final visual reading order for IDs.
+
+Unreadable item rule:
+- If the final id is z001, the unreadable fallback name must be zone_001.
+- If the final id is z002, the unreadable fallback name must be zone_002.
+- Continue this pattern for all unreadable items.
+
+Final validation:
+- Clamp all bounding boxes inside the full image dimensions from crop_plan.json.
+- Remove invalid boxes where width or height is less than or equal to zero.
+- Ensure every zone has exactly the required fields.
+- Ensure all coordinates are integers.
+- Ensure confidence is a number between 0 and 1.
+
+STRICT RULES
+
+- Return the raw JSON object only.
+- No Markdown code fences.
 - No comments.
-- No trailing commas.
-- Use straight double quotes only.`
+- No explanations.
+- No text before or after the JSON.
+- Use straight double quotes only.
+- Never use trailing commas.
+- Include only the zone fields listed above:
+  - id
+  - shape
+  - x
+  - y
+  - w
+  - h
+  - points
+  - name
+  - ocrCandidate
+  - confidence
+- Do not include url, logo, description, sourceCrop, cropName, offsetX, offsetY, or any other extra field.
+- Do not echo the context or any input back.`
 const aiCropState={imageFile:null,imageDataUrl:'',imageWidth:0,imageHeight:0,cropPlan:null,crops:{},pptxFile:null,knownEntitiesFile:null,logosZipBlob:null,cropZipBlob:null,finalZipBlob:null,promptText:''};
 function setAiCropStatus(message){ const el=q('aiCropPackageStatus'); if(el) el.textContent=`Status: ${message}`; }
 function setAiCropWarning(message=''){ const el=q('aiCropPackageWarning'); if(!el) return; el.textContent=message; el.hidden=!message; }
