@@ -1139,7 +1139,12 @@ let selectedId = zones[0] ? zones[0].id : null;
 let selectedIds = new Set(selectedId ? [selectedId] : []);
 let drag = null;
 let marqueeEl = null;
-let lastZonePointer = {id:null, time:0};
+let lastZonePointer = {id:null, time:0, x:0, y:0};
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const DOUBLE_POINTER_MS = 520;
+const DOUBLE_POINTER_PX = 12;
+let zoneElementById = new Map();
+let dragVisualFrame = 0;
 function isAdditiveSelect(e){
   return !!(e && (e.shiftKey || (typeof e.getModifierState==='function' && e.getModifierState('CapsLock'))));
 }
@@ -1257,60 +1262,72 @@ function pointerPos(e){
     y: clamp((e.clientY - rect.top) * IMG_H / rect.height, 0, IMG_H)
   };
 }
+
+function setZoneGeometry(el, z){
+  if(!el || !z) return;
+  if(z.shape === 'circle'){
+    el.setAttribute('cx', z.x+z.w/2); el.setAttribute('cy', z.y+z.h/2);
+    el.setAttribute('rx', Math.max(3,z.w/2)); el.setAttribute('ry', Math.max(3,z.h/2));
+  } else if(z.shape === 'diamond' || z.shape === 'poly'){
+    if(z.shape === 'poly') ensurePoly(z);
+    el.setAttribute('points', pointsFromBox(z));
+  } else {
+    el.setAttribute('x', z.x); el.setAttribute('y', z.y);
+    el.setAttribute('width', Math.max(3,z.w)); el.setAttribute('height', Math.max(3,z.h));
+  }
+}
+function applyZoneClasses(el, z){
+  if(!el || !z) return;
+  el.classList.toggle('confirmed', !!(z.dataConfirmed || z.associationConfirmed));
+  el.classList.toggle('pending', !(z.dataConfirmed || z.associationConfirmed));
+  el.classList.toggle('prevalidated', !!(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound!==false));
+  el.classList.toggle('unmatched', !!(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound===false));
+  el.classList.toggle('multiassigned', !!(duplicateZoneIdsCache.has(z.id) && !(z.dataConfirmed || z.associationConfirmed)));
+  el.classList.toggle('noUrl', !z.url);
+  el.classList.toggle('selected', selectedIds.has(z.id));
+  el.classList.toggle('hiddenFill', !q('showFill').checked);
+  el.classList.toggle('zone-filtered-out', !!((isEditMode() || isExportMode()) && !zoneMatchesFilter(z)));
+}
+function refreshDraggedZoneVisuals(){
+  if(!drag || !isEditMode()) return;
+  const ids = drag.type === 'move' ? drag.group.map(g=>g.id) : (selectedId ? [selectedId] : []);
+  ids.forEach(id=>{
+    const z=zoneById(id);
+    const el=zoneElementById.get(String(id));
+    if(z && el) setZoneGeometry(el, z);
+  });
+  const z=zoneById(selectedId);
+  if(z && selectedIds.size<=1) renderHandles(z);
+  if(z){ fillForm(z); if(!q('editZonePopup').hidden) fillEditPopup(z); }
+}
+function scheduleDragVisualRefresh(){
+  if(dragVisualFrame) return;
+  dragVisualFrame=requestAnimationFrame(()=>{
+    dragVisualFrame=0;
+    refreshDraggedZoneVisuals();
+  });
+}
 function shapeEl(z){
   let el;
   if(z.shape === 'circle'){
-    el = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    el = document.createElementNS(SVG_NS,'ellipse');
     el.setAttribute('cx', z.x+z.w/2); el.setAttribute('cy', z.y+z.h/2);
     el.setAttribute('rx', Math.max(3,z.w/2)); el.setAttribute('ry', Math.max(3,z.h/2));
   } else if(z.shape === 'diamond'){
-    el = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    el = document.createElementNS(SVG_NS,'polygon');
     el.setAttribute('points', pointsFromBox(z));
   } else if(z.shape === 'poly'){
     ensurePoly(z);
-    el = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    el = document.createElementNS(SVG_NS,'polygon');
     el.setAttribute('points', pointsFromBox(z));
   } else {
-    el = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    el = document.createElementNS(SVG_NS,'rect');
     el.setAttribute('x', z.x); el.setAttribute('y', z.y);
     el.setAttribute('width', Math.max(3,z.w)); el.setAttribute('height', Math.max(3,z.h));
   }
   el.classList.add('zone');
-  el.classList.add(z.dataConfirmed || z.associationConfirmed ? 'confirmed' : 'pending');
-  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound!==false) el.classList.add('prevalidated');
-  if(!(z.dataConfirmed || z.associationConfirmed) && z.llmPrevalidated && z.llmFound===false) el.classList.add('unmatched');
-  if(duplicateZoneIdsCache.has(z.id) && !(z.dataConfirmed || z.associationConfirmed)) el.classList.add('multiassigned');
-  if(!z.url) el.classList.add('noUrl');
-  if(selectedIds.has(z.id)) el.classList.add('selected');
-  if(!q('showFill').checked) el.classList.add('hiddenFill');
-  if((isEditMode() || isExportMode()) && !zoneMatchesFilter(z)) el.classList.add('zone-filtered-out');
   el.dataset.id = z.id;
-  el.addEventListener('pointerdown', startMove);
-  el.addEventListener('dblclick', showEditZonePopup);
-  el.addEventListener('focus', ()=>{
-    if(isEditMode()){
-      if(selectedIds.has(z.id)) selectedId=z.id;
-      else setPrimarySelection(z.id);
-      refreshZoneSelectionStyles();
-      const current=zoneById(selectedId);
-      if(current) fillForm(current);
-      renderList();
-      updateShapeButtons();
-    }
-  });
-  el.addEventListener('keydown', e=>{
-    if(isExportMode() && (e.key==='Enter' || e.key===' ')){
-      showExportLivePopup({currentTarget:e.currentTarget, preventDefault:()=>e.preventDefault(), stopPropagation:()=>e.stopPropagation(), clientX:window.innerWidth/2, clientY:window.innerHeight/2});
-    }
-    if(isEditMode() && e.key==='Tab'){
-      const tabZones=Array.from(svg.querySelectorAll('.zone[tabindex="0"]'));
-      if(!tabZones.length) return;
-      e.preventDefault();
-      const cur=tabZones.indexOf(e.currentTarget);
-      const next=e.shiftKey?(cur<=0?tabZones.length-1:cur-1):(cur>=tabZones.length-1?0:cur+1);
-      tabZones[next].focus();
-    }
-  });
+  applyZoneClasses(el, z);
   el.setAttribute('aria-label', z.name || z.id);
   if(isExportMode() || isEditMode()){
     const tIdx = isEditMode() && !zoneMatchesFilter(z) ? '-1' : '0';
@@ -1323,9 +1340,16 @@ function render(){
   applyExportRenderConfig();
   duplicateZoneIdsCache=duplicateZoneIdSet();
   svg.innerHTML = '';
+  zoneElementById = new Map();
   Array.from(selectedIds).forEach(id=>{ if(!zoneById(id)) selectedIds.delete(id); });
   if(selectedId && !zoneById(selectedId)) selectedId = selectedIds.size ? Array.from(selectedIds)[0] : null;
-  zones.forEach(z => svg.appendChild(shapeEl(z)));
+  const fragment=document.createDocumentFragment();
+  zones.forEach(z => {
+    const el=shapeEl(z);
+    zoneElementById.set(String(z.id), el);
+    fragment.appendChild(el);
+  });
+  svg.appendChild(fragment);
   const z = zoneById(selectedId);
   if(z){
     if(isEditMode() && selectedIds.size<=1) renderHandles(z);
@@ -1348,10 +1372,11 @@ function blinkZone(zoneId){
   setTimeout(()=>el.classList.remove('blinking'), 750);
 }
 function renderHandles(z){
+  svg.querySelectorAll('.handle,.vertex').forEach(el=>el.remove());
   if(z.shape === 'poly'){
     ensurePoly(z);
     z.points.forEach((p,i)=>{
-      const h=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      const h=document.createElementNS(SVG_NS,'circle');
       h.setAttribute('class','vertex'); h.setAttribute('r',5); h.setAttribute('cx',p.x); h.setAttribute('cy',p.y); h.dataset.idx=i;
       h.addEventListener('pointerdown', startVertex);
       svg.appendChild(h);
@@ -1359,7 +1384,7 @@ function renderHandles(z){
   } else {
     const pts = [[z.x,z.y,'nw'],[z.x+z.w,z.y,'ne'],[z.x+z.w,z.y+z.h,'se'],[z.x,z.y+z.h,'sw']];
     pts.forEach(([x,y,corner])=>{
-      const h=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const h=document.createElementNS(SVG_NS,'rect');
       h.setAttribute('class','handle'); h.setAttribute('x',x-5); h.setAttribute('y',y-5); h.setAttribute('width',10); h.setAttribute('height',10); h.dataset.corner=corner;
       h.addEventListener('pointerdown', startResize);
       svg.appendChild(h);
@@ -1454,8 +1479,9 @@ function showEditZonePopup(event){
   event.stopPropagation();
   const hasCurrentZone=event.currentTarget && event.currentTarget.dataset && event.currentTarget.dataset.id;
   const zoneEl=hasCurrentZone ? event.currentTarget : closestElement(event.target, '.zone');
-  if(!zoneEl) return;
-  setPrimarySelection(zoneEl.dataset.id);
+  const popupZoneId = zoneEl && zoneEl.dataset ? zoneEl.dataset.id : (selectedId || lastZonePointer.id);
+  if(!popupZoneId) return;
+  setPrimarySelection(popupZoneId);
   const z=zoneById(selectedId);
   if(!z) return;
   fillEditPopup(z);
@@ -1471,18 +1497,32 @@ function hideEditZonePopup(){
 }
 function handleZoneDoublePointer(e){
   if(!isEditMode()) return;
-  const zoneEl=closestElement(e.target, '.zone');
+  const zoneEl=closestElement(e.target, '.zone', svg);
   if(!zoneEl) return;
   const zoneId=zoneEl.dataset.id;
   const now=Date.now();
-  if(lastZonePointer.id === zoneId && now-lastZonePointer.time < 420){
-    lastZonePointer={id:null,time:0};
+  const dx=(e.clientX||0)-(lastZonePointer.x||0);
+  const dy=(e.clientY||0)-(lastZonePointer.y||0);
+  const closeEnough=Math.hypot(dx,dy) <= DOUBLE_POINTER_PX;
+  const sameZone=lastZonePointer.id === zoneId;
+  const selectedFallback=selectedId && lastZonePointer.id === selectedId && closeEnough;
+  if(now-lastZonePointer.time < DOUBLE_POINTER_MS && (sameZone || selectedFallback)){
+    const popupZoneId = sameZone ? zoneId : selectedId;
+    const popupZoneEl = zoneElementById.get(String(popupZoneId)) || zoneEl;
+    lastZonePointer={id:null,time:0,x:0,y:0};
     e.preventDefault();
     e.stopPropagation();
-    showEditZonePopup(e);
+    showEditZonePopup({
+      currentTarget: popupZoneEl,
+      target: zoneEl,
+      clientX:e.clientX,
+      clientY:e.clientY,
+      preventDefault:()=>{},
+      stopPropagation:()=>{}
+    });
     return;
   }
-  lastZonePointer={id:zoneId,time:now};
+  lastZonePointer={id:zoneId,time:now,x:e.clientX||0,y:e.clientY||0};
 }
 function applyEditPopup(){
   if(!isEditMode()) return;
@@ -2239,6 +2279,49 @@ svg.addEventListener('dblclick', e=>{
     stopPropagation:()=>{}
   });
 }, true);
+svg.addEventListener('pointerdown', e=>{
+  if(!isEditMode() || drag) return;
+  const zoneEl=closestElement(e.target, '.zone', svg);
+  if(!zoneEl) return;
+  startMove({
+    currentTarget: zoneEl,
+    target: e.target,
+    pointerId: e.pointerId,
+    clientX: e.clientX,
+    clientY: e.clientY,
+    shiftKey: e.shiftKey,
+    getModifierState: key=>typeof e.getModifierState==='function' ? e.getModifierState(key) : false,
+    preventDefault:()=>e.preventDefault(),
+    stopPropagation:()=>e.stopPropagation()
+  });
+});
+svg.addEventListener('focusin', e=>{
+  const zoneEl=closestElement(e.target, '.zone', svg);
+  if(!zoneEl || !isEditMode()) return;
+  const id=zoneEl.dataset.id;
+  if(selectedIds.has(id)) selectedId=id;
+  else setPrimarySelection(id);
+  refreshZoneSelectionStyles();
+  const current=zoneById(selectedId);
+  if(current) fillForm(current);
+  renderList();
+  updateShapeButtons();
+});
+svg.addEventListener('keydown', e=>{
+  const zoneEl=closestElement(e.target, '.zone', svg);
+  if(!zoneEl) return;
+  if(isExportMode() && (e.key==='Enter' || e.key===' ')){
+    showExportLivePopup({currentTarget:zoneEl, preventDefault:()=>e.preventDefault(), stopPropagation:()=>e.stopPropagation(), clientX:window.innerWidth/2, clientY:window.innerHeight/2});
+  }
+  if(isEditMode() && e.key==='Tab'){
+    const tabZones=Array.from(svg.querySelectorAll('.zone[tabindex="0"]'));
+    if(!tabZones.length) return;
+    e.preventDefault();
+    const cur=tabZones.indexOf(zoneEl);
+    const next=e.shiftKey?(cur<=0?tabZones.length-1:cur-1):(cur>=tabZones.length-1?0:cur+1);
+    tabZones[next].focus();
+  }
+});
 svg.addEventListener('pointermove', e=>{
   if(!isEditMode() || !drag) return;
   const p=pointerPos(e);
@@ -2268,7 +2351,7 @@ svg.addEventListener('pointermove', e=>{
     if(!z) return;
     ensurePoly(z); z.points[drag.idx]={x:p.x,y:p.y}; Object.assign(z,boundsFromPoints(z.points));
   }
-  render();
+  scheduleDragVisualRefresh();
 });
 svg.addEventListener('pointerup', ()=>{
   if(drag && isEditMode()){
@@ -2286,7 +2369,7 @@ svg.addEventListener('pointerdown', e=>{
   const p=pointerPos(e);
   const additive=isAdditiveSelect(e);
   drag={type:'marquee', sx:p.x, sy:p.y, additive, base:additive?new Set(selectedIds):new Set(), moved:false};
-  marqueeEl=document.createElementNS('http://www.w3.org/2000/svg','rect');
+  marqueeEl=document.createElementNS(SVG_NS,'rect');
   marqueeEl.setAttribute('class','marquee');
   marqueeEl.setAttribute('x',p.x); marqueeEl.setAttribute('y',p.y);
   marqueeEl.setAttribute('width',0); marqueeEl.setAttribute('height',0);
