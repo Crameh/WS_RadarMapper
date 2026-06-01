@@ -463,6 +463,10 @@
   .providerFields { display:none; }
   .providerFields.active { display:block; }
   .popup-logo { max-width:96px; max-height:48px; object-fit:contain; display:block; margin:0 0 8px; }
+  @media (min-width: 1181px) {
+    main { align-items:start; }
+    #stageWrap { position:sticky; top:16px; z-index:2; max-height:calc(100vh - 32px); }
+  }
   @media (max-width: 1180px) {
     .appTopBar { grid-template-columns:1fr; grid-template-areas:"brand" "phases" "status"; }
     .phaseNav { min-width:0; overflow-x:auto; justify-content:flex-start; }
