@@ -2376,13 +2376,6 @@ svg.addEventListener('dblclick', e=>{
     stopPropagation:()=>{}
   });
 }, true);
-svg.addEventListener('click', e=>{
-  if(isExportMode()) return;
-  const zoneEl=closestElement(e.target, '.zone', svg);
-  if(!zoneEl) return;
-  e.preventDefault();
-  selectZoneForSideEditor(zoneEl.dataset.id, {switchToEdit:true, renderSelection:true});
-});
 svg.addEventListener('pointerdown', e=>{
   if(!isEditMode() || drag) return;
   const zoneEl=closestElement(e.target, '.zone', svg);
