@@ -600,6 +600,7 @@
           <div><label>Y</label><input id="editPopupY" type="number" inputmode="numeric" step="1"></div>
           <div><label>Width</label><input id="editPopupW" type="number" inputmode="numeric" step="1"></div>
           <div><label>Height</label><input id="editPopupH" type="number" inputmode="numeric" step="1"></div>
+          <div><label>Rotation (°)</label><input id="editPopupRotation" type="number" inputmode="numeric" step="1" value="0"></div>
         </div>
         <label>Polygon points</label>
         <textarea id="editPopupPoints" rows="3" class="mono"></textarea>
@@ -841,6 +842,7 @@
           <div><label>Y</label><input id="y" type="number" inputmode="numeric" step="1"></div>
           <div><label>Width</label><input id="w" type="number" inputmode="numeric" step="1"></div>
           <div><label>Height</label><input id="h" type="number" inputmode="numeric" step="1"></div>
+          <div><label>Rotation (°)</label><input id="rotation" type="number" inputmode="numeric" step="1" value="0"></div>
         </div>
         <label>Polygon points</label>
         <textarea id="points" rows="3" class="mono"></textarea>
@@ -896,8 +898,9 @@
             <div class="prepStepBody">
               <div class="primaryAction">
                 <button id="exportJson" class="prepBtn primary" type="button">Save database</button>
+                <button id="exportCoordinatesJson" class="prepBtn" type="button">Export coordinates only (JSON)</button>
               </div>
-              <p class="actionNote">Save this backup JSON manually with your exported HTML files so you can reload and modify this radar later.</p>
+              <p class="actionNote">Save this backup JSON manually with your exported HTML files so you can reload and modify this radar later. Use coordinates-only JSON when the image is already managed separately.</p>
             </div>
           </div>
         </div>
@@ -1293,6 +1296,50 @@ function pointsFromBox(z){
   if(z.shape === 'diamond') return `${z.x+z.w/2},${z.y} ${z.x+z.w},${z.y+z.h/2} ${z.x+z.w/2},${z.y+z.h} ${z.x},${z.y+z.h/2}`;
   return (z.points || []).map(p => `${fmt(p.x)},${fmt(p.y)}`).join(' ');
 }
+function normalizeRotation(value){
+  let angle=Number(value)||0;
+  angle=((angle%360)+360)%360;
+  if(angle>180) angle-=360;
+  return fmt(angle);
+}
+function zoneRotation(z){ return normalizeRotation(z && z.rotation); }
+function zoneCenter(z){ return {x:z.x+z.w/2, y:z.y+z.h/2}; }
+function rotatePoint(point, center, angle){
+  const radians=angle*Math.PI/180;
+  const cos=Math.cos(radians), sin=Math.sin(radians);
+  const dx=point.x-center.x, dy=point.y-center.y;
+  return {x:center.x+dx*cos-dy*sin, y:center.y+dx*sin+dy*cos};
+}
+function rotatedPoints(points, z){
+  const angle=zoneRotation(z);
+  if(!angle) return points.map(p=>({x:p.x,y:p.y}));
+  const center=zoneCenter(z);
+  return points.map(p=>rotatePoint(p, center, angle));
+}
+function rectCornerPoints(z){
+  return [{x:z.x,y:z.y},{x:z.x+z.w,y:z.y},{x:z.x+z.w,y:z.y+z.h},{x:z.x,y:z.y+z.h}];
+}
+function diamondCornerPoints(z){
+  return [{x:z.x+z.w/2,y:z.y},{x:z.x+z.w,y:z.y+z.h/2},{x:z.x+z.w/2,y:z.y+z.h},{x:z.x,y:z.y+z.h/2}];
+}
+function ellipsePoints(z, segments=24){
+  const cx=z.x+z.w/2, cy=z.y+z.h/2, rx=z.w/2, ry=z.h/2;
+  return Array.from({length:segments},(_,i)=>{
+    const a=(Math.PI*2*i)/segments;
+    return {x:cx+Math.cos(a)*rx, y:cy+Math.sin(a)*ry};
+  });
+}
+function zoneTransformAttr(z){
+  const angle=zoneRotation(z);
+  if(!angle) return '';
+  const center=zoneCenter(z);
+  return `rotate(${angle} ${fmt(center.x)} ${fmt(center.y)})`;
+}
+function applyZoneTransform(el, z){
+  const transform=zoneTransformAttr(z);
+  if(transform) el.setAttribute('transform', transform);
+  else el.removeAttribute('transform');
+}
 function ensurePoly(z){
   if(!z.points || !z.points.length){
     z.points = [{x:z.x,y:z.y},{x:z.x+z.w,y:z.y},{x:z.x+z.w,y:z.y+z.h},{x:z.x,y:z.y+z.h}];
@@ -1323,6 +1370,7 @@ function setZoneGeometry(el, z){
     el.setAttribute('x', z.x); el.setAttribute('y', z.y);
     el.setAttribute('width', Math.max(3,z.w)); el.setAttribute('height', Math.max(3,z.h));
   }
+  applyZoneTransform(el, z);
 }
 function applyZoneClasses(el, z){
   if(!el || !z) return;
@@ -1373,6 +1421,7 @@ function shapeEl(z){
     el.setAttribute('x', z.x); el.setAttribute('y', z.y);
     el.setAttribute('width', Math.max(3,z.w)); el.setAttribute('height', Math.max(3,z.h));
   }
+  applyZoneTransform(el, z);
   el.classList.add('zone');
   el.dataset.id = z.id;
   applyZoneClasses(el, z);
@@ -1442,7 +1491,7 @@ function renderHandles(z){
 function fillForm(z){
   if(!q('id')) return;
   q('id').value=z.id; q('name').value=z.name||''; q('url').value=z.url||''; q('logo').value=z.logo||''; q('category').value=z.category||''; q('description').value=z.description||''; q('shape').value=z.shape||'rect';
-  q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
+  q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h); q('rotation').value=zoneRotation(z);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
   if(z.dataConfirmed || z.associationConfirmed) q('associationStatus').textContent='Item link confirmed';
@@ -1462,6 +1511,7 @@ function fillEditPopup(z){
   q('editPopupY').value=fmt(z.y);
   q('editPopupW').value=fmt(z.w);
   q('editPopupH').value=fmt(z.h);
+  q('editPopupRotation').value=zoneRotation(z);
   q('editPopupPoints').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('editPopupPoints').disabled = z.shape !== 'poly';
   if(z.dataConfirmed || z.associationConfirmed) q('editPopupAssociationStatus').textContent='Item link confirmed';
@@ -1574,7 +1624,7 @@ function handleZoneDoublePointer(e){
   lastZonePointer={id:zoneId,time:now,x:e.clientX||0,y:e.clientY||0};
 }
 
-const ZONE_EDITOR_FIELD_IDS = {Id:'id', Name:'name', Url:'url', Logo:'logo', Category:'category', Description:'description', Shape:'shape', X:'x', Y:'y', W:'w', H:'h', Points:'points'};
+const ZONE_EDITOR_FIELD_IDS = {Id:'id', Name:'name', Url:'url', Logo:'logo', Category:'category', Description:'description', Shape:'shape', X:'x', Y:'y', W:'w', H:'h', Rotation:'rotation', Points:'points'};
 function zoneEditorFieldId(prefix, field){ return prefix ? `${prefix}${field}` : ZONE_EDITOR_FIELD_IDS[field]; }
 function zoneEditorField(prefix, field){ return q(zoneEditorFieldId(prefix, field)); }
 function applyZoneEditorValues(prefix=''){
@@ -1595,6 +1645,8 @@ function applyZoneEditorValues(prefix=''){
   z.y=clamp(Number(zoneEditorField(prefix,'Y').value)||0,0,IMG_H);
   z.w=clamp(Number(zoneEditorField(prefix,'W').value)||20,4,IMG_W-z.x);
   z.h=clamp(Number(zoneEditorField(prefix,'H').value)||20,4,IMG_H-z.y);
+  const rotationInput=zoneEditorField(prefix,'Rotation');
+  z.rotation=normalizeRotation(rotationInput ? rotationInput.value : z.rotation);
   if(z.shape==='poly'){
     const pts=zoneEditorField(prefix,'Points').value.trim().split(/\s+/).map(s=>s.split(',').map(Number)).filter(a=>a.length===2 && a.every(Number.isFinite)).map(([x,y])=>({x:clamp(x,0,IMG_W),y:clamp(y,0,IMG_H)}));
     if(pts.length>=3) z.points=pts; else if(old!=='poly') z.points=[];
@@ -1891,6 +1943,7 @@ function normalizeImportedZone(z){
   row.y=Number(row.y)||0;
   row.w=Math.max(0,Number(row.w)||0);
   row.h=Math.max(0,Number(row.h)||0);
+  row.rotation=normalizeRotation(row.rotation);
   row.confidence=Math.max(0,Math.min(1,Number(row.confidence)||0));
   if(row.llmFound!==undefined) row.llmFound=!!row.llmFound;
   return row;
@@ -2844,6 +2897,40 @@ function normalizeExportExperience(value){
   return 'basic';
 }
 function getExportExperience(){ const input=q('cfgExportExperience'); return normalizeExportExperience(input && input.value); }
+function zoneCoordinatePayload(z){
+  const base={
+    id:z.id,
+    name:z.name || '',
+    shape:z.shape || 'rect',
+    x:fmt(z.x),
+    y:fmt(z.y),
+    w:fmt(z.w),
+    h:fmt(z.h),
+    rotation:zoneRotation(z)
+  };
+  if(z.shape==='poly'){
+    ensurePoly(z);
+    base.points=(z.points||[]).map(p=>({x:fmt(p.x), y:fmt(p.y)}));
+    base.rotatedPoints=rotatedPoints(z.points||[], z).map(p=>({x:fmt(p.x), y:fmt(p.y)}));
+  } else if(z.shape==='diamond') {
+    base.points=rotatedPoints(diamondCornerPoints(z), z).map(p=>({x:fmt(p.x), y:fmt(p.y)}));
+  } else if(z.shape==='rect') {
+    base.points=rotatedPoints(rectCornerPoints(z), z).map(p=>({x:fmt(p.x), y:fmt(p.y)}));
+  } else if(z.shape==='circle') {
+    base.center={x:fmt(z.x+z.w/2), y:fmt(z.y+z.h/2)};
+    base.radius={x:fmt(z.w/2), y:fmt(z.h/2)};
+  }
+  return base;
+}
+function buildCoordinatesJson(){
+  return {
+    schema:'wavestone-radar-mapper-coordinates-v1',
+    source:'coordinates_export',
+    image:{width:IMG_W, height:IMG_H},
+    coordinateSystem:'Pixel coordinates in image space, origin at top-left (0,0). Rotations are degrees around the zone center.',
+    zones:zones.map(zoneCoordinatePayload)
+  };
+}
 function getDetectionConfig(){
   return {
     contrast:58,
@@ -4257,7 +4344,7 @@ q('copyEnrichPrompt').onclick=async()=>{
 function makeZone(shape){
   if(!isEditMode()) return;
   const id='z'+String(Date.now()).slice(-8); const x=560,y=300,w=90,h=45;
-  const z={id,name:'new_zone',url:'',logo:'',description:'',shape,x,y,w,h,points:[]};
+  const z={id,name:'new_zone',url:'',logo:'',description:'',shape,x,y,w,h,rotation:0,points:[]};
   if(shape==='poly') z.points=[{x,y},{x:x+w,y:y+5},{x:x+w-10,y:y+h},{x:x+8,y:y+h-3}];
   recordHistory();
   zones.push(z); setPrimarySelection(id); render();
@@ -4293,6 +4380,7 @@ q('resetLocalBase').onclick=()=>{
   setInitStatus('Preparation reset: visual, zones and imported data cleared.','success');
 };
 q('exportJson').onclick=()=>download('radar_overlay_zones.json', JSON.stringify(buildProjectJson('edition'),null,2), 'application/json');
+q('exportCoordinatesJson').onclick=()=>download('radar_coordinates_only.json', JSON.stringify(buildCoordinatesJson(),null,2), 'application/json');
 q('importBtn').onclick=()=>q('importFile').click();
 q('importFile').onchange=async e=>{
   const f=e.target.files[0];
@@ -4467,13 +4555,18 @@ function zoneSearchText(z){
 function zoneHasData(z){
   return (z.name && !/^zone_\d+$/i.test(z.name)) || !!z.url || !!z.logo || !!z.description;
 }
+function svgTransformPart(z){
+  const transform=zoneTransformAttr(z);
+  return transform ? ` transform="${transform}"` : '';
+}
 function zoneShapeMarkup(z, cls='click-zone', forceRect=false){
   const title=escapeHtml(z.name||z.id);
+  const transform=forceRect ? '' : svgTransformPart(z);
   if(forceRect) return `<rect class="${cls}" x="${fmt(z.x)}" y="${fmt(z.y)}" width="${fmt(z.w)}" height="${fmt(z.h)}"><title>${title}</title></rect>`;
-  if(z.shape==='circle') return `<ellipse class="${cls}" cx="${fmt(z.x+z.w/2)}" cy="${fmt(z.y+z.h/2)}" rx="${fmt(z.w/2)}" ry="${fmt(z.h/2)}"><title>${title}</title></ellipse>`;
-  if(z.shape==='diamond') return `<polygon class="${cls}" points="${pointsFromBox(z)}"><title>${title}</title></polygon>`;
-  if(z.shape==='poly') return `<polygon class="${cls}" points="${pointsFromBox(z)}"><title>${title}</title></polygon>`;
-  return `<rect class="${cls}" x="${fmt(z.x)}" y="${fmt(z.y)}" width="${fmt(z.w)}" height="${fmt(z.h)}"><title>${title}</title></rect>`;
+  if(z.shape==='circle') return `<ellipse class="${cls}" cx="${fmt(z.x+z.w/2)}" cy="${fmt(z.y+z.h/2)}" rx="${fmt(z.w/2)}" ry="${fmt(z.h/2)}"${transform}><title>${title}</title></ellipse>`;
+  if(z.shape==='diamond') return `<polygon class="${cls}" points="${pointsFromBox(z)}"${transform}><title>${title}</title></polygon>`;
+  if(z.shape==='poly') return `<polygon class="${cls}" points="${pointsFromBox(z)}"${transform}><title>${title}</title></polygon>`;
+  return `<rect class="${cls}" x="${fmt(z.x)}" y="${fmt(z.y)}" width="${fmt(z.w)}" height="${fmt(z.h)}"${transform}><title>${title}</title></rect>`;
 }
 function svgMarkupForExport(){
   return zones.filter(zoneHasData).map(z=>{
@@ -4787,10 +4880,15 @@ function imageMapArea(z){
   const keywords=escapeHtml(normalizeKeywords(z.searchKeywords));
   const title=keywords ? `${name} - ${keywords}` : name;
   const attrs=`href="${escapeHtml(url)}" alt="${name}" title="${title}" data-keywords="${keywords}"${url==='#' ? '' : ' target="_blank" rel="noopener"'}`;
-  if(z.shape==='circle') return `<area shape="circle" coords="${fmt(z.x+z.w/2)},${fmt(z.y+z.h/2)},${fmt(Math.min(z.w,z.h)/2)}" ${attrs}>`;
-  if(z.shape==='diamond' || z.shape==='poly') {
-    const polyPoints=(z.shape==='poly' && z.points && z.points.length ? z.points : [{x:z.x+z.w/2,y:z.y},{x:z.x+z.w,y:z.y+z.h/2},{x:z.x+z.w/2,y:z.y+z.h},{x:z.x,y:z.y+z.h/2}]);
-    const coords=polyPoints.map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(',');
+  const angle=zoneRotation(z);
+  if(z.shape==='circle' && !angle && Math.abs(z.w-z.h)<1) return `<area shape="circle" coords="${fmt(z.x+z.w/2)},${fmt(z.y+z.h/2)},${fmt(Math.min(z.w,z.h)/2)}" ${attrs}>`;
+  if(z.shape==='diamond' || z.shape==='poly' || angle || z.shape==='circle') {
+    let polyPoints;
+    if(z.shape==='poly'){ ensurePoly(z); polyPoints=z.points; }
+    else if(z.shape==='diamond') polyPoints=diamondCornerPoints(z);
+    else if(z.shape==='circle') polyPoints=ellipsePoints(z);
+    else polyPoints=rectCornerPoints(z);
+    const coords=rotatedPoints(polyPoints, z).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(',');
     return `<area shape="poly" coords="${coords}" ${attrs}>`;
   }
   return `<area shape="rect" coords="${fmt(z.x)},${fmt(z.y)},${fmt(z.x+z.w)},${fmt(z.y+z.h)}" ${attrs}>`;
