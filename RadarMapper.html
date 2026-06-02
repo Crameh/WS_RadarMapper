@@ -584,6 +584,8 @@
         <input id="editPopupUrl" placeholder="https://..." inputmode="url">
         <label>Logo (URL or data URI)</label>
         <input id="editPopupLogo" placeholder="https://.../logo.png or data:image/..." inputmode="url">
+        <label>Category</label>
+        <input id="editPopupCategory" placeholder="Category, sector, quadrant...">
         <label>Short description</label>
         <textarea id="editPopupDescription" rows="3" placeholder="Description shown in popup"></textarea>
         <label>Shape</label>
@@ -823,6 +825,8 @@
         <input id="url" placeholder="https://..." inputmode="url">
         <label>Logo (URL or data URI)</label>
         <input id="logo" placeholder="https://.../logo.png or data:image/..." inputmode="url">
+        <label>Category</label>
+        <input id="category" placeholder="Category, sector, quadrant...">
         <label>Short description</label>
         <textarea id="description" rows="3" placeholder="Description shown in popup"></textarea>
         <label>Shape</label>
@@ -1437,7 +1441,7 @@ function renderHandles(z){
 }
 function fillForm(z){
   if(!q('id')) return;
-  q('id').value=z.id; q('name').value=z.name||''; q('url').value=z.url||''; q('logo').value=z.logo||''; q('description').value=z.description||''; q('shape').value=z.shape||'rect';
+  q('id').value=z.id; q('name').value=z.name||''; q('url').value=z.url||''; q('logo').value=z.logo||''; q('category').value=z.category||''; q('description').value=z.description||''; q('shape').value=z.shape||'rect';
   q('x').value=fmt(z.x); q('y').value=fmt(z.y); q('w').value=fmt(z.w); q('h').value=fmt(z.h);
   q('points').value=(z.points||[]).map(p=>`${fmt(p.x)},${fmt(p.y)}`).join(' ');
   q('points').disabled = z.shape !== 'poly';
@@ -1451,6 +1455,7 @@ function fillEditPopup(z){
   q('editPopupName').value=z.name||'';
   q('editPopupUrl').value=z.url||'';
   q('editPopupLogo').value=z.logo||'';
+  q('editPopupCategory').value=z.category||'';
   q('editPopupDescription').value=z.description||'';
   q('editPopupShape').value=z.shape||'rect';
   q('editPopupX').value=fmt(z.x);
@@ -1569,7 +1574,7 @@ function handleZoneDoublePointer(e){
   lastZonePointer={id:zoneId,time:now,x:e.clientX||0,y:e.clientY||0};
 }
 
-const ZONE_EDITOR_FIELD_IDS = {Id:'id', Name:'name', Url:'url', Logo:'logo', Description:'description', Shape:'shape', X:'x', Y:'y', W:'w', H:'h', Points:'points'};
+const ZONE_EDITOR_FIELD_IDS = {Id:'id', Name:'name', Url:'url', Logo:'logo', Category:'category', Description:'description', Shape:'shape', X:'x', Y:'y', W:'w', H:'h', Points:'points'};
 function zoneEditorFieldId(prefix, field){ return prefix ? `${prefix}${field}` : ZONE_EDITOR_FIELD_IDS[field]; }
 function zoneEditorField(prefix, field){ return q(zoneEditorFieldId(prefix, field)); }
 function applyZoneEditorValues(prefix=''){
@@ -1583,6 +1588,7 @@ function applyZoneEditorValues(prefix=''){
   z.name=nameInput.value.trim() || z.id;
   z.url=zoneEditorField(prefix,'Url').value.trim();
   z.logo=zoneEditorField(prefix,'Logo').value.trim();
+  z.category=zoneEditorField(prefix,'Category').value.trim();
   z.description=zoneEditorField(prefix,'Description').value.trim();
   z.shape=zoneEditorField(prefix,'Shape').value;
   z.x=clamp(Number(zoneEditorField(prefix,'X').value)||0,0,IMG_W);
@@ -2160,6 +2166,7 @@ function applyStartupRecordToInputs(prefix=''){
   q(nameId).value=record.name;
   q(prefix ? `${prefix}Url` : 'url').value=record.url || q(prefix ? `${prefix}Url` : 'url').value;
   q(prefix ? `${prefix}Logo` : 'logo').value=record.logo || q(prefix ? `${prefix}Logo` : 'logo').value;
+  q(prefix ? `${prefix}Category` : 'category').value=record.category || q(prefix ? `${prefix}Category` : 'category').value;
   q(prefix ? `${prefix}Description` : 'description').value=record.description || q(prefix ? `${prefix}Description` : 'description').value;
   return true;
 }
