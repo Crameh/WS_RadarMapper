@@ -541,7 +541,7 @@
           <button id="undoBtn" class="undoBtn" type="button" aria-label="Undo last change" title="Undo last change (Ctrl+Z)" disabled>↶</button>
         </div>
         <div class="zoneToolsRight">
-          <label class="zoomControl">Zoom <input id="zoom" type="range" min="10" max="140" value="80"></label>
+          <label class="zoomControl">Zoom <input id="zoom" type="range" min="10" max="300" value="80"></label>
           <input id="showFill" type="checkbox" checked hidden>
         </div>
       </div>
@@ -2636,7 +2636,7 @@ function autoFitZoom(){
   if(!wrap) return;
   const pad=window.innerWidth<=480?16:28;
   const avail=Math.max(200,wrap.clientWidth-pad);
-  const fit=Math.max(10,Math.min(140,Math.floor(avail/IMG_W*100)));
+  const fit=Math.max(10,Math.min(300,Math.floor(avail/IMG_W*100)));
   q('zoom').value=fit;
   q('zoom').dispatchEvent(new Event('input'));
 }
