@@ -940,9 +940,10 @@
               <p class="actionNote">Every HTML export includes a responsive accessible version: a keyboard-friendly category index and a full text list of mapped companies.</p>
               <hr class="prepChoiceDivider">
               <label>Dataset</label>
-              <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file.</p>
+              <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file, or generate the accessibility text file listing companies by category.</p>
               <div class="secondaryActions">
                 <button id="exportCsv" class="prepBtn" type="button">Export dataset as CSV</button>
+                <button id="exportAccessibilityText" class="prepBtn" type="button">Accessibility text file</button>
               </div>
               <hr class="prepChoiceDivider">
               <label>Project backup</label>
@@ -4967,6 +4968,44 @@ function buildExportHtml(mode=getExportMode()){
   }
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
+if(q('exportAccessibilityText')) q('exportAccessibilityText').onclick=()=>download(accessibilityTextFilename(), buildAccessibilityText(), 'text/plain;charset=utf-8');
+function plainTextSentenceList(items){
+  const values=Array.from(new Set((items||[]).map(value=>String(value||'').trim()).filter(Boolean)));
+  return values.length ? `${values.join(', ')}.` : '';
+}
+function accessibilityGroupLabel(z){
+  const raw=(z && z.startupData) || {};
+  const candidates=[];
+  ['type','Type','stage','Stage','maturity','Maturity','company type','Company type','company_type','segment','Segment','status','Status','startup type','Startup type'].forEach(key=>{
+    if(raw && raw[key] !== undefined && raw[key] !== null) candidates.push(raw[key]);
+  });
+  candidates.push(z && z.type, z && z.stage, z && z.maturity, z && z.companyType, z && z.scaleup, z && z.isScaleup);
+  const text=candidates.map(value=>String(value||'')).join(' ').toLowerCase();
+  if(/scale[\s-]*up|scaleup|scaler|growth/.test(text)) return 'Scale-ups';
+  return 'Startups';
+}
+function buildAccessibilityText(){
+  const groups=new Map();
+  zones.filter(zoneHasData).forEach(z=>{
+    const category=zoneSector(z) || 'Other';
+    const bucket=accessibilityGroupLabel(z);
+    if(!groups.has(category)) groups.set(category, {'Startups':[], 'Scale-ups':[]});
+    groups.get(category)[bucket].push(String(z.name||z.id).trim());
+  });
+  return Array.from(groups.entries()).sort((a,b)=>a[0].localeCompare(b[0])).map(([category,buckets])=>{
+    const lines=[`${category}:`, ''];
+    const startups=plainTextSentenceList(buckets['Startups']);
+    const scaleups=plainTextSentenceList(buckets['Scale-ups']);
+    if(startups) lines.push(`Startups: ${startups}`);
+    if(scaleups) lines.push(`Scale-ups: ${scaleups}`);
+    return lines.join('\n');
+  }).filter(Boolean).join('\n\n');
+}
+function accessibilityTextFilename(){
+  const raw=(q('cfgHtmlName') && q('cfgHtmlName').value) || 'accessibility_radar.txt';
+  const base=String(raw).replace(/\.[^.]*$/, '').trim() || 'accessibility_radar';
+  return `${base}_accessibility.txt`;
+}
 function csvEscape(value){
   const s=String(value==null?'':value);
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
