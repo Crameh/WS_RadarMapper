@@ -4950,17 +4950,32 @@ function buildIframeSnippet(){
   const src=escapeHtml(srcValue);
   return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
+function stripLegacyAccessibleRadarSection(html){
+  let output=String(html || '');
+  const legacyId='radarmapper-'+'accessible-version';
+  const sectionMatch=output.match(new RegExp(`<section\\b[^>]*id=["']${legacyId}["'][\\s\\S]*`, 'i'));
+  if(sectionMatch && typeof sectionMatch.index === 'number'){
+    const sectionStart=sectionMatch.index;
+    const nextScript=output.indexOf('<script', sectionStart);
+    output=output.slice(0, sectionStart)+(nextScript >= 0 ? output.slice(nextScript) : '');
+  }
+  output=output.replace(new RegExp(`<p\\b[^>]*class=["'][^"']*rm-access-link[^"']*["'][\\s\\S]*?<\\/p>`, 'gi'), '');
+  output=output.replace(new RegExp(`<a\\b[^>]*class=["'][^"']*rm-skip-link[^"']*["'][\\s\\S]*?<\\/a>`, 'gi'), '');
+  return output;
+}
 function buildExportHtml(mode=getExportMode()){
   const experience=getExportExperience();
   try{
-    if(mode==='reallynice') return buildReallyReallyNiceSnippet('radarmapper-wow', 'rrn-layer', true);
-    if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
-    if(mode==='iframe') return buildIframeSnippet();
-    if(mode==='imagemap') return buildImageMapSnippet();
-    return buildStandaloneHtml();
+    let output;
+    if(mode==='reallynice') output=buildReallyReallyNiceSnippet('radarmapper-wow', 'rrn-layer', true);
+    else if(mode==='snippet') output=experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
+    else if(mode==='iframe') output=buildIframeSnippet();
+    else if(mode==='imagemap') output=buildImageMapSnippet();
+    else output=buildStandaloneHtml();
+    return stripLegacyAccessibleRadarSection(output);
   } catch(_err){
     // Fallback for strict preview environments (e.g. Copilot preview) where interactive script generation may fail.
-    return buildImageMapSnippet();
+    return stripLegacyAccessibleRadarSection(buildImageMapSnippet());
   }
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
