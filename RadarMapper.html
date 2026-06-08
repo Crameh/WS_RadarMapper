@@ -914,7 +914,7 @@
             <div class="prepStepBody">
               <label>Integration format</label>
               <select id="cfgExportMode">
-                <option value="standalone">Standalone page, for iframe or dedicated page</option>
+                <option value="standalone">Standalone radar-only page, for iframe or dedicated page</option>
                 <option value="iframe">Responsive iframe snippet, recommended for Wavestone / RiskInsight</option>
                 <option value="snippet">CMS snippet, isolated CSS + lightweight interaction</option>
                 <option value="reallynice">Really really nice: premium interactive showcase</option>
@@ -939,9 +939,10 @@
               </div>
               <hr class="prepChoiceDivider">
               <label>Dataset</label>
-              <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file.</p>
+              <p class="actionNote">Download the current dataset (including any enrichment) as a CSV file, or generate the accessibility text file listing companies by category.</p>
               <div class="secondaryActions">
                 <button id="exportCsv" class="prepBtn" type="button">Export dataset as CSV</button>
+                <button id="exportAccessibilityText" class="prepBtn" type="button">Accessibility text file</button>
               </div>
               <hr class="prepChoiceDivider">
               <label>Project backup</label>
@@ -4702,10 +4703,7 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
 }
 function buildStandaloneHtml(){
   const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
-  const experience=getExportExperience();
-  const body=experience==='basic'
-    ? buildCmsSnippet('radar', 'layer', true)
-    : buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true, experience);
+  const body=buildCmsSnippet('radar', 'layer', true);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
 }
 function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true, experience='advanced'){
@@ -4903,20 +4901,73 @@ function buildIframeSnippet(){
   const src=escapeHtml(srcValue);
   return `<iframe title="${escapeHtml(q('cfgExportTitle').value || 'Clickable radar')}" src="${src}" loading="lazy" style="display:block;width:100%;max-width:${IMG_W}px;aspect-ratio:${IMG_W}/${IMG_H};margin:24px auto;border:0;overflow:hidden" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }
+function stripLegacyAccessibleRadarSection(html){
+  let output=String(html || '');
+  const legacyId='radarmapper-'+'accessible-version';
+  const sectionMatch=output.match(new RegExp(`<section\\b[^>]*id=["']${legacyId}["'][\\s\\S]*`, 'i'));
+  if(sectionMatch && typeof sectionMatch.index === 'number'){
+    const sectionStart=sectionMatch.index;
+    const nextScript=output.indexOf('<script', sectionStart);
+    output=output.slice(0, sectionStart)+(nextScript >= 0 ? output.slice(nextScript) : '');
+  }
+  output=output.replace(new RegExp(`<p\\b[^>]*class=["'][^"']*rm-access-link[^"']*["'][\\s\\S]*?<\\/p>`, 'gi'), '');
+  output=output.replace(new RegExp(`<a\\b[^>]*class=["'][^"']*rm-skip-link[^"']*["'][\\s\\S]*?<\\/a>`, 'gi'), '');
+  return output;
+}
 function buildExportHtml(mode=getExportMode()){
   const experience=getExportExperience();
   try{
-    if(mode==='reallynice') return buildReallyReallyNiceSnippet('radarmapper-wow', 'rrn-layer', true);
-    if(mode==='snippet') return experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
-    if(mode==='iframe') return buildIframeSnippet();
-    if(mode==='imagemap') return buildImageMapSnippet();
-    return buildStandaloneHtml();
+    let output;
+    if(mode==='reallynice') output=buildReallyReallyNiceSnippet('radarmapper-wow', 'rrn-layer', true);
+    else if(mode==='snippet') output=experience==='basic' ? buildCmsSnippet('radarmapper-embed', 'rm-layer', true) : buildInterfaceSnippet('radarmapper-embed', 'rm-layer', true, experience);
+    else if(mode==='iframe') output=buildIframeSnippet();
+    else if(mode==='imagemap') output=buildImageMapSnippet();
+    else output=buildStandaloneHtml();
+    return stripLegacyAccessibleRadarSection(output);
   } catch(_err){
     // Fallback for strict preview environments (e.g. Copilot preview) where interactive script generation may fail.
-    return buildImageMapSnippet();
+    return stripLegacyAccessibleRadarSection(buildImageMapSnippet());
   }
 }
 q('exportHtml').onclick=()=>download(q('cfgHtmlName').value || 'clickable_radar.html', buildExportHtml(), 'text/html');
+if(q('exportAccessibilityText')) q('exportAccessibilityText').onclick=()=>download(accessibilityTextFilename(), buildAccessibilityText(), 'text/plain;charset=utf-8');
+function plainTextSentenceList(items){
+  const values=Array.from(new Set((items||[]).map(value=>String(value||'').trim()).filter(Boolean)));
+  return values.length ? `${values.join(', ')}.` : '';
+}
+function accessibilityGroupLabel(z){
+  const raw=(z && z.startupData) || {};
+  const candidates=[];
+  ['type','Type','stage','Stage','maturity','Maturity','company type','Company type','company_type','segment','Segment','status','Status','startup type','Startup type'].forEach(key=>{
+    if(raw && raw[key] !== undefined && raw[key] !== null) candidates.push(raw[key]);
+  });
+  candidates.push(z && z.type, z && z.stage, z && z.maturity, z && z.companyType, z && z.scaleup, z && z.isScaleup);
+  const text=candidates.map(value=>String(value||'')).join(' ').toLowerCase();
+  if(/scale[\s-]*up|scaleup|scaler|growth/.test(text)) return 'Scale-ups';
+  return 'Startups';
+}
+function buildAccessibilityText(){
+  const groups=new Map();
+  zones.filter(zoneHasData).forEach(z=>{
+    const category=zoneSector(z) || 'Other';
+    const bucket=accessibilityGroupLabel(z);
+    if(!groups.has(category)) groups.set(category, {'Startups':[], 'Scale-ups':[]});
+    groups.get(category)[bucket].push(String(z.name||z.id).trim());
+  });
+  return Array.from(groups.entries()).sort((a,b)=>a[0].localeCompare(b[0])).map(([category,buckets])=>{
+    const lines=[`${category}:`, ''];
+    const startups=plainTextSentenceList(buckets['Startups']);
+    const scaleups=plainTextSentenceList(buckets['Scale-ups']);
+    if(startups) lines.push(`Startups: ${startups}`);
+    if(scaleups) lines.push(`Scale-ups: ${scaleups}`);
+    return lines.join('\n');
+  }).filter(Boolean).join('\n\n');
+}
+function accessibilityTextFilename(){
+  const raw=(q('cfgHtmlName') && q('cfgHtmlName').value) || 'accessibility_radar.txt';
+  const base=String(raw).replace(/\.[^.]*$/, '').trim() || 'accessibility_radar';
+  return `${base}_accessibility.txt`;
+}
 function csvEscape(value){
   const s=String(value==null?'':value);
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
