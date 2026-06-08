@@ -914,7 +914,7 @@
             <div class="prepStepBody">
               <label>Integration format</label>
               <select id="cfgExportMode">
-                <option value="standalone">Standalone page, for iframe or dedicated page</option>
+                <option value="standalone">Standalone radar-only page, for iframe or dedicated page</option>
                 <option value="iframe">Responsive iframe snippet, recommended for Wavestone / RiskInsight</option>
                 <option value="snippet">CMS snippet, isolated CSS + lightweight interaction</option>
                 <option value="reallynice">Really really nice: premium interactive showcase</option>
@@ -4750,12 +4750,8 @@ function exportPopupScript(scopeSelector='.radar', popupSelector='#popup', hotsp
 }
 function buildStandaloneHtml(){
   const title=escapeHtml(q('cfgExportTitle').value || 'Clickable radar');
-  const experience=getExportExperience();
-  const body=experience==='basic'
-    ? buildCmsSnippet('radar', 'layer', true)
-    : buildInterfaceSnippet('radarmapper-interface', 'rm-layer', true, experience);
-  const pageCss=`<style>html{scroll-behavior:smooth}body{margin:0;background:#fff;overflow-x:hidden}.rm-skip-link{position:absolute;left:12px;top:12px;z-index:9999;transform:translateY(-160%);padding:10px 14px;border-radius:999px;background:#112b43;color:#fff;font:700 14px Arial,Helvetica,sans-serif}.rm-skip-link:focus{transform:none}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;transition-duration:.001ms!important}}</style>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>${pageCss}</head><body><a class="rm-skip-link" href="#radarmapper-accessible-version">Skip to accessible company list</a>${body}</body></html>`;
+  const body=buildCmsSnippet('radar', 'layer', true);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#fff;overflow-x:hidden">${body}</body></html>`;
 }
 function buildInterfaceSnippet(containerClass='radarmapper-interface', layerClass='rm-layer', includeScript=true, experience='advanced'){
   const popupId=`rm-popup-${Date.now().toString(36)}`;
